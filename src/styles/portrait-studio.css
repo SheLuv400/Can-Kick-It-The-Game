@@ -1,0 +1,243 @@
+.collection__card {
+  position: relative;
+}
+
+.collection__art-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 8;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(8, 6, 12, 0.78);
+  color: rgba(255, 255, 255, 0.72);
+  font-family: var(--mono, inherit);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+/* always visible: the face control must never hide behind a hover */
+.collection__art-btn {
+  opacity: 1;
+  padding: 0.36rem 0.7rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  border-color: rgba(232, 200, 119, 0.5);
+  background: rgba(10, 8, 14, 0.82);
+  color: #ffe9b0;
+}
+
+.collection__card:hover .collection__art-btn,
+.collection__art-btn:focus-visible,
+.collection__art-btn.is-set {
+  opacity: 1;
+}
+
+.collection__art-btn:hover,
+.collection__art-btn:focus-visible {
+  border-color: #e8c877;
+  color: #ffe9b0;
+}
+
+.collection__art-btn.is-set {
+  border-color: rgba(232, 200, 119, 0.72);
+  color: #ffe9b0;
+}
+
+.collection__card.is-wiring {
+  outline: 1px dashed rgba(232, 200, 119, 0.7);
+  outline-offset: 4px;
+}
+
+@media (hover: none) {
+  .collection__art-btn {
+    opacity: 1;
+  }
+}
+
+.collection__art-fit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.collection__art-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+}
+
+.collection__art-hint b {
+  color: #e8c877;
+}
+
+.portrait-studio {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.portrait-studio__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(4, 3, 6, 0.84);
+  backdrop-filter: blur(9px);
+  cursor: pointer;
+}
+
+.portrait-studio__panel {
+  position: relative;
+  width: min(540px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  border: 1px solid rgba(232, 200, 119, 0.3);
+  border-radius: 16px;
+  background: linear-gradient(160deg, #16111d, #08070c 70%);
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.68);
+  color: #f4ecdc;
+}
+
+.portrait-studio__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.portrait-studio__kicker {
+  margin: 0 0 0.25rem;
+  color: #e8c877;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+}
+
+.portrait-studio__head h2 {
+  margin: 0;
+  font-family: var(--display, inherit);
+  font-size: 1.6rem;
+  letter-spacing: 0.02em;
+}
+
+.portrait-studio__close {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.portrait-studio__preview {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  margin-top: 1rem;
+  border-radius: 10px;
+  background:
+    radial-gradient(70% 70% at 50% 20%, rgba(232, 200, 119, 0.18), transparent 70%),
+    #0b0910;
+  object-fit: contain;
+}
+
+.portrait-studio__drop {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+  margin-top: 1rem;
+  padding: 1.5rem 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.26);
+  border-radius: 12px;
+  text-align: center;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.portrait-studio__drop.is-armed {
+  border-color: #e8c877;
+  background: rgba(232, 200, 119, 0.08);
+}
+
+.portrait-studio__drop b {
+  font-family: var(--display, inherit);
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+
+.portrait-studio__drop span {
+  max-width: 34ch;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.portrait-studio__browse {
+  margin-top: 0.35rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(232, 200, 119, 0.5);
+  border-radius: 999px;
+  background: rgba(232, 200, 119, 0.1);
+  color: #ffe9b0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+}
+
+.portrait-studio__browse:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.portrait-studio__input {
+  display: none;
+}
+
+.portrait-studio__status {
+  min-height: 2.4em;
+  margin: 0.9rem 0 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.68rem;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+}
+
+.portrait-studio__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.portrait-studio__remove,
+.portrait-studio__done {
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+}
+
+.portrait-studio__remove {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.portrait-studio__done {
+  border: 1px solid #e8c877;
+  background: #e8c877;
+  color: #17110a;
+}

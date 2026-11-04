@@ -1,0 +1,11 @@
+node_modules
+dist
+artifacts
+.apt
+.local
+*.log
+*.pid
+tsconfig.tsbuildinfo
+site-public
+site-worker.bundle.js
+.DS_Store

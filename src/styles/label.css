@@ -1,0 +1,1342 @@
+/* ============================================================
+   RECORD LABEL OFFICE — management sim
+   ============================================================ */
+
+.label {
+  background:
+    radial-gradient(50% 30% at 12% 0%, rgba(137, 76, 255, 0.22), transparent 68%),
+    radial-gradient(46% 30% at 92% 6%, rgba(242, 193, 78, 0.12), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 5px),
+    #08070a;
+}
+
+.label__body {
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  padding: clamp(1.2rem, 2.4vw, 2.2rem) clamp(1rem, 2.5vw, 2.2rem) 2rem;
+}
+
+/* ------------------------------- masthead ------------------------------- */
+
+.label__masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid rgba(242, 193, 78, 0.42);
+}
+
+.label__kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.5rem;
+  color: var(--team-gold);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+}
+
+.label__kicker span {
+  width: 2rem;
+  height: 1px;
+  background: var(--team-gold);
+}
+
+.label__masthead h1 {
+  margin: 0;
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: clamp(2.6rem, 6vw, 5rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 0.9;
+  color: var(--team-ink);
+}
+
+.label__masthead h1 em {
+  color: var(--team-gold);
+  font-style: normal;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.55);
+}
+
+.label__deck {
+  max-width: 48ch;
+  margin: 0.75rem 0 0;
+  color: var(--team-dim);
+  font-size: 0.67rem;
+  letter-spacing: 0.05em;
+  line-height: 1.7;
+}
+
+.label__controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: none;
+  gap: 0.45rem;
+}
+
+.label__role-chip {
+  padding: 0.24rem 0.55rem;
+  border: 1px solid rgba(242, 193, 78, 0.55);
+  color: var(--team-gold);
+  font-size: 0.46rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.label__advance {
+  min-width: 12rem;
+}
+
+.label__hint {
+  color: var(--team-dim);
+  font-size: 0.4rem;
+  letter-spacing: 0.14em;
+  text-align: right;
+}
+
+.label__flash {
+  margin: 0.7rem 0 0;
+  padding: 0.45rem 0.7rem;
+  border-left: 2px solid var(--team-gold);
+  background: rgba(242, 193, 78, 0.08);
+  color: var(--team-gold-soft);
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+/* --------------------------------- tabs --------------------------------- */
+
+.label__tabs {
+  display: flex;
+  gap: 0.2rem;
+  margin: 0.85rem 0 0.9rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.label__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.label__tabs button {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 0.4rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid rgba(242, 193, 78, 0.2);
+  background: #0d0a10;
+  color: var(--team-dim);
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  transition: 0.15s ease;
+}
+
+.label__tabs button:hover {
+  border-color: rgba(242, 193, 78, 0.55);
+  color: var(--team-ink);
+}
+
+.label__tabs button.is-active {
+  border-color: var(--team-gold);
+  background: linear-gradient(180deg, #ffe09a, #d9a635);
+  color: #171006;
+}
+
+.label__tabs i {
+  font-size: 0.7rem;
+  font-style: normal;
+  line-height: 1;
+}
+
+.label__tabs b {
+  display: grid;
+  place-items: center;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.2rem;
+  border-radius: 999px;
+  background: var(--team-magenta);
+  color: #08070a;
+  font-size: 0.42rem;
+}
+
+/* -------------------------------- panels -------------------------------- */
+
+.label__grid {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 0.75rem;
+}
+
+.label__panel {
+  padding: 1rem;
+  border: 1px solid rgba(242, 193, 78, 0.22);
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(137, 76, 255, 0.08), transparent 55%),
+    linear-gradient(180deg, #100c14, #0b090e);
+}
+
+.label__panel.is-wide {
+  grid-column: 1 / -1;
+}
+
+.label__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(242, 193, 78, 0.16);
+  margin-bottom: 0.7rem;
+}
+
+.label__panel-head span {
+  color: var(--team-gold);
+  font-size: 0.46rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.label__panel-head em {
+  color: var(--team-dim);
+  font-size: 0.4rem;
+  font-style: normal;
+  letter-spacing: 0.14em;
+  text-align: right;
+}
+
+.label__panel-head--sub {
+  margin-top: 1.1rem;
+}
+
+.label__eyebrow {
+  color: var(--team-gold);
+  font-size: 0.42rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.label__role h2 {
+  margin: 0.35rem 0 0.4rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+  font-weight: 900;
+  line-height: 1.05;
+  color: var(--team-gold-soft);
+}
+
+.label__role > p {
+  margin: 0;
+  color: var(--team-dim);
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  line-height: 1.65;
+}
+
+.label__next {
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(242, 193, 78, 0.18);
+}
+
+.label__next > span {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: var(--team-gold);
+  font-size: 0.4rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.label__next.is-max b {
+  display: block;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.1rem;
+  color: var(--team-gold-soft);
+}
+
+.label__next.is-max p {
+  margin: 0.3rem 0 0;
+  color: var(--team-dim);
+  font-size: 0.56rem;
+  line-height: 1.6;
+}
+
+.label__req {
+  margin-bottom: 0.55rem;
+}
+
+.label__req > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.22rem;
+}
+
+.label__req b {
+  color: var(--team-ink);
+  font-size: 0.42rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.label__req em {
+  color: var(--team-dim);
+  font-size: 0.42rem;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.label__req-track {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.label__req-track i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--team-gold-deep), var(--team-gold));
+}
+
+/* ------------------------------- pulse ---------------------------------- */
+
+.label__pulse-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.label__pulse-grid > div {
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #0c090f;
+}
+
+.label__pulse-grid span {
+  display: block;
+  color: var(--team-dim);
+  font-size: 0.36rem;
+  letter-spacing: 0.14em;
+}
+
+.label__pulse-grid b {
+  display: block;
+  margin-top: 0.2rem;
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.label__pulse-grid b em {
+  color: var(--team-dim);
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
+.label__pulse-grid > div > em {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--team-dim);
+  font-size: 0.36rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+}
+
+.label__meter {
+  height: 3px;
+  margin-top: 0.35rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.label__meter i {
+  display: block;
+  height: 100%;
+  background: var(--team-gold);
+}
+
+.label__net {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.55rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(242, 193, 78, 0.18);
+  background: rgba(242, 193, 78, 0.05);
+}
+
+.label__net span {
+  color: var(--team-dim);
+  font-size: 0.4rem;
+  letter-spacing: 0.2em;
+}
+
+.label__net b {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.72rem;
+}
+
+.is-up {
+  color: #58d493;
+}
+
+.is-down {
+  color: #e2685f;
+}
+
+.label__pulse .link-btn {
+  margin-top: 0.65rem;
+  color: var(--team-gold);
+  font-size: 0.42rem;
+  letter-spacing: 0.16em;
+}
+
+/* -------------------------------- roster -------------------------------- */
+
+.label__roster {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.label__artist {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem;
+  border: 1px solid rgba(242, 193, 78, 0.16);
+  background: #0c090f;
+  text-align: left;
+  transition: 0.15s ease;
+}
+
+.label__artist:hover {
+  border-color: rgba(242, 193, 78, 0.5);
+  background: #120d16;
+}
+
+.label__artist-art {
+  position: relative;
+  display: block;
+  width: 4rem;
+  height: 4rem;
+  border: 1px solid rgba(242, 193, 78, 0.32);
+  border-radius: 50%;
+  overflow: hidden;
+  background: #1a1310;
+}
+
+.label__artist-art .portrait {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+.label__artist-copy {
+  min-width: 0;
+}
+
+.label__artist-copy > b {
+  display: block;
+  overflow: hidden;
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label__artist-copy > i {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.12rem;
+  color: var(--team-dim);
+  font-size: 0.36rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label__artist-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.32rem;
+}
+
+.label__artist-meta em {
+  padding: 0.06rem 0.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--team-dim);
+  font-size: 0.32rem;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.label__artist-meta em.is-studio {
+  border-color: rgba(242, 193, 78, 0.45);
+  color: var(--team-gold);
+}
+
+.label__morale {
+  display: block;
+  margin-top: 0.35rem;
+}
+
+.label__morale > i {
+  display: block;
+  height: 3px;
+  background: linear-gradient(90deg, var(--team-magenta), var(--team-gold));
+}
+
+.label__morale > em {
+  display: block;
+  margin-top: 0.16rem;
+  color: var(--team-dim);
+  font-size: 0.32rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+}
+
+/* ------------------------------ shared bits ------------------------------ */
+
+.label__empty {
+  padding: 1rem 0.2rem;
+}
+
+.label__empty b {
+  display: block;
+  color: var(--team-gold);
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.label__empty p {
+  max-width: 54ch;
+  margin: 0.35rem 0 0.8rem;
+  color: var(--team-dim);
+  font-size: 0.58rem;
+  line-height: 1.65;
+}
+
+.label__empty-copy {
+  margin: 0.6rem 0;
+  color: var(--team-dim);
+  font-size: 0.56rem;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+
+.label__section-note {
+  max-width: 90ch;
+  margin: 0 0 0.85rem;
+  color: var(--team-dim);
+  font-size: 0.56rem;
+  letter-spacing: 0.02em;
+  line-height: 1.65;
+}
+
+/* -------------------------------- log ----------------------------------- */
+
+.label__log ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.label__log li {
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr) 5rem;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.52rem;
+}
+
+.label__log li:last-child {
+  border-bottom: 0;
+}
+
+.label__log li > span {
+  color: var(--team-dim);
+  font-size: 0.4rem;
+  letter-spacing: 0.1em;
+}
+
+.label__log li b {
+  overflow: hidden;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label__log li em {
+  color: var(--team-ink);
+  font-style: normal;
+  text-align: right;
+}
+
+/* -------------------------------- scout --------------------------------- */
+
+.label__scout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 0.55rem;
+}
+
+.label__scout-card {
+  display: grid;
+  grid-template-columns: 4.4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem;
+  border: 1px solid rgba(242, 193, 78, 0.18);
+  background: #0c090f;
+}
+
+.label__scout-card.is-locked {
+  opacity: 0.62;
+}
+
+.label__scout-art {
+  position: relative;
+  display: block;
+  width: 4.4rem;
+  height: 4.4rem;
+  border: 1px solid rgba(242, 193, 78, 0.3);
+  border-radius: 50%;
+  overflow: hidden;
+  background: #1a1310;
+}
+
+.label__scout-art .portrait {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+.label__scout-copy {
+  min-width: 0;
+}
+
+.label__scout-tag {
+  display: block;
+  color: var(--team-gold);
+  font-size: 0.34rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.label__scout-copy h3 {
+  margin: 0.2rem 0 0.15rem;
+  overflow: hidden;
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label__scout-copy p {
+  overflow: hidden;
+  margin: 0;
+  color: var(--team-dim);
+  font-size: 0.38rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label__scout-heat {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.label__scout-heat > div {
+  width: 4rem;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.label__scout-heat > div i {
+  display: block;
+  height: 100%;
+  background: var(--team-gold);
+}
+
+.label__scout-heat span {
+  color: var(--team-dim);
+  font-size: 0.32rem;
+  letter-spacing: 0.08em;
+}
+
+.label__scout-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  align-self: stretch;
+  gap: 0.5rem;
+}
+
+.label__fee {
+  text-align: right;
+}
+
+.label__fee b {
+  display: block;
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.label__fee em {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--team-dim);
+  font-size: 0.32rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+}
+
+/* -------------------------------- studio -------------------------------- */
+
+.label__studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: start;
+  gap: 0.75rem;
+}
+
+.label__album-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.label__album {
+  display: grid;
+  grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.label__album-art {
+  position: relative;
+  display: block;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid rgba(242, 193, 78, 0.28);
+  overflow: hidden;
+}
+
+.label__album-art .portrait {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+.label__album > div {
+  min-width: 0;
+}
+
+.label__album b {
+  display: block;
+  overflow: hidden;
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label__album > div > span {
+  display: block;
+  color: var(--team-dim);
+  font-size: 0.4rem;
+  letter-spacing: 0.08em;
+}
+
+.label__album > div > em {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--team-dim);
+  font-size: 0.34rem;
+  font-style: normal;
+  letter-spacing: 0.06em;
+}
+
+.label__album.is-released {
+  opacity: 0.85;
+}
+
+.label__countdown {
+  padding: 0.18rem 0.3rem;
+  border: 1px solid rgba(242, 193, 78, 0.45);
+  color: var(--team-gold);
+  font-size: 0.34rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.label__debut {
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 1rem;
+  color: var(--team-gold);
+}
+
+/* ------------------------------ studio form ------------------------------ */
+
+.label__field {
+  display: block;
+  margin-bottom: 0.85rem;
+}
+
+.label__field > span,
+.label__field-head > span {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--team-dim);
+  font-size: 0.4rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.label__field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.label__field-head b {
+  color: var(--team-gold);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.68rem;
+}
+
+.label__field input[type='text'],
+.label__field input:not([type]) {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(242, 193, 78, 0.28);
+  background: #0a080c;
+  color: var(--team-ink);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+}
+
+.label__field input[type='text']:focus,
+.label__field input:not([type]):focus {
+  border-color: var(--team-gold);
+  outline: 0;
+}
+
+.label__field input[type='range'] {
+  width: 100%;
+  accent-color: var(--team-gold);
+}
+
+.label__slider-legend {
+  display: flex;
+  justify-content: space-between;
+  color: var(--team-dim);
+  font-size: 0.32rem;
+  letter-spacing: 0.1em;
+}
+
+.label__artist-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.label__artist-pills button {
+  padding: 0.3rem 0.45rem;
+  border: 1px solid rgba(242, 193, 78, 0.22);
+  color: var(--team-dim);
+  font-size: 0.4rem;
+  letter-spacing: 0.08em;
+}
+
+.label__artist-pills button.is-active {
+  border-color: var(--team-gold);
+  background: rgba(242, 193, 78, 0.14);
+  color: var(--team-gold-soft);
+}
+
+.label__weeks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+
+.label__weeks button {
+  padding: 0.35rem 0.2rem;
+  border: 1px solid rgba(242, 193, 78, 0.22);
+  background: #0b080e;
+  text-align: center;
+}
+
+.label__weeks button.is-active {
+  border-color: var(--team-gold);
+  background: rgba(242, 193, 78, 0.14);
+}
+
+.label__weeks b {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+}
+
+.label__weeks em {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--team-dim);
+  font-size: 0.3rem;
+  font-style: normal;
+  letter-spacing: 0.06em;
+}
+
+.label__weeks button.is-active em {
+  color: var(--team-gold);
+}
+
+.label__field-note {
+  margin: 0.4rem 0 0;
+  color: var(--team-dim);
+  font-size: 0.4rem;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+}
+
+.label__field-note.is-warn {
+  color: #e2685f;
+}
+
+.label__projection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  padding: 0.6rem;
+  border: 1px solid rgba(242, 193, 78, 0.22);
+  background: rgba(242, 193, 78, 0.04);
+}
+
+.label__projection > div span {
+  display: block;
+  color: var(--team-dim);
+  font-size: 0.32rem;
+  letter-spacing: 0.1em;
+}
+
+.label__projection > div b {
+  display: block;
+  margin-top: 0.12rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.68rem;
+}
+
+.label__cost-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+  color: var(--team-dim);
+  font-size: 0.38rem;
+  letter-spacing: 0.1em;
+}
+
+.label__cost-row b {
+  color: var(--team-ink);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.label__greenlight {
+  width: 100%;
+}
+
+/* -------------------------------- ledger -------------------------------- */
+
+.label__expenses {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.label__expenses li {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr) 5rem auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.label__expense-week {
+  color: var(--team-dim);
+  font-size: 0.4rem;
+  letter-spacing: 0.1em;
+}
+
+.label__expense-copy {
+  min-width: 0;
+}
+
+.label__expense-copy b {
+  display: block;
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+}
+
+.label__expense-copy span {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.1rem;
+  color: var(--team-dim);
+  font-size: 0.38rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label__expense-amount {
+  color: var(--team-gold);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.68rem;
+  text-align: right;
+}
+
+.label__expense-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.label__ledger {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.label__ledger li {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr) 5rem;
+  gap: 0.7rem;
+  padding: 0.38rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.5rem;
+}
+
+.label__ledger li > span {
+  color: var(--team-dim);
+  font-size: 0.38rem;
+  letter-spacing: 0.1em;
+}
+
+.label__ledger li b {
+  overflow: hidden;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label__ledger li em {
+  font-style: normal;
+  text-align: right;
+}
+
+/* -------------------------------- crisis -------------------------------- */
+
+.label__crises {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 0.6rem;
+}
+
+.label__crisis {
+  padding: 0.9rem;
+  border: 1px solid rgba(196, 71, 61, 0.5);
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(168, 40, 29, 0.16), transparent 60%),
+    #0d090c;
+}
+
+.label__crisis-kind {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  border: 1px solid rgba(226, 104, 95, 0.6);
+  color: #e2685f;
+  font-size: 0.34rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.label__crisis h3 {
+  margin: 0.4rem 0 0.25rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+
+.label__crisis > p {
+  margin: 0 0 0.7rem;
+  color: var(--team-dim);
+  font-size: 0.54rem;
+  line-height: 1.65;
+}
+
+.label__options {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.label__options button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(242, 193, 78, 0.2);
+  background: #0a080c;
+  text-align: left;
+  transition: 0.15s ease;
+}
+
+.label__options button:hover:not(:disabled) {
+  border-color: var(--team-gold);
+  background: rgba(242, 193, 78, 0.06);
+}
+
+.label__options button b {
+  font-size: 0.44rem;
+  letter-spacing: 0.1em;
+}
+
+.label__options button > span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--team-gold);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.5rem;
+  white-space: nowrap;
+}
+
+.label__options button em {
+  font-size: 0.34rem;
+  font-style: normal;
+  letter-spacing: 0.06em;
+}
+
+.label__crisis-artist {
+  display: block;
+  margin-top: 0.55rem;
+  color: var(--team-dim);
+  font-size: 0.32rem;
+  letter-spacing: 0.14em;
+}
+
+.label__resolved {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.label__resolved li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.label__resolved b {
+  display: block;
+  color: var(--team-gold);
+  font-size: 0.4rem;
+  letter-spacing: 0.1em;
+}
+
+.label__resolved span {
+  display: block;
+  margin-top: 0.12rem;
+  color: var(--team-dim);
+  font-size: 0.46rem;
+  line-height: 1.5;
+}
+
+/* --------------------------------- foot --------------------------------- */
+
+.label__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.2rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(242, 193, 78, 0.18);
+  color: var(--team-dim);
+  font-size: 0.4rem;
+  letter-spacing: 0.14em;
+}
+
+/* ------------------------------ responsive ------------------------------ */
+
+@media (max-width: 1100px) {
+  .label__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .label__roster {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .label__studio {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 820px) {
+  .label__masthead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .label__controls {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .label__advance {
+    width: 100%;
+  }
+
+  .label__hint {
+    text-align: left;
+  }
+
+  .label__roster {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .label__scout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .label__expenses li {
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+  }
+
+  .label__expense-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .label__foot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .label__weeks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .label__pulse-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .label__scout-card {
+    grid-template-columns: 3.6rem minmax(0, 1fr);
+  }
+
+  .label__scout-art {
+    width: 3.6rem;
+    height: 3.6rem;
+  }
+
+  .label__scout-action {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .label__expenses li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.35rem;
+  }
+
+  .label__expense-week {
+    display: none;
+  }
+
+  .label__expense-amount {
+    text-align: left;
+  }
+}
+
+/* --------------------- new Ultimate Team shortcuts --------------------- */
+
+.team__shortcuts {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.team__shortcut--label {
+  background:
+    radial-gradient(80% 110% at 50% 110%, rgba(137, 76, 255, 0.42), transparent 68%),
+    linear-gradient(135deg, rgba(242, 193, 78, 0.1), transparent 60%),
+    #130e18;
+}
+
+.team__shortcut--charts {
+  background:
+    radial-gradient(80% 110% at 50% 110%, rgba(242, 193, 78, 0.32), transparent 68%),
+    linear-gradient(135deg, rgba(212, 76, 255, 0.16), transparent 60%),
+    #141019;
+}
+
+@media (max-width: 1280px) {
+  .team__shortcuts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .team__shortcuts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
