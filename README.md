@@ -1,7 +1,12 @@
-# Can-Kick-It-The-Game
+# Can I Kick It?
 
-**Play in your browser (mobile + Windows):**  
-https://site-79f767778f494f65b008329cc4135b02.freebuff.page
+A hip-hop, R&B and pop music card battler. Build the 26, take the stage, own the room.
+
+## Play now
+
+**[Play Can I Kick It? in your browser](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)**
+
+No account or download required. The game supports phone portrait and landscape.
 
 **Windows build:**  
 https://gofile.io/d/wG6pohs5
@@ -12,5 +17,3 @@ https://gofile.io/d/wG6pohs5
 - SHA-256: `f1623a7ce0a6e945cbb30a2f9bd692df1102380414d4d165ac1a7333d308df59`
 
 The browser deployment uses optimized media to fit the hosting limit. The Windows ZIP contains full-resolution portraits and original audio.
-
-A production browser mirror is available at https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page.
