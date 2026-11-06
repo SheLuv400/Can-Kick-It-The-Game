@@ -1,18 +1,50 @@
 # CAN I KICK IT? — The Game
 
-A hip-hop, R&B and pop music card battler. Build the 26, take the stage, own the room.
+A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, take the stage, own the room.
 
-**Version 1.1.0 — The Circuit Update**
+**Version 1.2.0 — The Backstage Economy & Social Update**
 
-## Play now
+## Play
 
-**[Play Can I Kick It? in your browser](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)**
+- **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
+- **Windows v1.2.0:** [Download CanIKickIt-win32-x64.zip](https://gofile.io/d/HGV5L1hc) — 165.4 MiB
+  - SHA-256: `4d0ff32812ebb3263f99d95b05394124b7c0ad7fb09f6137ca6e0000c9f0bd8e`
+- **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
-No account or download required. The game supports phone portrait and landscape.
+Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
 
-The previous 1.0.0 Windows download is superseded by the 1.1.0 browser release.
+## What’s new in 1.2.0
 
-## What’s new in 1.1.0
+### Better Hype economy
+
+- Open with **8 Hype**, gain **+3 per turn**, and bank up to **24**.
+- **Attacks are free.** Each artist can move once and each player gets **3 attacks per turn**.
+- Any attack with **7+ power** or **8+ resolved damage** closes the turn.
+- A **Feature Verse** consumes the whole attack allowance for that round.
+- Cutting an artist refunds **1 Hype** at cost 1–4, **2** at 5, **3** at 8, scaling upward.
+- Knockouts, strong signings and high-rarity Crate attacks generate extra Hype.
+- **Backstage recalls cost 10–15 Hype** based on card strength and level, and are no longer once per match.
+- **Crate draws cost 2 Hype** and no longer end the turn.
+- Round 12 now awards a **draw** when both crowds finish level.
+
+### Online, accounts and friends
+
+- Saved local **username/password login** with hashed credentials, remembered session and sign-out.
+- **Casual** online strips custom levels and loadouts to level 1 defaults; **Ranked** keeps the full collection and records the leaderboard.
+- Add friends by **six-character friend code**, see **online / playing / offline** presence, and send in-game invites with accept and join.
+- **Cross-play** — phone and PC join the same rooms with friend codes, five-character room codes or direct invites.
+- Your username appears on stage and in the online lobby.
+
+### Battle MVP
+
+- The results screen names the **MVP card of the match**, scored from damage, healing, damage prevented, actions and KOs.
+- Separate leader cells call out **Most Used**, **Top Damage**, **Top Healing** and **Top Defense**, with the chosen profile artist on the winning card.
+
+### Label roster moves
+
+- **Drop an artist** from the label to free a slot and sign someone else. All remaining benefits and unreleased plans for that artist are lost; record credits are not refunded.
+
+## What was new in 1.1.0
 
 ### Three real circuits
 
@@ -29,6 +61,19 @@ The previous 1.0.0 Windows download is superseded by the 1.1.0 browser release.
 ### In-match objectives
 
 Circuit lists are visible before the show and tracked live in battle. Cleared objectives pay bonus RC and Buzz Rep. Win the gig to bank the full purse.
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Production build:
+
+```bash
+npm run build
+```
 
 ## Controls
 
