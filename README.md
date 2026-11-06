@@ -7,8 +7,8 @@ A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, take the stag
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Windows v1.2.0:** [Download CanIKickIt-win32-x64.zip](https://gofile.io/d/HGV5L1hc) — 165.4 MiB
-  - SHA-256: `4d0ff32812ebb3263f99d95b05394124b7c0ad7fb09f6137ca6e0000c9f0bd8e`
+- **Windows v1.2.0:** [Download CanIKickIt-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.2.0/CanIKickIt-win32-x64.zip) — 165.4 MiB
+  - SHA-256: `b8dbe46fcaf65b503f133a45294b490dd7a83d860ec5bae83456622429d7e2f1`
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
@@ -82,6 +82,14 @@ npm run build
 - `Escape` closes the move panel.
 - `Space` ends the turn only when no modal or move panel is open.
 - The pre-show intro lists the venue, live slot count, circuit rule and tonight’s objectives.
+
+### Controller
+
+Connect a standard-mapping Xbox, PlayStation or PC controller and press any button. A focus ring and an on-screen button guide appear, and the game keeps focus inside the active modal or overlay.
+
+- **Menus:** D-pad or left stick moves, **A/Cross** selects, **B/Circle** goes back, **Start/Menu** opens settings.
+- **Battle:** **A/Cross** selects artists and moves, **B/Circle** backs out, **X/Square** ends the turn, **Y/Triangle** selects the next ready artist, **LB/RB** cycles the attack target, and **Start/Menu** pauses.
+- The same controls work in the browser game and the Windows build wherever the browser exposes the Gamepad API.
 
 ## Audio
 
