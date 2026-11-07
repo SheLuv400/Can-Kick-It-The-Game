@@ -2,17 +2,29 @@
 
 A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your badges, take the stage, own the room.
 
-**Version 1.3.0 — The Badge & Billboard Update**
+**Version 1.4.0 — The Festival & Tour Circuit Update**
 
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Latest release:** [GitHub release v1.3.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.3.0) — artist badges, the friends-only Billboard and THE SETLIST.
-- **Windows v1.2.0 (latest packaged Windows build):** [Download CanIKickIt-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.2.0/CanIKickIt-win32-x64.zip) — 165.4 MiB
-  - SHA-256: `b8dbe46fcaf65b503f133a45294b490dd7a83d860ec5bae83456622429d7e2f1`
+- **Latest release:** [GitHub release v1.4.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.0) — THE FESTIVAL & TOUR CIRCUIT, with the Windows build.
+- **Windows v1.4.0:** [Download CanIKickIt-1.4.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.0/CanIKickIt-1.4.0-win32-x64.zip) — 165.5 MiB
+  - SHA-256: `4d0ec12dc5b31ffb28fc4e4dcafebf786bc9cc61f0d603c7a4f3ce39230f3012`
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
+
+## What’s new in 1.4.0
+
+### THE FESTIVAL & TOUR CIRCUIT
+
+- **One new mode, two routes.** The main menu adds **THE FESTIVAL & TOUR CIRCUIT**, with a solo tour road and invite-only online festival rooms feeding one shared Circuit Point track.
+- **Six original festivals.** Blacktop Frequency Fest, Velvet Afterdark Sessions and Crate City Comeback Jam are solo tours; Subwoofer Showdown, Chrome & Chorus Expo and Diamond Mic Finals are private online festivals.
+- **Living calendar.** Three 72-hour weekend pairings show **LIVE NOW**, **COMING SOON**, **EVENT ENDED**, live countdowns, deck tags, official rules and reward previews. Each solo festival has five CPU stops, rising difficulty, unique dialogue and a Headliner finale.
+- **26 cards, no exceptions.** Setlist Synergy reads the actual artist roster, displays progress against the real requirement and never asks for an impossible tag. The existing 26-card deck limit, two-copy rule, five crews, three eras and 50 Encore transformations are unchanged.
+- **Shared rewards.** Solo clears, repeats, Headliner wins and challenge objectives pay Circuit Points; online wins, completed losses, first Feature Verses, streaks and Streak Setter bounties add competitive recognition. Gold (300), Platinum (800) and Diamond (1,600) rewards persist in the Collection.
+- **Six engine-level rules.** First Hip-Hop attack damage, extra healing, first Backstage revival Hype, bass attack damage and extra Hype cost, Feature Verse damage and mixed-genre attack chains all resolve in the shared battle engine for both players.
+- **Private rooms stay private.** Festival rooms reuse the existing five-character host/join codes and friend invites. The host owns the authoritative match state; both decks and the same event configuration are checked before the show starts. No public matchmaking was added.
 
 ## What’s new in 1.3.0
 
