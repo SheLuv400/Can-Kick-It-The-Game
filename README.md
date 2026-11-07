@@ -1,19 +1,44 @@
 # CAN I KICK IT? — The Game
 
-A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, take the stage, own the room.
+A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your badges, take the stage, own the room.
 
-**Version 1.2.0 — The Backstage Economy & Social Update**
+**Version 1.3.0 — The Badge & Billboard Update**
 
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Windows v1.2.0:** [Download CanIKickIt-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.2.0/CanIKickIt-win32-x64.zip) — 165.4 MiB
+- **Latest release:** [GitHub release v1.3.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.3.0) — artist badges, the friends-only Billboard and THE SETLIST.
+- **Windows v1.2.0 (latest packaged Windows build):** [Download CanIKickIt-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.2.0/CanIKickIt-win32-x64.zip) — 165.4 MiB
   - SHA-256: `b8dbe46fcaf65b503f133a45294b490dd7a83d860ec5bae83456622429d7e2f1`
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
 
-## What’s new in 1.2.0
+## What’s new in 1.3.0
+
+### Artist badges
+
+- Every artist now has **ten badge programs** and **five equip slots**. Badges start locked and build only when you repeat the action they reward: wins, KOs, defense, healing, elemental moves, crowd pressure, Hype, Encores, assists and longevity.
+- Five visible tiers — **Plastic → Bronze → Gold → Platinum → Diamond** — each with its own XP pool, color, glow and a stronger in-battle effect.
+- The **Badge Lab** shows every program’s next threshold, your set power and the exact bonus a badge is bringing to the stage.
+- Tier unlocks fire a notification, and the badge card lights up in its metal color.
+- Badge effects run in solo and Ranked; Casual online strips custom badge loadouts to keep the room fair.
+
+### Friends-only Billboard
+
+- The Billboard now ranks **you against your friends**, not the whole internet.
+- Every score is built from battle work, badge tiers and XP, artist levels, label score and chart heat — so a strong roster or a hot record can move you up the board.
+- Friends sync live, so active players can pass each other without reloading the page.
+- The **Room Record** tab stays alongside it for room-code wins, streaks and match history.
+
+### THE SETLIST
+
+- The Artist Loadout is now **THE SETLIST**, a screen-printed mixtape sleeve with warm paper, halftone grain, hard ink borders, crate numbering and SIDE A/SIDE B stamps.
+- The track slots, move crate, signature special and footer all use a fixed high-contrast palette instead of inherited theme ink, so titles and move names stay readable on every theme and phone.
+- The mobile layout keeps the sticky header opaque, reflows the element stat at 360px and keeps the save controls inside the panel.
+- Equipping still works the same way: **three tracks**, tap an equipped move to remove it, swap from the crate and save.
+
+## What was new in 1.2.0
 
 ### Better Hype economy
 
