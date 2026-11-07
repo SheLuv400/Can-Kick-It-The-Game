@@ -1,0 +1,40 @@
+name: Attach launcher 1.0.1
+
+on:
+  workflow_dispatch:
+    inputs:
+      asset_url:
+        description: Temporary download URL for the 1.0.1 launcher ZIP
+        required: true
+        type: string
+      sha256:
+        description: Expected SHA-256 for the 1.0.1 launcher ZIP
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download and verify the launcher
+        env:
+          ASSET_URL: ${{ inputs.asset_url }}
+          EXPECTED_SHA: ${{ inputs.sha256 }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 5 --output CanIKickItLauncher-1.0.1-win32-x64.zip "$ASSET_URL"
+          printf '%s  %s\n' "$EXPECTED_SHA" "CanIKickItLauncher-1.0.1-win32-x64.zip" | sha256sum --check --strict
+          printf '%s  %s\n' "$EXPECTED_SHA" "CanIKickItLauncher-1.0.1-win32-x64.zip" > CanIKickItLauncher-1.0.1-win32-x64.zip.sha256
+      - name: Attach the launcher and checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release upload v1.4.1 CanIKickItLauncher-1.0.1-win32-x64.zip CanIKickItLauncher-1.0.1-win32-x64.zip.sha256 --clobber
