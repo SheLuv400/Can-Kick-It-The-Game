@@ -1,0 +1,43 @@
+name: Attach release asset
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Public HTTPS URL of the asset
+        required: true
+        type: string
+      sha256:
+        description: Expected SHA-256
+        required: true
+        type: string
+      release_id:
+        description: GitHub release ID
+        required: true
+        type: string
+      asset_name:
+        description: Asset filename
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  attach:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download
+        run: curl -fL --retry 5 --retry-delay 5 --max-time 900 -o asset.bin "${{ inputs.url }}"
+      - name: Verify
+        run: |
+          echo "${{ inputs.sha256 }}  asset.bin" | sha256sum -c -
+          ls -lh asset.bin
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST \
+            -H "Content-Type: application/octet-stream" \
+            --input asset.bin \
+            "repos/${{ github.repository }}/releases/${{ inputs.release_id }}/assets?name=${{ inputs.asset_name }}"
