@@ -8,11 +8,25 @@ A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your bad
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
 - **Latest release:** [GitHub release v1.4.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.0) — THE FESTIVAL & TOUR CIRCUIT, with the Windows build.
-- **Windows v1.4.0:** [Download CanIKickIt-1.4.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.0/CanIKickIt-1.4.0-win32-x64.zip) — 165.5 MiB
+- **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.0/CanIKickItLauncher-1.0.0-win32-x64.zip) — 152.0 MiB
+  - Extract and run `CanIKickItLauncher.exe`. It installs the game, checks GitHub Releases for updates, and launches it from one place.
+  - SHA-256: `7ac54c7a4a0dbae4eb866e980535bd511db77e63701a98ad5ecfab1297487ef9`
+- **Windows game build (manual):** [Download CanIKickIt-1.4.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.0/CanIKickIt-1.4.0-win32-x64.zip) — 165.5 MiB
   - SHA-256: `4d0ec12dc5b31ffb28fc4e4dcafebf786bc9cc61f0d603c7a4f3ce39230f3012`
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
+
+## Windows launcher
+
+The launcher is the recommended Windows install. Download it once, extract the ZIP, and run `CanIKickItLauncher.exe`.
+
+- **Updates:** the launcher checks GitHub Releases when it opens and every 15 minutes. It downloads the latest Windows game build, verifies the SHA-256 digest when GitHub provides one, extracts to a staging folder, swaps it into place, and launches `CanIKickIt.exe`.
+- **Game location:** `%LOCALAPPDATA%\CanIKickItLauncher\Game` by default. Use **Settings → Choose Folder** to install somewhere else.
+- **Saves:** existing game save data is untouched by launcher updates.
+- **Offline:** if GitHub cannot be reached, an installed build can still be launched; the update controls show a retry message.
+- **Launcher updates:** the launcher itself is version 1.0.0 and is updated separately. Game updates are handled inside it.
+- **Unsigned build:** Windows SmartScreen may warn on first launch. Choose **More info → Run anyway** if you trust the download.
 
 ## What’s new in 1.4.0
 
