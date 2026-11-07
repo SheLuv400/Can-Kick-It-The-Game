@@ -37,7 +37,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api --method POST \
-            -H "Content-Type: application/octet-stream" \
+          gh api --hostname uploads.github.com --method POST \
+            -H "Content-Type: application/zip" \
             --input asset.bin \
             "repos/${{ github.repository }}/releases/${{ inputs.release_id }}/assets?name=${{ inputs.asset_name }}"
