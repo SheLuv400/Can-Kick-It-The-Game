@@ -2,17 +2,17 @@
 
 A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your badges, take the stage, own the room.
 
-**Version 1.4.0 — The Festival & Tour Circuit Update**
+**Version 1.4.1 — The Social Line Hotfix**
 
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Latest release:** [GitHub release v1.4.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.0) — THE FESTIVAL & TOUR CIRCUIT, with the Windows build.
-- **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.0/CanIKickItLauncher-1.0.0-win32-x64.zip) — 152.0 MiB
+- **Latest release:** [GitHub release v1.4.1](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.1) — THE SOCIAL LINE HOTFIX, with the Windows build.
+- **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickItLauncher-1.0.0-win32-x64.zip) — 152.0 MiB
   - Extract and run `CanIKickItLauncher.exe`. It installs the game, checks GitHub Releases for updates, and launches it from one place.
   - SHA-256: `7ac54c7a4a0dbae4eb866e980535bd511db77e63701a98ad5ecfab1297487ef9`
-- **Windows game build (manual):** [Download CanIKickIt-1.4.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.0/CanIKickIt-1.4.0-win32-x64.zip) — 165.5 MiB
-  - SHA-256: `4d0ec12dc5b31ffb28fc4e4dcafebf786bc9cc61f0d603c7a4f3ce39230f3012`
+- **Windows game build (manual):** [Download CanIKickIt-1.4.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickIt-1.4.1-win32-x64.zip) — 164.8 MiB
+  - SHA-256: `9afebc2598f2d242d19a5439e9691c3c5c6451de7f331cef46632cd0049aebad`
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
@@ -27,6 +27,13 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Offline:** if GitHub cannot be reached, an installed build can still be launched; the update controls show a retry message.
 - **Launcher updates:** the launcher itself is version 1.0.0 and is updated separately. Game updates are handled inside it.
 - **Unsigned build:** Windows SmartScreen may warn on first launch. Choose **More info → Run anyway** if you trust the download.
+
+## What’s new in 1.4.1
+
+### THE SOCIAL LINE HOTFIX
+
+- **Presence stays online.** Two friends opening the game at the same moment can no longer knock each other offline. Each live connection is tracked independently, and a player only appears offline after their last connection closes.
+- **Windows and mobile share the fix.** The browser build and the 1.4.1 Windows archive both include it. Existing launcher installs will detect 1.4.1 automatically.
 
 ## What’s new in 1.4.0
 
