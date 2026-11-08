@@ -7,8 +7,8 @@ A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your bad
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Live mobile/PWA:** 1.4.5 is deployed at the game URL above, with manifest version 1.4.5. Both public site URLs serve the 1.4.5 payload.
-- **Latest public release:** [GitHub release v1.4.1](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.1) — THE SOCIAL LINE HOTFIX, with the Windows build. The 1.4.5 mobile/PWA build is live. The 1.4.4 and 1.4.5 Windows archives are built and verified locally; neither is attached to a public release yet.
+- **Live mobile/PWA:** 1.4.6 is deployed at the game URL above, with manifest version 1.4.6. Both public site URLs serve the 1.4.6 payload.
+- **Latest public release:** [GitHub release v1.4.1](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.1) — THE SOCIAL LINE HOTFIX, with the Windows build. The 1.4.6 mobile/PWA build is live. The 1.4.4 and 1.4.5 Windows archives are built and verified locally; neither is attached to a public release yet.
 - **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickItLauncher-1.0.1-win32-x64.zip) — 152.0 MiB
   - Extract and run `CanIKickItLauncher.exe`. It installs the game, checks GitHub Releases for updates, and launches it from one place.
   - SHA-256: `066d7a2c8357c229a631dda1a263951c476e09e3279d83b10a224206bd17201b`
@@ -38,7 +38,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Five career save slots.** My Artist Career now keeps five independent local artists in one browser, each with its own level, OVR, story progress, badges, elements, deck and settings.
 - **Create, switch and delete.** An empty slot can start a new artist, a saved slot can be loaded at any time, and deleting a slot clears only that artist so the slot is ready for a fresh career. The old single save migrates into slot 1 automatically.
 - **Slower career leveling.** Level 1 now needs 6,210 XP instead of 5,400, and the longer curve continues through the Prestige and Master ladders. Mission rewards are unchanged, and existing careers keep their current level and progress.
-- **Release status.** The 1.4.6 payload is built and ready; the live URL still serves 1.4.5 until this build is deployed.
+- **Release status.** The 1.4.6 payload is live at the game URL above.
 
 ## What’s new in 1.4.5
 
@@ -49,7 +49,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Festival events match your level.** Solo Festival CPU decks use the highest card level in your five-card starting lineup. Normal CPU cards stay at their difficulty levels.
 - **Career badges are the shared badges.** My Artist Career now uses the same ten programs and five tiers as every other mode. Story clears unlock a Plastic copy, career battles add tier XP, and old career badges migrate automatically.
 - **The phone menu is fixed.** All eight main-menu modes now sit in a clean two-column grid without clipped labels or horizontal overflow.
-- **Mobile/PWA:** 1.4.5 is live at the game URL above with manifest version 1.4.5; the Windows build uses the same web bundle.
+- **Mobile/PWA:** 1.4.6 is live at the game URL above with manifest version 1.4.6.
 - **Windows:** `release/CanIKickIt-1.4.5-win32-x64.zip` is built and verified from the same 1.4.5 web bundle. Size: 174,650,732 bytes (166.6 MiB). SHA-256: `c4d1725712df6e41320c2512867cd48b2a69d7bef185a41d5056692856d4f9fd`.
 
 ## What’s new in 1.4.4
