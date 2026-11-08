@@ -2,19 +2,19 @@
 
 A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your badges, take the stage, own the room.
 
-**Version 1.4.6 — The Multi-Career Update**
+**Version 1.4.7 — The Badge Equip Update**
 
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Live mobile/PWA:** 1.4.6 is deployed at the game URL above, with manifest version 1.4.6. Both public site URLs serve the 1.4.6 payload.
-- **Latest public release:** [GitHub release v1.4.1](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.1) — THE SOCIAL LINE HOTFIX, with the Windows build. The 1.4.6 mobile/PWA build is live. The 1.4.4 and 1.4.5 Windows archives are built and verified locally; neither is attached to a public release yet.
+- **Live mobile/PWA:** 1.4.7 is deployed at the game URL above, with manifest version 1.4.7. Both public site URLs serve the 1.4.7 payload.
+- **Latest public release:** [GitHub release v1.4.1](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.1) — THE SOCIAL LINE HOTFIX, with the Windows build. The 1.4.7 mobile/PWA build is live. A draft v1.4.7 Windows release is ready with release notes; the 1.4.7 ZIP is built and verified locally and needs to be attached before publishing. The public release page still points at v1.4.1.
 - **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickItLauncher-1.0.1-win32-x64.zip) — 152.0 MiB
   - Extract and run `CanIKickItLauncher.exe`. It installs the game, checks GitHub Releases for updates, and launches it from one place.
   - SHA-256: `066d7a2c8357c229a631dda1a263951c476e09e3279d83b10a224206bd17201b`
 - **Windows game build (manual):** [Download CanIKickIt-1.4.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickIt-1.4.1-win32-x64.zip) — 164.8 MiB
   - SHA-256: `9afebc2598f2d242d19a5439e9691c3c5c6451de7f331cef46632cd0049aebad`
-  - The 1.4.5 Windows archive is built and verified locally from the same web bundle. It is not attached to a public release yet, so this manual link remains 1.4.1.
+  - The 1.4.7 Windows archive is built and verified locally: `release/CanIKickIt-1.4.7-win32-x64.zip`, 173,964,268 bytes (165.9 MiB), SHA-256 `98568d05194f7d5f4700bb3a9714d09e0bc7d1829c688e3ac5abe435b7ff2a17`. It is staged for the draft v1.4.7 release; this manual link remains 1.4.1 until the ZIP is attached and the release is published.
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
@@ -30,6 +30,18 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Blocked updates:** if Windows says the game folder is blocked, fully quit `CanIKickIt.exe` in Task Manager, then retry. Launcher 1.0.1 checks for a running game before updating and retries transient folder locks; if the folder is still protected, choose a folder such as `C:\Games\CanIKickItTheGame` in **Settings → Choose Folder**.
 - **Launcher updates:** the launcher itself is version 1.0.1 and is updated separately. Game updates are handled inside it.
 - **Unsigned build:** Windows SmartScreen may warn on first launch. Choose **More info → Run anyway** if you trust the download.
+
+## What’s new in 1.4.7
+
+### THE BADGE EQUIP UPDATE
+
+- **Tap to equip.** Career badges now equip the moment you tap them. There is no separate save step to hunt for at the bottom of the page.
+- **The state is obvious.** Cards read **TAP TO EQUIP** or **EQUIPPED · TAP TO REMOVE**, the menu shows the live slot count, and an empty slot tells you to pick a badge below.
+- **No silent misses.** If a slot is locked or the set is full, the menu explains why. The first career badge slot still opens at level 10, then at levels 20, 30, 40 and 55.
+- **Badge Lab matches.** The Collection button now says **EQUIP BADGES**, with the same tap-to-equip wording and a confirmation notice after every change.
+- **Release status.** The 1.4.7 mobile/PWA payload is live at the game URL above.
+- **Windows:** `release/CanIKickIt-1.4.7-win32-x64.zip` is built from the same 1.4.7 web bundle. The embedded `app.asar` reports version 1.4.7, and the ZIP passed its integrity test. It is staged for the draft v1.4.7 release and still needs to be attached before publishing.
+- **Launcher:** 1.0.1 is unchanged. Existing launcher installs will detect `CanIKickIt-1.4.7-win32-x64.zip` automatically once the v1.4.7 release is public.
 
 ## What’s new in 1.4.6
 
@@ -49,7 +61,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Festival events match your level.** Solo Festival CPU decks use the highest card level in your five-card starting lineup. Normal CPU cards stay at their difficulty levels.
 - **Career badges are the shared badges.** My Artist Career now uses the same ten programs and five tiers as every other mode. Story clears unlock a Plastic copy, career battles add tier XP, and old career badges migrate automatically.
 - **The phone menu is fixed.** All eight main-menu modes now sit in a clean two-column grid without clipped labels or horizontal overflow.
-- **Mobile/PWA:** 1.4.5 shipped with manifest version 1.4.5; it has since been replaced by 1.4.6.
+- **Mobile/PWA:** 1.4.5 shipped with manifest version 1.4.5; it has since been replaced by 1.4.7.
 - **Windows:** `release/CanIKickIt-1.4.5-win32-x64.zip` is built and verified from the same 1.4.5 web bundle. Size: 174,650,732 bytes (166.6 MiB). SHA-256: `c4d1725712df6e41320c2512867cd48b2a69d7bef185a41d5056692856d4f9fd`.
 
 ## What’s new in 1.4.4
@@ -61,7 +73,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Card-ready crops.** Each full-body model has a dedicated 320×480 card portrait, so the creator, artist card and career hub show the same artist at every size.
 - **Mobile card layout.** Below 720px the Artist Card stacks the portrait above the name and stats instead of squeezing both into 112px + text columns. Checked at 390×844 and 360×800.
 - **Scope note.** The roster is the supplied artwork; the game bundles optimized WebP derivatives rather than redrawing or substituting the characters. Existing careers keep their IDs, XP, AP, OVR, missions, moves, badges and decks; the fixed model now supplies their artwork.
-- **Mobile/PWA:** 1.4.4 shipped with manifest version 1.4.4; it has since been replaced by 1.4.6.
+- **Mobile/PWA:** 1.4.4 shipped with manifest version 1.4.4; it has since been replaced by 1.4.7.
 - **Windows:** `release/CanIKickIt-1.4.4-win32-x64.zip` is built and verified locally with the same 1.4.4 web bundle, including all 24 full-body and card assets. Size: 173,939,402 bytes (166 MiB). SHA-256: `0026712b17d7a6f82b53c8b3b1d56d19b4f7fe6961d06d259afc20f882d73433`.
 
 ## What’s new in 1.4.3
