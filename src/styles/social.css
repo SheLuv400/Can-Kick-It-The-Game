@@ -1,0 +1,1928 @@
+/* ============================================================
+   1.2.0 — accounts, friends, online modes and label roster moves
+   ============================================================ */
+
+/* ---------------------------------------------------- arena account */
+.arena-top-actions {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  min-width: 0;
+  gap: 10px;
+}
+
+.arena-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 7px 12px 7px 8px;
+  border: 1px solid rgba(216, 180, 92, 0.24);
+  border-radius: 3px;
+  background: linear-gradient(135deg, rgba(38, 27, 19, 0.92), rgba(16, 11, 9, 0.9));
+  color: var(--ink, #f4e8d0);
+  text-align: left;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.arena-account:hover {
+  border-color: var(--accent, #d8b45c);
+  transform: translateY(-1px);
+}
+
+.arena-account__avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid rgba(216, 180, 92, 0.5);
+  background: radial-gradient(circle at 35% 28%, #6b5124, #171009 70%);
+  color: #f6e8bd;
+  font-family: var(--ui, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.arena-account__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.arena-account__copy b {
+  max-width: 116px;
+  overflow: hidden;
+  font-size: 0.66rem;
+  letter-spacing: 0.13em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arena-account__copy em {
+  color: var(--ink-dim, #b6a68a);
+  font-family: var(--ui, sans-serif);
+  font-size: 0.46rem;
+  font-style: normal;
+  letter-spacing: 0.16em;
+  white-space: nowrap;
+}
+
+.arena-account__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #655a4a;
+}
+
+.arena-account.is-live .arena-account__dot {
+  background: #58ffa8;
+  box-shadow: 0 0 9px rgba(88, 255, 168, 0.8);
+}
+
+/* ------------------------------------------------------ account modal */
+.account-panel {
+  width: min(580px, 100%);
+}
+
+.account-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(216, 180, 92, 0.2);
+}
+
+.account-tabs button {
+  padding: 12px;
+  border-bottom: 2px solid transparent;
+  color: rgba(244, 232, 208, 0.55);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.account-tabs button.is-active {
+  border-color: var(--accent, #d8b45c);
+  color: var(--accent-2, #f6e8bd);
+}
+
+.account-form {
+  display: grid;
+  gap: 15px;
+}
+
+.account-form label {
+  display: grid;
+  gap: 7px;
+}
+
+.account-form label > span,
+.account-friend-code span,
+.account-summary span,
+.account-card > div > span {
+  color: rgba(244, 232, 208, 0.52);
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+}
+
+.account-form input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid rgba(216, 180, 92, 0.26);
+  border-radius: 2px;
+  outline: 0;
+  background: rgba(7, 5, 4, 0.7);
+  color: #f6ead0;
+  font-family: var(--ui, sans-serif);
+  font-size: 0.76rem;
+  letter-spacing: 0.09em;
+}
+
+.account-form input:focus {
+  border-color: var(--accent, #d8b45c);
+}
+
+.account-error {
+  margin: 0;
+  color: #ff8a72;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+}
+
+.account-note {
+  margin: 0;
+  color: rgba(244, 232, 208, 0.48);
+  font-size: 0.56rem;
+  line-height: 1.65;
+}
+
+.account-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(216, 180, 92, 0.24);
+  background: linear-gradient(120deg, rgba(216, 180, 92, 0.1), rgba(255, 255, 255, 0.02));
+}
+
+.account-card__avatar {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid rgba(216, 180, 92, 0.5);
+  background: #19110a;
+  color: #f6e8bd;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.account-card > div {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.account-card b {
+  font-family: var(--display, serif);
+  font-size: 1.25rem;
+}
+
+.account-card i {
+  color: #7ff0b2;
+  font-size: 0.48rem;
+  font-style: normal;
+  letter-spacing: 0.14em;
+}
+
+.account-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #7ff0b2;
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+}
+
+.account-online i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #58ffa8;
+}
+
+.account-friend-code {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px dashed rgba(216, 180, 92, 0.3);
+}
+
+.account-friend-code > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.account-friend-code b {
+  color: #f4c84e;
+  font-size: 1.2rem;
+  letter-spacing: 0.3em;
+}
+
+.account-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  margin: 14px 0;
+  background: rgba(216, 180, 92, 0.16);
+}
+
+.account-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px;
+  background: #100b09;
+}
+
+.account-summary b {
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+}
+
+.account-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* ----------------------------------------------------------- invite toast */
+.invite-toast {
+  position: fixed;
+  right: clamp(14px, 3vw, 34px);
+  bottom: clamp(14px, 3vw, 34px);
+  z-index: 120;
+  width: min(390px, calc(100vw - 28px));
+  overflow: hidden;
+  border: 1px solid rgba(244, 200, 78, 0.45);
+  background: linear-gradient(145deg, #17101a, #08060b);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65), 0 0 40px rgba(244, 200, 78, 0.12);
+  animation: invite-in 0.28s ease both;
+}
+
+@keyframes invite-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+
+.invite-toast__glow {
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 200, 78, 0.28), transparent 70%);
+  pointer-events: none;
+}
+
+.invite-toast__body {
+  position: relative;
+  display: grid;
+  gap: 7px;
+  padding: 18px;
+}
+
+.invite-toast__body > span {
+  color: #f4c84e;
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
+}
+
+.invite-toast__body > b {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+}
+
+.invite-toast__body p {
+  margin: 0;
+  color: rgba(246, 234, 208, 0.6);
+  font-size: 0.62rem;
+  line-height: 1.5;
+}
+
+.invite-toast__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+/* --------------------------------------------------------- mode badges */
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid rgba(244, 200, 78, 0.3);
+  color: #f4c84e;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+  white-space: nowrap;
+}
+
+.mode-badge i,
+.social-status i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.mode-badge--ranked {
+  border-color: rgba(255, 126, 86, 0.4);
+  color: #ff9a70;
+}
+
+/* ------------------------------------------------------------ online gate */
+.online-account-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.online-account-link > span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 50%;
+  background: rgba(244, 200, 78, 0.16);
+  color: #f4c84e;
+  font-size: 0.48rem;
+}
+
+.online-gate {
+  display: flex;
+  max-width: 760px;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  padding: clamp(28px, 6vw, 80px) 0;
+}
+
+.online-gate__art {
+  position: relative;
+  display: block;
+  width: 90px;
+  height: 90px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(244, 200, 78, 0.3);
+  border-radius: 50%;
+}
+
+.online-gate__art i {
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(244, 200, 78, 0.22);
+  border-radius: 50%;
+}
+
+.online-gate__art i:nth-child(2) { inset: 26px; }
+.online-gate__art i:nth-child(3) {
+  inset: 38px;
+  background: #f4c84e;
+  border: 0;
+  box-shadow: 0 0 28px rgba(244, 200, 78, 0.7);
+}
+
+.online-gate h1 {
+  margin: 0;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(2.8rem, 7vw, 5.6rem);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+.online-gate h1 em {
+  color: #f4c84e;
+  font-style: normal;
+}
+
+.online-gate > p {
+  max-width: 560px;
+  margin: 0;
+  color: rgba(246, 234, 208, 0.62);
+  font-size: 0.76rem;
+  line-height: 1.7;
+}
+
+.online-gate__actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.online-gate__modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  max-width: 620px;
+  margin-top: 20px;
+  background: rgba(244, 200, 78, 0.18);
+}
+
+.online-gate__modes div {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  background: #0b0810;
+}
+
+.online-gate__modes b {
+  color: #f4c84e;
+  font-size: 0.62rem;
+  letter-spacing: 0.15em;
+}
+
+.online-gate__modes span {
+  color: rgba(246, 234, 208, 0.46);
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+}
+
+/* -------------------------------------------------------------- modes */
+.online-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.online-mode {
+  display: grid;
+  gap: 9px;
+  padding: 14px;
+  border: 1px solid rgba(246, 234, 208, 0.14);
+  background: rgba(255, 255, 255, 0.02);
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.online-mode:hover {
+  border-color: rgba(244, 200, 78, 0.4);
+}
+
+.online-mode.is-active {
+  border-color: #f4c84e;
+  background: linear-gradient(140deg, rgba(244, 200, 78, 0.12), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 3px 0 0 #f4c84e;
+}
+
+.online-mode__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.online-mode__top b {
+  color: #f4c84e;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+.online-mode__top i {
+  color: rgba(246, 234, 208, 0.4);
+  font-size: 0.44rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+  text-align: right;
+}
+
+.online-mode p {
+  margin: 0;
+  color: rgba(246, 234, 208, 0.56);
+  font-size: 0.58rem;
+  line-height: 1.55;
+}
+
+.online-mode__check {
+  color: rgba(246, 234, 208, 0.32);
+  font-size: 0.46rem;
+  letter-spacing: 0.14em;
+}
+
+.online-mode.is-active .online-mode__check {
+  color: #7ff0b2;
+}
+
+.online-panel__status-stack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------------ social */
+.online-panel--friends {
+  border-color: rgba(244, 200, 78, 0.2);
+}
+
+.social-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #7ff0b2;
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+}
+
+.social-status--offline { color: rgba(246, 234, 208, 0.4); }
+.social-status--playing { color: #ff9a70; }
+
+.friend-code-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 0 16px;
+  border-bottom: 1px solid rgba(246, 234, 208, 0.1);
+}
+
+.friend-code-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.friend-code-row > div span {
+  color: rgba(246, 234, 208, 0.42);
+  font-size: 0.48rem;
+  letter-spacing: 0.16em;
+}
+
+.friend-code-row > div b {
+  color: #f4c84e;
+  font-size: 0.9rem;
+  letter-spacing: 0.24em;
+}
+
+.friend-add {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.friend-add input {
+  width: 150px;
+  padding: 8px 10px;
+  border: 1px solid rgba(246, 234, 208, 0.18);
+  background: rgba(0, 0, 0, 0.35);
+  color: #f6ead0;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  outline: 0;
+}
+
+.friend-add input:focus { border-color: #f4c84e; }
+
+.friend-error {
+  margin: 8px 0 0;
+  color: #ffab84;
+  font-size: 0.54rem;
+  letter-spacing: 0.06em;
+}
+
+.friend-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.friend-empty {
+  display: grid;
+  gap: 4px;
+  padding: 18px;
+  border: 1px dashed rgba(246, 234, 208, 0.16);
+  text-align: center;
+}
+
+.friend-empty b {
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+}
+
+.friend-empty span {
+  color: rgba(246, 234, 208, 0.45);
+  font-size: 0.56rem;
+}
+
+.friend-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border: 1px solid rgba(246, 234, 208, 0.09);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.friend-row__avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid rgba(246, 234, 208, 0.2);
+  color: rgba(246, 234, 208, 0.6);
+  font-size: 0.54rem;
+  font-weight: 700;
+}
+
+.friend-row__avatar.is-online { border-color: #58ffa8; color: #7ff0b2; }
+.friend-row__avatar.is-playing { border-color: #ff9a70; color: #ff9a70; }
+
+.friend-row__copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.friend-row__copy b {
+  overflow: hidden;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-row__copy span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(246, 234, 208, 0.44);
+  font-size: 0.48rem;
+  letter-spacing: 0.1em;
+}
+
+.friend-row__copy i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #5c5149;
+}
+
+.friend-row__copy i.is-online { background: #58ffa8; box-shadow: 0 0 7px rgba(88,255,168,.8); }
+.friend-row__copy i.is-playing { background: #ff9a70; }
+
+.friend-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.friend-row__remove {
+  padding: 5px;
+  color: rgba(246, 234, 208, 0.3);
+  font-size: 0.55rem;
+}
+
+.friend-row__remove:hover { color: #ff8a72; }
+
+.online-room__invites {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(246, 234, 208, 0.1);
+}
+
+.online-room__invites > span {
+  color: rgba(246, 234, 208, 0.42);
+  font-size: 0.48rem;
+  letter-spacing: 0.16em;
+}
+
+.online-room__invites > div {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.online-room__invites em {
+  color: rgba(246, 234, 208, 0.45);
+  font-size: 0.54rem;
+  font-style: normal;
+}
+
+.online-friend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border: 1px solid rgba(246, 234, 208, 0.16);
+  color: rgba(246, 234, 208, 0.7);
+  font-size: 0.52rem;
+  letter-spacing: 0.08em;
+}
+
+.online-friend-chip:disabled { opacity: 0.4; }
+.online-friend-chip i { width: 5px; height: 5px; border-radius: 50%; background: #5c5149; }
+.online-friend-chip i.is-online { background: #58ffa8; }
+
+/* ------------------------------------------------------- player card */
+.player-card-panel {
+  width: min(780px, 100%);
+  background:
+    radial-gradient(circle at 88% 8%, rgba(244, 200, 78, 0.09), transparent 34%),
+    linear-gradient(145deg, #15100c, #090706 60%);
+}
+
+.player-card-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(244, 200, 78, 0.28);
+  background: linear-gradient(120deg, rgba(244, 200, 78, 0.09), rgba(255, 255, 255, 0.015));
+}
+
+.player-card-avatar {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border: 1px solid rgba(244, 200, 78, 0.5);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #765a27, #171009 72%);
+  color: #f8e8b6;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.08em;
+}
+
+.player-card-identity {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.player-card-identity > span,
+.player-card-kicker,
+.player-card-record span,
+.player-card-metrics span,
+.player-card-split span {
+  color: rgba(244, 232, 208, 0.48);
+  font-size: 0.48rem;
+  letter-spacing: 0.18em;
+}
+
+.player-card-identity > b {
+  overflow: hidden;
+  color: #f8e8b6;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-card-identity > i {
+  color: rgba(244, 232, 208, 0.42);
+  font-size: 0.48rem;
+  font-style: normal;
+  letter-spacing: 0.12em;
+}
+
+.player-card-rate {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  flex: none;
+  border-radius: 50%;
+  background: conic-gradient(#f4c84e var(--win-rate), rgba(244, 200, 78, 0.12) 0);
+}
+
+.player-card-rate::before {
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: #0d0907;
+  content: '';
+}
+
+.player-card-rate b,
+.player-card-rate span {
+  position: relative;
+  z-index: 1;
+}
+
+.player-card-rate b {
+  margin-top: 8px;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.player-card-rate b i {
+  color: #f4c84e;
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
+.player-card-rate span {
+  margin-top: -20px;
+  color: rgba(244, 232, 208, 0.5);
+  font-size: 0.4rem;
+  letter-spacing: 0.12em;
+}
+
+.player-card-record {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  margin-top: 10px;
+  background: rgba(244, 200, 78, 0.16);
+}
+
+.player-card-record > div {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 7px;
+  padding: 12px 14px;
+  background: #0d0907;
+}
+
+.player-card-record span {
+  width: 100%;
+}
+
+.player-card-record b {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.player-card-record b i {
+  color: #7ff0b2;
+  font-size: 0.55rem;
+  font-style: normal;
+}
+
+.player-card-record em {
+  color: rgba(244, 232, 208, 0.4);
+  font-size: 0.44rem;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.player-card-main {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.player-card-favorite,
+.player-card-split {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 13px;
+  padding: 15px;
+  border: 1px solid rgba(244, 200, 78, 0.16);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.player-card-favorite .player-card-kicker,
+.player-card-split .player-card-kicker {
+  width: 100%;
+}
+
+.player-card-favorite__mark {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 54px;
+  flex: none;
+  border: 1px solid rgba(244, 200, 78, 0.4);
+  background: linear-gradient(150deg, #4a3516, #120c07);
+  color: #f6d67a;
+  font-family: 'Anton', sans-serif;
+  font-size: 0.8rem;
+}
+
+.player-card-favorite > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.player-card-favorite b {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+.player-card-favorite span:not(.player-card-kicker, .player-card-favorite__mark),
+.player-card-favorite em,
+.player-card-split em {
+  color: rgba(244, 232, 208, 0.45);
+  font-size: 0.46rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+}
+
+.player-card-favorite em,
+.player-card-split em {
+  width: 100%;
+  color: #c9a54a;
+}
+
+.player-card-favorite.is-empty p {
+  margin: 0;
+  color: rgba(244, 232, 208, 0.55);
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+}
+
+.player-card-split {
+  align-content: center;
+}
+
+.player-card-split > div {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(244, 200, 78, 0.1);
+}
+
+.player-card-split b {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+}
+
+.player-card-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin-top: 10px;
+  background: rgba(244, 200, 78, 0.14);
+}
+
+.player-card-metrics > div {
+  display: grid;
+  gap: 4px;
+  padding: 13px;
+  background: #0b0807;
+}
+
+.player-card-metrics b {
+  color: #f4e5bf;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.player-card-metrics em {
+  color: rgba(244, 232, 208, 0.38);
+  font-size: 0.42rem;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.player-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.player-card-foot p {
+  max-width: 470px;
+  margin: 0;
+  color: rgba(244, 232, 208, 0.42);
+  font-size: 0.5rem;
+  line-height: 1.6;
+}
+
+/* ------------------------------------------------------- label drop */
+.label__drop-artist {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 11px 12px;
+  border: 1px dashed rgba(180, 90, 70, 0.4);
+  background: rgba(120, 32, 20, 0.1);
+}
+
+.label__drop-artist > div {
+  display: grid;
+  gap: 2px;
+}
+
+.label__drop-artist span {
+  color: rgba(244, 232, 208, 0.4);
+  font-size: 0.46rem;
+  letter-spacing: 0.16em;
+}
+
+.label__drop-artist b {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+}
+
+.label__drop-artist em {
+  color: rgba(244, 232, 208, 0.46);
+  font-size: 0.5rem;
+  font-style: normal;
+}
+
+.label__drop-confirm {
+  display: grid;
+  gap: 8px;
+  padding: 13px;
+  border: 1px solid rgba(255, 120, 92, 0.5);
+  background: rgba(80, 16, 10, 0.35);
+}
+
+.label__drop-confirm > span {
+  color: #ffab84;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.label__drop-confirm p {
+  margin: 0;
+  color: rgba(244, 232, 208, 0.58);
+  font-size: 0.56rem;
+  line-height: 1.6;
+}
+
+.label__drop-confirm > div {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ------------------------------------------------- battle additions */
+.hype-chip--attacks {
+  border-color: rgba(255, 154, 112, 0.35);
+  color: #ffb08c;
+}
+
+.turnbox__attacks {
+  display: block;
+  margin: 2px 0 4px;
+  color: #ffb08c;
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+}
+
+.move-card__cost.is-free {
+  color: #7ff0b2;
+}
+
+.hype__ticks {
+  gap: 1px;
+}
+
+.hype__ticks span {
+  min-width: 2px;
+  flex: 1;
+}
+
+/* ----------------------------------------------------------- responsive */
+@media (max-width: 1180px) {
+  .arena-top-actions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .arena-account {
+    padding: 5px;
+    border-radius: 50%;
+  }
+
+  .arena-account__copy,
+  .arena-account__dot {
+    display: none;
+  }
+
+  .arena-account__avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .friend-add {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .friend-add input {
+    flex: 1;
+    width: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .account-summary,
+  .player-card-record {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .player-card-hero {
+    grid-template-columns: auto 1fr;
+  }
+
+  .player-card-rate {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+    background: none;
+  }
+
+  .player-card-rate::before {
+    display: none;
+  }
+
+  .player-card-rate b,
+  .player-card-rate span {
+    margin: 0;
+  }
+
+  .player-card-rate b {
+    color: #f4c84e;
+  }
+
+  .player-card-main,
+  .player-card-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .friend-row {
+    flex-wrap: wrap;
+  }
+
+  .friend-row__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .player-card-foot {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .account-actions {
+    flex-direction: column;
+  }
+
+  .online-modes,
+  .online-gate__modes {
+    grid-template-columns: 1fr;
+  }
+
+  .online-mode__top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+  .friend-code-row {
+    align-items: flex-start;
+  }
+
+  .friend-code-row > button {
+    margin-left: auto;
+  }
+
+  .invite-toast {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    width: auto;
+  }
+
+  .label__drop-artist {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ============================================================
+   CIKI ID DOSSIER — isolated from the active theme
+   ============================================================ */
+
+.account-modal .modal__panel.account-panel,
+.player-card-modal .modal__panel.player-card-panel {
+  --ink: #f4e8d0;
+  --ink-dim: #b6a68a;
+  --line: rgba(216, 180, 92, 0.26);
+  --panel-solid: #0d0907;
+  --accent: #d8b45c;
+  --accent-2: #f6e8bd;
+  --accent-3: #ff9a70;
+  --accent-ink: #120d08;
+  color: #f4e8d0;
+}
+
+.account-modal .modal__panel.account-panel {
+  position: relative;
+  width: min(680px, 100%);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid rgba(216, 180, 92, 0.5);
+  border-radius: 3px;
+  background:
+    radial-gradient(120% 60% at 100% 0, rgba(216, 180, 92, 0.18), transparent 54%),
+    radial-gradient(80% 45% at 0 100%, rgba(126, 44, 22, 0.18), transparent 62%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 17px),
+    linear-gradient(150deg, #17110d, #090706 62%, #100b08);
+  box-shadow:
+    0 4rem 8rem -2rem rgba(0, 0, 0, 0.95),
+    inset 0 0 0 5px rgba(216, 180, 92, 0.055),
+    inset 0 1px 0 rgba(255, 236, 184, 0.12);
+}
+
+.account-modal .modal__panel.account-panel::before {
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(244, 200, 78, 0.12);
+  content: '';
+  pointer-events: none;
+}
+
+.account-modal .account-head {
+  margin: 0;
+  padding: 25px 25px 18px;
+  border-bottom: 1px solid rgba(216, 180, 92, 0.24);
+  background: linear-gradient(180deg, rgba(255, 235, 178, 0.045), transparent);
+}
+
+.account-modal .account-head > div {
+  min-width: 0;
+}
+
+.account-modal .account-head .kicker {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 8px;
+  border: 1px solid rgba(244, 200, 78, 0.58);
+  background: #e8bf55;
+  color: #130d08;
+  font-size: 0.46rem;
+  font-weight: 800;
+  letter-spacing: 0.19em;
+}
+
+.account-modal .account-head h2 {
+  margin: 11px 0 0;
+  overflow-wrap: anywhere;
+  color: #f7e9c6;
+  font-family: 'Anton', var(--display, serif);
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-weight: 400;
+  letter-spacing: 0.015em;
+  line-height: 0.98;
+  text-shadow: 0 2px 0 #000;
+}
+
+.account-head__sub {
+  margin: 8px 0 0;
+  color: rgba(244, 232, 208, 0.43);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.47rem;
+  letter-spacing: 0.17em;
+}
+
+.account-modal .account-head .icon-btn {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  place-items: center;
+  border: 1px solid rgba(244, 200, 78, 0.28);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.22);
+  color: #e8cf91;
+}
+
+.account-modal .account-head .icon-btn:hover {
+  border-color: #f4c84e;
+  background: rgba(244, 200, 78, 0.1);
+}
+
+.account-modal .account-body,
+.account-modal .account-auth {
+  position: relative;
+  display: grid;
+  gap: 13px;
+  padding: 18px 25px 24px;
+}
+
+.account-modal .account-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  overflow: hidden;
+  padding: 18px;
+  border: 1px solid rgba(244, 200, 78, 0.25);
+  background:
+    linear-gradient(112deg, rgba(244, 200, 78, 0.1), transparent 42%),
+    rgba(255, 255, 255, 0.025);
+}
+
+.account-modal .account-card::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(#f6d67a, #9e7024);
+  content: '';
+}
+
+.account-modal .account-card::after {
+  position: absolute;
+  right: 17px;
+  bottom: -13px;
+  color: rgba(244, 232, 208, 0.035);
+  content: 'CIKI';
+  font-family: 'Anton', sans-serif;
+  font-size: 5.2rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.account-modal .account-card__avatar {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 68px;
+  height: 68px;
+  place-items: center;
+  border: 1px solid #f4c84e;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 26%, #8a6b2d, #1a1108 70%);
+  color: #fff0bd;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: 0.09em;
+  box-shadow: 0 0 0 4px #0d0907, 0 0 0 5px rgba(244, 200, 78, 0.24);
+}
+
+.account-modal .account-card > div {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.account-modal .account-card > div > span {
+  color: rgba(244, 232, 208, 0.43);
+  font-size: 0.46rem;
+  letter-spacing: 0.18em;
+}
+
+.account-modal .account-card b {
+  overflow: hidden;
+  color: #f8e9c2;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.62rem;
+  font-weight: 400;
+  letter-spacing: 0.025em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-modal .account-card i {
+  overflow: hidden;
+  color: #7ff0b2;
+  font-size: 0.44rem;
+  font-style: normal;
+  letter-spacing: 0.11em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-modal .account-online {
+  position: relative;
+  z-index: 1;
+  align-self: start;
+  padding: 5px 8px;
+  border: 1px solid rgba(88, 255, 168, 0.32);
+  background: rgba(88, 255, 168, 0.07);
+  color: #8cf6bd;
+  font-size: 0.46rem;
+  letter-spacing: 0.15em;
+}
+
+.account-modal .account-friend-code {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 15px 16px;
+  border: 1px dashed rgba(244, 200, 78, 0.37);
+  background:
+    linear-gradient(90deg, rgba(244, 200, 78, 0.07), transparent 55%),
+    rgba(0, 0, 0, 0.25);
+}
+
+.account-modal .account-friend-code::after {
+  position: absolute;
+  top: -6px;
+  right: 104px;
+  padding: 0 5px;
+  background: #0d0907;
+  color: rgba(244, 200, 78, 0.55);
+  content: 'ADMIT ONE';
+  font-size: 0.38rem;
+  letter-spacing: 0.16em;
+}
+
+.account-modal .account-friend-code > div {
+  gap: 3px;
+}
+
+.account-modal .account-friend-code span {
+  color: rgba(244, 232, 208, 0.43);
+  font-size: 0.46rem;
+  letter-spacing: 0.18em;
+}
+
+.account-modal .account-friend-code b {
+  color: #f4c84e;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.55rem;
+  font-weight: 400;
+  letter-spacing: 0.27em;
+  line-height: 1;
+  text-shadow: 0 0 22px rgba(244, 200, 78, 0.22);
+}
+
+.account-modal .account-friend-code .btn {
+  border-color: rgba(244, 200, 78, 0.35);
+  background: rgba(244, 200, 78, 0.07);
+  color: #f1d88f;
+}
+
+.account-modal .account-summary {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin: 0;
+  background: none;
+}
+
+.account-modal .account-summary > div {
+  display: flex;
+  min-width: 0;
+  min-height: 70px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 11px 12px;
+  border: 1px solid rgba(244, 232, 208, 0.09);
+  border-top-color: rgba(244, 200, 78, 0.33);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(0, 0, 0, 0.14));
+}
+
+.account-modal .account-summary span {
+  color: rgba(244, 232, 208, 0.42);
+  font-size: 0.43rem;
+  letter-spacing: 0.17em;
+}
+
+.account-modal .account-summary b {
+  color: #f4e5bf;
+  font-family: 'Anton', sans-serif;
+  font-size: 1.12rem;
+  font-weight: 400;
+  letter-spacing: 0.035em;
+  line-height: 1;
+}
+
+.account-modal .account-summary div:nth-child(3) b {
+  color: #f4c84e;
+}
+
+.account-modal .account-summary em {
+  overflow: hidden;
+  color: rgba(244, 232, 208, 0.32);
+  font-size: 0.4rem;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-modal .account-scout {
+  border: 1px solid rgba(244, 200, 78, 0.16);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.account-scout > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 13px;
+  border-bottom: 1px solid rgba(244, 200, 78, 0.14);
+}
+
+.account-scout__kicker {
+  color: #e6c264;
+  font-size: 0.45rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.account-scout > header em {
+  color: rgba(244, 232, 208, 0.29);
+  font-size: 0.39rem;
+  font-style: normal;
+  letter-spacing: 0.12em;
+}
+
+.account-scout__grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr;
+  gap: 1px;
+  background: rgba(244, 200, 78, 0.12);
+}
+
+.account-scout__grid > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 13px;
+  background: #0e0a08;
+}
+
+.account-scout__grid span {
+  color: rgba(244, 232, 208, 0.4);
+  font-size: 0.4rem;
+  letter-spacing: 0.15em;
+}
+
+.account-scout__grid b {
+  overflow: hidden;
+  color: #f3e3bb;
+  font-family: 'Anton', sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-scout__grid em {
+  overflow: hidden;
+  color: rgba(244, 232, 208, 0.35);
+  font-size: 0.37rem;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-scout__favorite b {
+  color: #f4c84e;
+}
+
+.account-modal .account-note {
+  color: rgba(244, 232, 208, 0.39);
+  font-size: 0.49rem;
+  line-height: 1.65;
+}
+
+.account-modal .account-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+}
+
+.account-modal .account-actions .btn {
+  min-height: 42px;
+  border-color: rgba(244, 200, 78, 0.22);
+  background: rgba(255, 255, 255, 0.035);
+  color: #e9d6a2;
+  font-size: 0.48rem;
+  letter-spacing: 0.15em;
+}
+
+.account-modal .account-actions .btn--primary {
+  border-color: #f4d77f;
+  background: linear-gradient(180deg, #f6dc8c, #c99b3f);
+  color: #120d08;
+  box-shadow: 0 10px 30px -15px rgba(244, 200, 78, 0.8);
+}
+
+.account-modal .account-actions .account-actions__card {
+  grid-column: 1 / -1;
+}
+
+.account-signout {
+  min-height: 42px;
+  border: 1px solid rgba(255, 120, 92, 0.27);
+  background: transparent;
+  color: #ff9a70;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.47rem;
+  letter-spacing: 0.15em;
+}
+
+.account-signout:hover {
+  border-color: #ff8a72;
+  background: rgba(255, 120, 92, 0.07);
+}
+
+.account-modal .account-auth .account-tabs {
+  margin: 0 0 3px;
+  border-bottom-color: rgba(244, 200, 78, 0.2);
+}
+
+.account-modal .account-auth .account-tabs button {
+  color: rgba(244, 232, 208, 0.46);
+  font-size: 0.55rem;
+}
+
+.account-modal .account-auth .account-tabs button.is-active {
+  color: #f4c84e;
+}
+
+.account-modal .account-form {
+  padding: 17px;
+  border: 1px solid rgba(244, 200, 78, 0.16);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.account-modal .account-form label > span {
+  color: rgba(244, 232, 208, 0.48);
+}
+
+.account-modal .account-form input {
+  border-color: rgba(244, 200, 78, 0.22);
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.46);
+  color: #f6ead0;
+}
+
+.account-modal .account-form .btn--primary {
+  border-color: #f4d77f;
+  background: linear-gradient(180deg, #f6dc8c, #c99b3f);
+  color: #120d08;
+}
+
+/* The player card already has its own dark layout; pin it to the same dossier shell. */
+.player-card-modal .modal__panel.player-card-panel {
+  border: 1px solid rgba(244, 200, 78, 0.42);
+  border-radius: 3px;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(244, 200, 78, 0.11), transparent 34%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 17px),
+    linear-gradient(145deg, #17110d, #080605 60%, #0e0a08);
+  color: #f4e8d0;
+  box-shadow:
+    0 4rem 8rem -2rem rgba(0, 0, 0, 0.95),
+    inset 0 0 0 5px rgba(244, 200, 78, 0.045);
+}
+
+.player-card-modal .modal__head {
+  border-bottom: 1px solid rgba(244, 200, 78, 0.22);
+}
+
+.player-card-modal .modal__head h2 {
+  color: #f7e9c6;
+  font-family: 'Anton', sans-serif;
+  font-weight: 400;
+}
+
+.player-card-modal .modal__head .kicker {
+  background: transparent;
+  color: #e2bd5d;
+}
+
+.player-card-modal .modal__head .icon-btn {
+  border: 1px solid rgba(244, 200, 78, 0.28);
+  border-radius: 50%;
+  color: #e8cf91;
+}
+
+.player-card-modal .player-card-foot .btn {
+  border-color: rgba(244, 200, 78, 0.3);
+  background: rgba(255, 255, 255, 0.035);
+  color: #e9d6a2;
+}
+
+@media (max-width: 640px) {
+  .account-modal .account-head {
+    padding: 21px 18px 16px;
+  }
+
+  .account-modal .account-body,
+  .account-modal .account-auth {
+    padding: 14px 18px 18px;
+  }
+
+  .account-modal .account-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 13px;
+    padding: 16px;
+  }
+
+  .account-modal .account-card__avatar {
+    width: 58px;
+    height: 58px;
+  }
+
+  .account-modal .account-online {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .account-modal .account-friend-code {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 13px;
+  }
+
+  .account-modal .account-friend-code::after {
+    display: none;
+  }
+
+  .account-modal .account-friend-code b {
+    font-size: 1.3rem;
+    letter-spacing: 0.22em;
+  }
+
+  .account-modal .account-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .account-scout__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .account-scout__favorite {
+    grid-column: 1 / -1;
+  }
+
+  .account-modal .account-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .account-modal .account-actions .account-actions__card {
+    grid-column: auto;
+  }
+}
+
+/* Career title showcase additions. */
+.account-card__title {
+  display: block;
+  margin-top: 4px;
+  color: #f4c84e;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.account-title-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 14px 0;
+  padding: 13px;
+  border: 1px solid rgba(244, 200, 78, 0.22);
+  background: rgba(8, 6, 9, 0.55);
+}
+
+.account-title-picker > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-title-picker span {
+  color: #8f8375;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+}
+
+.account-title-picker b {
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.account-title-picker em {
+  color: #8f8375;
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+.account-title-picker select {
+  min-width: 190px;
+  max-width: 100%;
+  padding: 9px 10px;
+  border: 1px solid rgba(244, 200, 78, 0.35);
+  background: #0e0a10;
+  color: #f4ead6;
+  font-family: var(--font-body);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+
+.account-title-picker p {
+  max-width: 220px;
+  margin: 0;
+  color: #8f8375;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.player-card-identity > em.player-card-title {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-style: normal;
+  letter-spacing: 0.09em;
+  text-shadow: 0 0 14px currentColor;
+}
+
+.friend-row__title {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 700px) {
+  .account-title-picker {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .account-title-picker select {
+    width: 100%;
+    min-width: 0;
+  }
+}

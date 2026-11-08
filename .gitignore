@@ -1,5 +1,6 @@
 node_modules
 dist
+.site-build
 artifacts
 .apt
 .local
@@ -8,4 +9,13 @@ artifacts
 tsconfig.tsbuildinfo
 site-public
 site-worker.bundle.js
+site-worker-public.js
+site-optimized/
+release/
+trailer/
 .DS_Store
+
+# DJ Kickit source master (large, user-supplied)
+audio/announcer/original/*.wav
+audio/announcer/original/*.wav.backup
+audio/battle/original/*

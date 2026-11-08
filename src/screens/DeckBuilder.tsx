@@ -1,7 +1,7 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import type { Artist, ArtistProgress, Crew, Genre, ThemeId } from '../game/types'
 import { ARTISTS, CREW_META, GENRES, getArtist } from '../game/roster'
-import { DEFAULT_DECK } from '../game/settings'
+import { DEFAULT_DECK, LINEUP_SIZE } from '../game/settings'
 import { buzzState } from '../game/ultimate'
 import { loadoutFor, progressFor } from '../game/moves'
 import { Card } from '../components/Card'
@@ -10,30 +10,72 @@ import { MoveLoadout } from '../components/MoveLoadout'
 interface DeckBuilderProps {
   theme: ThemeId
   deck: string[]
+  lineup: string[]
   credits: number
   buzz: number
   progress: Record<string, ArtistProgress>
-  onSave: (deck: string[]) => void
+  personalArtist?: Artist | null
+  allowPersonal?: boolean
+  onSave: (deck: string[], lineup: string[]) => void
   onLoadoutChange: (artistId: string, loadout: string[]) => void
-  onPlay: (deck: string[]) => void
+  onPlay: (deck: string[], lineup: string[]) => void
   onBack: () => void
 }
 
 const TOTAL_SLOTS = 26
 
 function overallOf(artist: Artist) {
+  if (artist.personal) return artist.personal.ovr
   return Math.min(99, Math.round(69 + artist.bars * 2.1 + artist.cost * 1.3 + artist.encore.bars * 0.4))
 }
 
-export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutChange, onPlay, onBack }: DeckBuilderProps) {
+function starterSlots(deck: string[], lineup: string[]): number[] {
+  const used = new Set<number>()
+  const slots: number[] = []
+  for (const id of lineup) {
+    const index = deck.findIndex((card, candidate) => card === id && !used.has(candidate))
+    if (index === -1) continue
+    used.add(index)
+    slots.push(index)
+    if (slots.length >= LINEUP_SIZE) break
+  }
+  return slots
+}
+
+function fillStarterSlots(deck: string[], current: number[]): number[] {
+  const slots = current
+    .filter((index, position) => index >= 0 && index < deck.length && current.indexOf(index) === position)
+    .slice(0, LINEUP_SIZE)
+  for (let index = 0; index < deck.length && slots.length < LINEUP_SIZE; index += 1) {
+    if (!slots.includes(index)) slots.push(index)
+  }
+  return slots
+}
+
+export function DeckBuilder({
+  deck,
+  lineup,
+  credits,
+  buzz,
+  progress,
+  personalArtist = null,
+  allowPersonal = false,
+  onSave,
+  onLoadoutChange,
+  onPlay,
+  onBack,
+}: DeckBuilderProps) {
   const [draft, setDraft] = useState<string[]>(deck)
+  const [lineupSlots, setLineupSlots] = useState<number[]>(() => starterSlots(deck, lineup))
   const [loadoutArtistId, setLoadoutArtistId] = useState<string | null>(null)
   const [genre, setGenre] = useState<Genre | 'ALL'>('ALL')
   const [crew, setCrew] = useState<Crew | 'ALL'>('ALL')
   const [era, setEra] = useState<'ALL' | '90s' | '00s'>('ALL')
   const [query, setQuery] = useState('')
+  const [tab, setTab] = useState<'roster' | 'personal'>('roster')
   const [toast, setToast] = useState<string | null>(null)
   const rank = buzzState(buzz)
+  const ready = draft.length === TOTAL_SLOTS && lineupSlots.length === LINEUP_SIZE
 
   const copies = useMemo(() => {
     const map = new Map<string, number>()
@@ -117,13 +159,30 @@ export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutCh
     window.setTimeout(() => setToast(null), 2400)
   }
 
+  const toggleStarter = (index: number) => {
+    if (lineupSlots.includes(index)) {
+      setLineupSlots(lineupSlots.filter((slot) => slot !== index))
+      return
+    }
+    if (lineupSlots.length >= LINEUP_SIZE) {
+      notify('STARTING FIVE FULL — REMOVE A STARTER FIRST')
+      return
+    }
+    setLineupSlots([...lineupSlots, index])
+  }
+
   const add = (id: string) => {
+    const personal = id === personalArtist?.id
+    if (personal && !allowPersonal) {
+      notify('MY ARTIST IS ALLOWED IN CAMPAIGN AND LOCAL CPU DECKS ONLY')
+      return
+    }
     if (draft.length >= TOTAL_SLOTS) {
       notify('MIXTAPE FULL — CUT A SLOT FIRST')
       return
     }
-    if ((copies.get(id) ?? 0) >= 2) {
-      notify('TWO COPIES MAX PER ARTIST')
+    if ((copies.get(id) ?? 0) >= (personal ? 1 : 2)) {
+      notify(personal ? 'MY ARTIST OCCUPIES EXACTLY ONE SLOT' : 'TWO COPIES MAX PER ARTIST')
       return
     }
     setDraft([...draft, id])
@@ -133,11 +192,17 @@ export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutCh
   const removeAt = (index: number) => {
     const artist = getArtist(draft[index])
     setDraft(draft.filter((_, i) => i !== index))
+    setLineupSlots(
+      lineupSlots
+        .filter((slot) => slot !== index)
+        .map((slot) => (slot > index ? slot - 1 : slot)),
+    )
     notify(`${artist.name} CUT`)
   }
 
   const clear = () => {
     setDraft([])
+    setLineupSlots([])
     notify('MIXTAPE CLEARED — BUILD IT BACK')
   }
 
@@ -153,21 +218,32 @@ export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutCh
       if (count < 2) next.push(artist.id)
     }
     setDraft(next)
+    setLineupSlots((current) => fillStarterSlots(next, current))
     notify('AUTO-FILLED — TUNE IT YOUR WAY')
   }
 
   const signature = () => {
-    setDraft(DEFAULT_DECK)
-    notify('SIGNATURE 26 LOADED')
+    const keepPersonal = personalArtist && draft.includes(personalArtist.id)
+    const next = keepPersonal ? [personalArtist.id, ...DEFAULT_DECK.slice(0, TOTAL_SLOTS - 1)] : DEFAULT_DECK
+    setDraft(next)
+    setLineupSlots(fillStarterSlots(next, []))
+    notify(keepPersonal ? 'SIGNATURE 25 + MY ARTIST LOADED' : 'SIGNATURE 26 LOADED')
   }
+
+  const starters = () =>
+    lineupSlots.map((index) => draft[index]).filter((id): id is string => Boolean(id))
 
   const save = () => {
     if (draft.length !== TOTAL_SLOTS) {
       notify('A MIXTAPE NEEDS EXACTLY 26 SLOTS')
       return
     }
-    onSave(draft)
-    notify('MIXTAPE PRESSED & SAVED')
+    if (lineupSlots.length !== LINEUP_SIZE) {
+      notify(`PICK ${LINEUP_SIZE} STARTERS FOR YOUR OPENING HAND`)
+      return
+    }
+    onSave(draft, starters())
+    notify('MIXTAPE & STARTING FIVE SAVED')
   }
 
   const play = () => {
@@ -175,7 +251,11 @@ export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutCh
       notify('A MIXTAPE NEEDS EXACTLY 26 SLOTS')
       return
     }
-    onPlay(draft)
+    if (lineupSlots.length !== LINEUP_SIZE) {
+      notify(`PICK ${LINEUP_SIZE} STARTERS FOR YOUR OPENING HAND`)
+      return
+    }
+    onPlay(draft, starters())
   }
 
   return (
@@ -198,10 +278,10 @@ export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutCh
           </span>
         </div>
         <div className="subpage__actions">
-          <button className="btn btn--ghost btn--sm" onClick={save} disabled={draft.length !== TOTAL_SLOTS}>
+          <button className="btn btn--ghost btn--sm" onClick={save} disabled={!ready}>
             SAVE
           </button>
-          <button className="btn btn--primary btn--sm" onClick={play} disabled={draft.length !== TOTAL_SLOTS}>
+          <button className="btn btn--primary btn--sm" onClick={play} disabled={!ready}>
             SAVE &amp; PLAY
           </button>
         </div>
@@ -222,6 +302,62 @@ export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutCh
             </span>
           </div>
 
+          <section className="builder__lineup" aria-label="Starting five">
+            <div className="builder__lineup-head">
+              <div className="builder__lineup-title">
+                <span className="kicker">STARTING FIVE</span>
+                <b>
+                  {lineupSlots.length}/{LINEUP_SIZE}
+                </b>
+              </div>
+              <p>Your opening hand. Star five mixtape slots to guarantee them in the first draw.</p>
+              <div className="builder__lineup-actions">
+                <button
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => setLineupSlots(fillStarterSlots(draft, []))}
+                  disabled={draft.length === 0}
+                >
+                  FIRST FIVE
+                </button>
+                <button
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => setLineupSlots([])}
+                  disabled={lineupSlots.length === 0}
+                >
+                  CLEAR
+                </button>
+              </div>
+            </div>
+            <div className="builder__lineup-slots">
+              {Array.from({ length: LINEUP_SIZE }).map((_, slot) => {
+                const index = lineupSlots[slot]
+                const artist = index === undefined ? null : getArtist(draft[index])
+                return (
+                  <div className={`lineup-slot ${artist ? 'is-filled' : ''}`} key={`starter-${slot}`}>
+                    <span className="lineup-slot__num">{String(slot + 1).padStart(2, '0')}</span>
+                    {artist ? (
+                      <>
+                        <b>{artist.name}</b>
+                        <i>
+                          {artist.genre} · {artist.cost}H
+                        </i>
+                        <button
+                          type="button"
+                          onClick={() => index !== undefined && toggleStarter(index)}
+                          aria-label={`Remove ${artist.name} from the starting five`}
+                        >
+                          ×
+                        </button>
+                      </>
+                    ) : (
+                      <span className="lineup-slot__empty">OPEN</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+
           <div className="slots" aria-label="Mixtape slots">
             {Array.from({ length: TOTAL_SLOTS }).map((_, index) => {
               const id = draft[index]
@@ -236,8 +372,9 @@ export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutCh
                 )
               }
               const artist = getArtist(id)
+              const isStarter = lineupSlots.includes(index)
               return (
-                <div className="slot-row" key={`${id}-${index}`}>
+                <div className={`slot-row ${isStarter ? 'is-starter' : ''}`} key={`${id}-${index}`}>
                   <span className="slot-row__num">{String(index + 1).padStart(2, '0')}</span>
                   <span className="slot-row__letter" style={{ color: artist.palette.accent }}>
                     {artist.slot}
@@ -250,6 +387,16 @@ export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutCh
                   </span>
                   <span className="slot-row__cost">{artist.cost}H</span>
                   <span className="slot-row__bars">{artist.bars}B</span>
+                  <button
+                    type="button"
+                    className={`slot-row__start ${isStarter ? 'is-on' : ''}`}
+                    onClick={() => toggleStarter(index)}
+                    aria-pressed={isStarter}
+                    aria-label={`${isStarter ? 'Remove' : 'Add'} ${artist.name} ${isStarter ? 'from' : 'to'} the starting five`}
+                    title="Starting five"
+                  >
+                    {isStarter ? '★' : '☆'}
+                  </button>
                   <button
                     className="slot-row__cut"
                     onClick={() => removeAt(index)}
@@ -334,7 +481,10 @@ export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutCh
 
         <section className="builder__collection">
           <div className="builder__tabs">
-            <span className="is-on">ARTISTS · {ARTISTS.length}</span>
+            <button className={tab === 'roster' ? 'is-on' : ''} onClick={() => setTab('roster')}>ARTISTS · {ARTISTS.length}</button>
+            {allowPersonal && personalArtist && (
+              <button className={tab === 'personal' ? 'is-on' : ''} onClick={() => setTab('personal')}>MY ARTIST · LOCAL</button>
+            )}
             <span>26-SLOT MIXTAPE</span>
           </div>
 
@@ -380,49 +530,52 @@ export function DeckBuilder({ deck, credits, buzz, progress, onSave, onLoadoutCh
           </div>
 
           <div className="builder__roster-head">
-            <span>THE ROSTER · {ARTISTS.length} FICTIONAL ARTISTS</span>
-            <i>CLICK A CARD TO ADD · TWO COPIES MAX</i>
+            <span>{tab === 'personal' ? 'MY ARTIST · PERSONAL CARD' : `THE ROSTER · ${ARTISTS.length} FICTIONAL ARTISTS`}</span>
+            <i>{tab === 'personal' ? 'EXACTLY ONE SLOT · LOCAL ONLY' : 'CLICK A CARD TO ADD · TWO COPIES MAX'}</i>
           </div>
 
           <div className="builder__grid">
-            {filtered.map((artist) => {
+            {(tab === 'personal' && personalArtist ? [personalArtist] : filtered).map((artist) => {
               const count = copies.get(artist.id) ?? 0
               const level = progressFor(progress, artist.id).level
+              const personal = Boolean(artist.personal)
               return (
-                <div className={`builder-card ${count > 0 ? 'is-in-deck' : ''}`} key={artist.id}>
+                <div className={`builder-card ${count > 0 ? 'is-in-deck' : ''} ${personal ? 'builder-card--personal' : ''}`} key={artist.id}>
                   <Card
                     artist={artist}
                     size="grid"
                     onClick={() => add(artist.id)}
-                    disabled={count >= 2}
+                    disabled={count >= (personal ? 1 : 2)}
                   />
                   <span className="builder-card__ovr">
                     <i aria-hidden="true">♛</i>
                     <b>{overallOf(artist)}</b>
                   </span>
                   <span className="builder-card__copies">{count ? `×${count}` : '+'}</span>
-                  {count >= 2 && <span className="builder-card__max">MAX</span>}
-                  <button
-                    className="builder-card__moves"
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      setLoadoutArtistId(artist.id)
-                    }}
-                    title="Edit three equipped battle moves"
-                  >
-                    MOVES · L{level}
-                  </button>
+                  {count >= (personal ? 1 : 2) && <span className="builder-card__max">{personal ? 'IN DECK' : 'MAX'}</span>}
+                  {!personal && (
+                    <button
+                      className="builder-card__moves"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        setLoadoutArtistId(artist.id)
+                      }}
+                      title="Edit three equipped battle moves"
+                    >
+                      MOVES · L{level}
+                    </button>
+                  )}
                 </div>
               )
             })}
-            {filtered.length === 0 && <p className="builder__none">NO ARTISTS MATCH THAT FILTER.</p>}
+            {filtered.length === 0 && tab === 'roster' && <p className="builder__none">NO ARTISTS MATCH THAT FILTER.</p>}
           </div>
 
           <div className="builder__legend">
+            <span>★ 5 STARTERS = OPENING HAND</span>
             <span>CLICK A CARD TO ADD</span>
             <span>×2 MAX PER ARTIST</span>
-            <span>26/26 FOR A LEGAL MIXTAPE</span>
-            <span>LOCAL SAVE</span>
+            <span>26/26 + 5 STARTERS TO PLAY</span>
           </div>
         </section>
       </div>

@@ -1,0 +1,586 @@
+{
+  "version": 1,
+  "announcer": "DJ KICKIT",
+  "generatedAt": "2026-11-05",
+  "source": {
+    "file": "audio/announcer/original/dj_kickit_master.wav",
+    "sha256": "45f730eb9f79286918fa4ca72f724e1024e198c1ceb1b3937cbc22d0c5ab55ff",
+    "duration": 177.773,
+    "masterUnchanged": true,
+    "derivative": "Demucs htdemucs vocal stem, trimmed and normalized; instrumental bed removed only from runtime derivatives."
+  },
+  "events": {
+    "battle_start": {
+      "priority": 4,
+      "cooldownMs": 0,
+      "once": true,
+      "label": "Battle start"
+    },
+    "normal_attack": {
+      "priority": 2,
+      "cooldownMs": 9000,
+      "once": false,
+      "label": "Normal attack"
+    },
+    "heavy_attack": {
+      "priority": 3,
+      "cooldownMs": 9000,
+      "once": false,
+      "label": "Heavy attack"
+    },
+    "healing": {
+      "priority": 2,
+      "cooldownMs": 12000,
+      "once": false,
+      "label": "Significant healing"
+    },
+    "defense": {
+      "priority": 2,
+      "cooldownMs": 8000,
+      "once": false,
+      "label": "Shield / block"
+    },
+    "block": {
+      "priority": 3,
+      "cooldownMs": 10000,
+      "once": false,
+      "label": "Heavy hit fully blocked"
+    },
+    "counter": {
+      "priority": 3,
+      "cooldownMs": 9000,
+      "once": false,
+      "label": "Successful counter"
+    },
+    "rewind": {
+      "priority": 3,
+      "cooldownMs": 12000,
+      "once": false,
+      "label": "Turntable Rewind"
+    },
+    "fire": {
+      "priority": 2,
+      "cooldownMs": 7000,
+      "once": false,
+      "label": "Fire / Sharp Bars"
+    },
+    "poison": {
+      "priority": 2,
+      "cooldownMs": 7000,
+      "once": false,
+      "label": "Poison Hook"
+    },
+    "ice": {
+      "priority": 2,
+      "cooldownMs": 7000,
+      "once": false,
+      "label": "Ice / Cold Note"
+    },
+    "electric": {
+      "priority": 2,
+      "cooldownMs": 7000,
+      "once": false,
+      "label": "Electricity / Voltage Verse"
+    },
+    "feature": {
+      "priority": 3,
+      "cooldownMs": 30000,
+      "once": false,
+      "label": "Feature Verse"
+    },
+    "encore": {
+      "priority": 4,
+      "cooldownMs": 20000,
+      "once": false,
+      "label": "Encore transformation"
+    },
+    "low_hp": {
+      "priority": 3,
+      "cooldownMs": 15000,
+      "once": false,
+      "label": "Critical HP crossing"
+    },
+    "defeat": {
+      "priority": 4,
+      "cooldownMs": 8000,
+      "once": false,
+      "label": "Artist defeated / Backstage"
+    },
+    "revival": {
+      "priority": 3,
+      "cooldownMs": 30000,
+      "once": false,
+      "label": "Call Back on Stage"
+    },
+    "crate": {
+      "priority": 2,
+      "cooldownMs": 12000,
+      "once": false,
+      "label": "Crate draw"
+    },
+    "crate_rare": {
+      "priority": 3,
+      "cooldownMs": 20000,
+      "once": false,
+      "label": "Rare / powerful Crate draw"
+    },
+    "close_battle": {
+      "priority": 1,
+      "cooldownMs": 60000,
+      "once": true,
+      "label": "Close battle"
+    },
+    "final_round": {
+      "priority": 4,
+      "cooldownMs": 0,
+      "once": true,
+      "label": "Final round"
+    },
+    "comeback": {
+      "priority": 4,
+      "cooldownMs": 0,
+      "once": true,
+      "label": "Comeback"
+    },
+    "victory": {
+      "priority": 5,
+      "cooldownMs": 0,
+      "once": true,
+      "label": "Victory"
+    }
+  },
+  "clips": [
+    {
+      "id": "battle_start_01",
+      "event": "battle_start",
+      "file": "intro/battle_start_01.ogg",
+      "duration": 8.7,
+      "priority": 4,
+      "cooldownMs": 0,
+      "weight": 1,
+      "subtitle": "We live in the building tonight — two sides, one stage. Let’s see who really got something!",
+      "sourceStart": 0.05,
+      "sourceEnd": 8.75
+    },
+    {
+      "id": "normal_attack_01",
+      "event": "normal_attack",
+      "file": "attacks/normal_attack_01.ogg",
+      "duration": 5.2,
+      "priority": 2,
+      "cooldownMs": 30000,
+      "weight": 1,
+      "subtitle": "Ooh, okay! Came out swinging right off the rip! I see you!",
+      "sourceStart": 8.95,
+      "sourceEnd": 14.15
+    },
+    {
+      "id": "normal_attack_02",
+      "event": "normal_attack",
+      "file": "attacks/normal_attack_02.ogg",
+      "duration": 3.98,
+      "priority": 2,
+      "cooldownMs": 30000,
+      "weight": 1,
+      "subtitle": "Hold up, hold up! Y’all heard that? Nah — run that back!",
+      "sourceStart": 14.12,
+      "sourceEnd": 18.1
+    },
+    {
+      "id": "normal_attack_03",
+      "event": "normal_attack",
+      "file": "attacks/normal_attack_03.ogg",
+      "duration": 4.4,
+      "priority": 2,
+      "cooldownMs": 30000,
+      "weight": 1,
+      "subtitle": "Talk that talk! That’s what I’m talking about right there! Opponent under pressure!",
+      "sourceStart": 28.9,
+      "sourceEnd": 33.3
+    },
+    {
+      "id": "normal_attack_04",
+      "event": "normal_attack",
+      "file": "attacks/normal_attack_04.ogg",
+      "duration": 3.5,
+      "priority": 2,
+      "cooldownMs": 30000,
+      "weight": 1,
+      "subtitle": "Okay, now how you gonna respond to that? I’m listening!",
+      "sourceStart": 33.95,
+      "sourceEnd": 37.45
+    },
+    {
+      "id": "heavy_attack_01",
+      "event": "heavy_attack",
+      "file": "attacks/heavy_attack_01.ogg",
+      "duration": 3.0,
+      "priority": 3,
+      "cooldownMs": 30000,
+      "weight": 1,
+      "subtitle": "That bar had a whole other bar inside it!",
+      "sourceStart": 18.45,
+      "sourceEnd": 21.45
+    },
+    {
+      "id": "heavy_attack_02",
+      "event": "heavy_attack",
+      "file": "attacks/heavy_attack_02.ogg",
+      "duration": 7.0,
+      "priority": 3,
+      "cooldownMs": 30000,
+      "weight": 1,
+      "subtitle": "BIG DAMAGE! Somebody check the sound system — that one shook the whole building!",
+      "sourceStart": 21.55,
+      "sourceEnd": 28.55
+    },
+    {
+      "id": "heavy_attack_03",
+      "event": "heavy_attack",
+      "file": "attacks/heavy_attack_03.ogg",
+      "duration": 3.95,
+      "priority": 3,
+      "cooldownMs": 30000,
+      "weight": 1,
+      "subtitle": "Yo, the whole crowd felt that! Look at him!",
+      "sourceStart": 37.6,
+      "sourceEnd": 41.55
+    },
+    {
+      "id": "healing_01",
+      "event": "healing",
+      "file": "attacks/healing_01.ogg",
+      "duration": 2.83,
+      "priority": 2,
+      "cooldownMs": 42000,
+      "weight": 1,
+      "subtitle": "Look at that! Right back on their feet! You can’t count ’em out!",
+      "sourceStart": 60.72,
+      "sourceEnd": 63.55
+    },
+    {
+      "id": "defense_01",
+      "event": "defense",
+      "file": "defense/defense_01.ogg",
+      "duration": 5.43,
+      "priority": 2,
+      "cooldownMs": 30000,
+      "weight": 1,
+      "subtitle": "Nah, that one ain’t land how you thought it would! Okay, okay!",
+      "sourceStart": 47.32,
+      "sourceEnd": 52.75
+    },
+    {
+      "id": "defense_02",
+      "event": "defense",
+      "file": "defense/defense_02.ogg",
+      "duration": 4.6,
+      "priority": 2,
+      "cooldownMs": 30000,
+      "weight": 1,
+      "subtitle": "Okay! Defense lookin’ real solid over there! Shield blocks a heavy hit!",
+      "sourceStart": 52.95,
+      "sourceEnd": 57.55
+    },
+    {
+      "id": "block_01",
+      "event": "block",
+      "file": "defense/block_01.ogg",
+      "duration": 2.77,
+      "priority": 3,
+      "cooldownMs": 42000,
+      "weight": 1,
+      "subtitle": "Oh! They caught that whole shot! Didn’t even flinch!",
+      "sourceStart": 57.65,
+      "sourceEnd": 60.42
+    },
+    {
+      "id": "counter_01",
+      "event": "counter",
+      "file": "defense/counter_01.ogg",
+      "duration": 3.88,
+      "priority": 3,
+      "cooldownMs": 30000,
+      "weight": 1,
+      "subtitle": "Wait a minute! They flipped it right back on ’em!",
+      "sourceStart": 42.42,
+      "sourceEnd": 46.3
+    },
+    {
+      "id": "rewind_01",
+      "event": "rewind",
+      "file": "defense/rewind_01.ogg",
+      "duration": 2.33,
+      "priority": 3,
+      "cooldownMs": 42000,
+      "weight": 1,
+      "subtitle": "They sent it right back where it came from!",
+      "sourceStart": 133.12,
+      "sourceEnd": 135.45
+    },
+    {
+      "id": "fire_01",
+      "event": "fire",
+      "file": "elements/fire_01.ogg",
+      "duration": 4.86,
+      "priority": 2,
+      "cooldownMs": 32000,
+      "weight": 1,
+      "subtitle": "Fire attack! Yo, somebody get some water — the booth is on FIRE tonight!",
+      "sourceStart": 63.64,
+      "sourceEnd": 68.5
+    },
+    {
+      "id": "poison_01",
+      "event": "poison",
+      "file": "elements/poison_01.ogg",
+      "duration": 3.72,
+      "priority": 2,
+      "cooldownMs": 32000,
+      "weight": 1,
+      "subtitle": "Uh-uh! That hook got some venom in it! It’s sticky!",
+      "sourceStart": 68.46,
+      "sourceEnd": 72.18
+    },
+    {
+      "id": "ice_01",
+      "event": "ice",
+      "file": "elements/ice_01.ogg",
+      "duration": 3.32,
+      "priority": 2,
+      "cooldownMs": 32000,
+      "weight": 1,
+      "subtitle": "That delivery was COLD! Straight ice in the microphone!",
+      "sourceStart": 72.18,
+      "sourceEnd": 75.5
+    },
+    {
+      "id": "electric_01",
+      "event": "electric",
+      "file": "elements/electric_01.ogg",
+      "duration": 4.88,
+      "priority": 2,
+      "cooldownMs": 32000,
+      "weight": 1,
+      "subtitle": "Oh! That energy just went through the whole stage! Great combo — wait, wait, they connected both!",
+      "sourceStart": 75.42,
+      "sourceEnd": 80.3
+    },
+    {
+      "id": "feature_01",
+      "event": "feature",
+      "file": "combos/feature_01.ogg",
+      "duration": 6.27,
+      "priority": 3,
+      "cooldownMs": 48000,
+      "weight": 1,
+      "subtitle": "Nah, nah — it’s chemical! Y’all see that teamwork? Two microphones, one problem! That’s proper — that’s dangerous!",
+      "sourceStart": 80.28,
+      "sourceEnd": 86.55
+    },
+    {
+      "id": "encore_01",
+      "event": "encore",
+      "file": "combos/encore_01.ogg",
+      "duration": 3.9,
+      "priority": 4,
+      "cooldownMs": 48000,
+      "weight": 1,
+      "subtitle": "Oh, hold up — finish! They’re gonna make some noise for that encore!",
+      "sourceStart": 86.46,
+      "sourceEnd": 90.36
+    },
+    {
+      "id": "low_hp_01",
+      "event": "low_hp",
+      "file": "backstage/low_hp_01.ogg",
+      "duration": 3.85,
+      "priority": 3,
+      "cooldownMs": 40000,
+      "weight": 1,
+      "subtitle": "Uh-oh! Somebody lookin’ a little shaky! Can they hold on?",
+      "sourceStart": 90.35,
+      "sourceEnd": 94.2
+    },
+    {
+      "id": "low_hp_02",
+      "event": "low_hp",
+      "file": "backstage/low_hp_02.ogg",
+      "duration": 3.55,
+      "priority": 3,
+      "cooldownMs": 40000,
+      "weight": 1,
+      "subtitle": "The artist takes a beating — they keep throwin’ them shots! How much more can they take?",
+      "sourceStart": 94.45,
+      "sourceEnd": 98.0
+    },
+    {
+      "id": "defeat_01",
+      "event": "defeat",
+      "file": "backstage/defeat_01.ogg",
+      "duration": 4.0,
+      "priority": 4,
+      "cooldownMs": 32000,
+      "weight": 1,
+      "subtitle": "Oh, that’s it! Back that microphone up! Backstage you go!",
+      "sourceStart": 98.35,
+      "sourceEnd": 102.35
+    },
+    {
+      "id": "defeat_02",
+      "event": "defeat",
+      "file": "backstage/defeat_02.ogg",
+      "duration": 4.05,
+      "priority": 4,
+      "cooldownMs": 32000,
+      "weight": 1,
+      "subtitle": "Another disband? No! They could send another one backstage!",
+      "sourceStart": 102.5,
+      "sourceEnd": 106.55
+    },
+    {
+      "id": "defeat_03",
+      "event": "defeat",
+      "file": "backstage/defeat_03.ogg",
+      "duration": 1.97,
+      "priority": 4,
+      "cooldownMs": 32000,
+      "weight": 1,
+      "subtitle": "This is getting ugly! Big knockout!",
+      "sourceStart": 106.98,
+      "sourceEnd": 108.95
+    },
+    {
+      "id": "defeat_04",
+      "event": "defeat",
+      "file": "backstage/defeat_04.ogg",
+      "duration": 2.63,
+      "priority": 4,
+      "cooldownMs": 32000,
+      "weight": 1,
+      "subtitle": "That wasn’t a verse — that was a whole eviction notice!",
+      "sourceStart": 109.12,
+      "sourceEnd": 111.75
+    },
+    {
+      "id": "defeat_05",
+      "event": "defeat",
+      "file": "backstage/defeat_05.ogg",
+      "duration": 6.75,
+      "priority": 4,
+      "cooldownMs": 32000,
+      "weight": 1,
+      "subtitle": "They shut that whole performance down — not tonight!",
+      "sourceStart": 125.2,
+      "sourceEnd": 131.95
+    },
+    {
+      "id": "revival_01",
+      "event": "revival",
+      "file": "backstage/revival_01.ogg",
+      "duration": 3.47,
+      "priority": 3,
+      "cooldownMs": 60000,
+      "weight": 1,
+      "subtitle": "Wait! Hold everything! Somebody coming back out from backstage!",
+      "sourceStart": 111.98,
+      "sourceEnd": 115.45
+    },
+    {
+      "id": "revival_02",
+      "event": "revival",
+      "file": "backstage/revival_02.ogg",
+      "duration": 3.75,
+      "priority": 3,
+      "cooldownMs": 60000,
+      "weight": 1,
+      "subtitle": "Oh! We got a comeback! I know y’all hear this!",
+      "sourceStart": 115.6,
+      "sourceEnd": 119.35
+    },
+    {
+      "id": "crate_draw_01",
+      "event": "crate",
+      "file": "crate/crate_draw_01.ogg",
+      "duration": 3.25,
+      "priority": 2,
+      "cooldownMs": 32000,
+      "weight": 1,
+      "subtitle": "Uh-oh! Diggin’ in the crate! Let’s see what they pull out!",
+      "sourceStart": 119.35,
+      "sourceEnd": 122.6
+    },
+    {
+      "id": "crate_rare_01",
+      "event": "crate_rare",
+      "file": "crate/crate_rare_01.ogg",
+      "duration": 2.3,
+      "priority": 3,
+      "cooldownMs": 50000,
+      "weight": 1,
+      "subtitle": "Oh! Now that could change the whole battle!",
+      "sourceStart": 122.9,
+      "sourceEnd": 125.2
+    },
+    {
+      "id": "close_battle_01",
+      "event": "close_battle",
+      "file": "match_end/close_battle_01.ogg",
+      "duration": 3.78,
+      "priority": 1,
+      "cooldownMs": 0,
+      "weight": 1,
+      "subtitle": "Man, I can’t even call this one! Both sides came ready!",
+      "sourceStart": 135.42,
+      "sourceEnd": 139.2
+    },
+    {
+      "id": "final_round_01",
+      "event": "final_round",
+      "file": "match_end/final_round_01.ogg",
+      "duration": 8.58,
+      "priority": 4,
+      "cooldownMs": 0,
+      "weight": 1,
+      "subtitle": "Look at that crowd meter — they’re losing the whole room! This is last chance! Somebody better make something happen!",
+      "sourceStart": 141.0,
+      "sourceEnd": 149.58
+    },
+    {
+      "id": "comeback_01",
+      "event": "comeback",
+      "file": "match_end/comeback_01.ogg",
+      "duration": 5.82,
+      "priority": 4,
+      "cooldownMs": 0,
+      "weight": 1,
+      "subtitle": "Comeback attack, yo! Where was that energy earlier? We got ourselves a battle!",
+      "sourceStart": 149.58,
+      "sourceEnd": 155.4
+    },
+    {
+      "id": "victory_01",
+      "event": "victory",
+      "file": "match_end/victory_01.ogg",
+      "duration": 3.6,
+      "priority": 5,
+      "cooldownMs": 0,
+      "weight": 2,
+      "subtitle": "THAT’S GAME! Make some noise for your winner!",
+      "sourceStart": 155.9,
+      "sourceEnd": 159.5
+    },
+    {
+      "id": "victory_02",
+      "event": "victory",
+      "file": "match_end/victory_02.ogg",
+      "duration": 3.65,
+      "priority": 5,
+      "cooldownMs": 0,
+      "weight": 1,
+      "subtitle": "And that, ladies and gentlemen… that’s how you kick it!",
+      "sourceStart": 162.7,
+      "sourceEnd": 166.35
+    }
+  ]
+}

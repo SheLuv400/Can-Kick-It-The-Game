@@ -35,8 +35,29 @@ export const ELEMENT_META: Record<
 }
 
 export const MAX_EQUIPPED_MOVES = 3
-export const MAX_ARTIST_LEVEL = 5
+/** Every player card can be ground all the way to 400. */
+export const MAX_CARD_LEVEL = 400
+/** Mastery moves stop unlocking at level 10, but card levels continue to 400. */
+export const MAX_MOVE_LEVEL = 10
+
+const ATTACK_MOVE_TYPES = new Set<MoveType>(['attack', 'elemental', 'special'])
+
+/** Attacks are free. Hype is reserved for summoning, the Crate and Backstage. */
+export function isAttackMove(move: Move): boolean {
+  return ATTACK_MOVE_TYPES.has(move.type)
+}
+
+export function moveHypeCost(move: Move): number {
+  return isAttackMove(move) ? 0 : Math.max(0, move.cost)
+}
+
+/** Big attacks close the turn; the battle engine also checks resolved damage. */
+export function moveEndsTurn(move: Move): boolean {
+  return Boolean(move.endsTurn || (isAttackMove(move) && move.power >= 7))
+}
 export const XP_PER_LEVEL = 100
+export const SPECIAL_CHARGE_MAX = 3
+export const SPECIAL_UNLOCK_LEVEL = 5
 
 const DEFAULT_ELEMENT: Record<string, Element> = {
   'krown-vandal': 'FIRE',
@@ -172,6 +193,47 @@ const ELEMENT_MOVE_NAMES: Record<Element, string> = {
   LIGHT: 'HALO VERSE',
 }
 
+export interface ElementMoveProfile {
+  name: string
+  effects: MoveEffect[]
+  description: string
+  target: MoveTarget
+}
+
+/** Shared elemental cut data for generated cards and the personal career artist. */
+export function elementMoveProfile(element: Element): ElementMoveProfile {
+  const signature = ELEMENT_EFFECTS[element]
+  return {
+    name: ELEMENT_MOVE_NAMES[element],
+    effects: signature.effects,
+    description: signature.description,
+    target: signature.target,
+  }
+}
+
+/** The mastery attack is named after the artist's elemental lane. */
+const ELEMENT_ATTACK_NAMES: Record<Element, string> = {
+  FIRE: 'FLAMING MIC',
+  POISON: 'VENOM HOOK',
+  ICE: 'SNOWFALL FLOW',
+  ELECTRICITY: 'LIVE-WIRE MIC',
+  WIND: 'CYCLONE VERSE',
+  EARTH: 'BASS QUAKE',
+  WATER: 'TIDAL MIC',
+  LIGHT: 'HALO OVERDRIVE',
+}
+
+const SPECIAL_NAMES: Record<Element, string> = {
+  FIRE: 'INFERNO ENCORE',
+  POISON: 'TOXIC CURTAIN CALL',
+  ICE: 'BLIZZARD FINALE',
+  ELECTRICITY: 'BLACKOUT OVERDRIVE',
+  WIND: 'HURRICANE FLOW',
+  EARTH: 'LOW-END QUAKE',
+  WATER: 'TIDAL TAKEOVER',
+  LIGHT: 'HALO FINALE',
+}
+
 function elementFor(artist: Artist): Element {
   return DEFAULT_ELEMENT[artist.id] ?? ELEMENT_ORDER[(artist.number - 1) % ELEMENT_ORDER.length]
 }
@@ -188,19 +250,25 @@ function makeMove(
   description: string,
   effects: MoveEffect[] = [],
   pierce = 0,
+  unlockLevel = 1,
+  special = false,
 ): Move {
+  const attackLike = ATTACK_MOVE_TYPES.has(type)
   return {
     id: `${artist.id}-move-${index}`,
     artistId: artist.id,
     name,
     type,
     element,
-    cost,
+    cost: attackLike ? 0 : cost,
     power,
     target,
     description,
     effects,
     ...(pierce > 0 ? { pierce } : {}),
+    ...(unlockLevel > 1 ? { unlockLevel } : {}),
+    ...(special ? { special: true } : {}),
+    ...(attackLike && power >= 7 ? { endsTurn: true } : {}),
   }
 }
 
@@ -290,6 +358,204 @@ function buildMoves(artist: Artist): Move[] {
   )
 
   return [basic, heavy, elemental, guard, utility]
+}
+
+function artistPrefix(artist: Artist): string {
+  return artist.name.split(' ')[0].toUpperCase()
+}
+
+function masteryName(artist: Artist, suffix: string): string {
+  return `${artistPrefix(artist)} · ${suffix}`
+}
+
+/**
+ * Ten additional mastery moves per artist. They are intentionally generated from the
+ * artist's bars, genre and element so every unlock still feels like that performer.
+ */
+function buildAdvancedMoves(artist: Artist): Move[] {
+  const element = elementFor(artist)
+  const burstPower = 2 + Math.ceil(artist.bars / 2)
+  const flowPower = 2 + Math.floor(artist.bars / 3) + (artist.genre === 'HIP-HOP' ? 1 : 0)
+  const hookHeal = 4 + Math.ceil(artist.bars / 3) + (artist.genre === 'R&B' ? 1 : 0)
+  const armor = 5 + Math.floor(artist.bars / 3) + (artist.genre === 'POP' ? 1 : 0)
+  const crowd = 2 + Math.floor(artist.bars / 4)
+  const feedbackPower = 3 + Math.floor(artist.bars / 3)
+  const pressurePower = 6 + Math.floor(artist.bars / 2)
+  const finisherPower = 7 + artist.bars
+  const signatureEffects = ELEMENT_EFFECTS[element].effects
+
+  return [
+    makeMove(
+      artist,
+      5,
+      masteryName(artist, ELEMENT_ATTACK_NAMES[element]),
+      'elemental',
+      element,
+      3,
+      burstPower,
+      'enemy',
+      `Deal ${burstPower} damage and leave the ${element.toLowerCase()} signature on the target.`,
+      [{ damage: burstPower }, ...signatureEffects],
+      0,
+      2,
+    ),
+    makeMove(
+      artist,
+      6,
+      masteryName(artist, 'TRIPLE FLOW'),
+      'attack',
+      null,
+      3,
+      flowPower,
+      'enemy',
+      `Three quick passes for ${flowPower} damage each, with the follow-ups landing lighter.`,
+      [{ damage: flowPower }, { strikes: 3 }],
+      0,
+      3,
+    ),
+    makeMove(
+      artist,
+      7,
+      masteryName(artist, 'HOOK DOCTOR'),
+      'healing',
+      null,
+      3,
+      0,
+      'ally',
+      `Restore ${hookHeal} HP to an ally and cleanse their status effects.`,
+      [{ heal: hookHeal, cleanse: true }],
+      0,
+      4,
+    ),
+    makeMove(
+      artist,
+      8,
+      masteryName(artist, 'STAGE ARMOR'),
+      'shield',
+      null,
+      4,
+      0,
+      'ally',
+      `Grant ${armor} Shield HP and Guard for 2 turns.`,
+      [{ shield: armor, status: 'fortify', statusValue: 2, statusTurns: 2 }],
+      0,
+      5,
+    ),
+    makeMove(
+      artist,
+      9,
+      masteryName(artist, 'CROWD SURF'),
+      'support',
+      null,
+      2,
+      0,
+      'none',
+      `Deal ${crowd} crowd pressure, gain +1 Hype and restore 2 Crowd.`,
+      [{ crowd, hype: 1, crowdHeal: 2 }],
+      0,
+      6,
+    ),
+    makeMove(
+      artist,
+      10,
+      masteryName(artist, 'FEEDBACK LOOP'),
+      'debuff',
+      null,
+      4,
+      feedbackPower,
+      'enemy',
+      `Deal ${feedbackPower} damage, drain 2 Hype and weaken the target’s next attack.`,
+      [
+        { damage: feedbackPower },
+        { drainHype: 2 },
+        { status: 'weaken', statusValue: 2, statusTurns: 2 },
+      ],
+      0,
+      7,
+    ),
+    makeMove(
+      artist,
+      11,
+      masteryName(artist, 'HYPE RUN'),
+      'buff',
+      null,
+      2,
+      0,
+      'self',
+      'Gain +2 attack on the next move, +2 Hype and 2 Shield HP.',
+      [{ buffAttack: 2, hype: 2, shield: 2 }],
+      0,
+      8,
+    ),
+    makeMove(
+      artist,
+      12,
+      masteryName(artist, 'ENCORE PRESSURE'),
+      'attack',
+      null,
+      5,
+      pressurePower,
+      'enemy',
+      `Deal ${pressurePower} damage, add 2 crowd pressure and pierce 20% of DEF.`,
+      [{ damage: pressurePower }, { crowd: 2 }],
+      0.2,
+      9,
+    ),
+    makeMove(
+      artist,
+      13,
+      masteryName(artist, 'SOLD-OUT FINISH'),
+      'attack',
+      null,
+      6,
+      finisherPower,
+      'enemy',
+      `A two-part finish for ${finisherPower} damage plus 3 crowd pressure.`,
+      [{ damage: finisherPower }, { crowd: 3 }, { strikes: 2 }],
+      0.25,
+      10,
+    ),
+    makeMove(
+      artist,
+      14,
+      masteryName(artist, 'MASTER CLASS'),
+      'support',
+      null,
+      4,
+      0,
+      'ally',
+      'Restore 5 HP, grant 5 Shield HP, cleanse statuses and gain +1 Hype.',
+      [{ heal: 5, shield: 5, cleanse: true, hype: 1 }],
+      0,
+      10,
+    ),
+  ]
+}
+
+function buildSpecialMove(artist: Artist): Move {
+  const element = elementFor(artist)
+  const power = 8 + Math.ceil(artist.bars * 0.9) + (artist.genre === 'HIP-HOP' ? 1 : 0)
+  const signatureStatus = ELEMENT_EFFECTS[element].effects.find((effect) => effect.status)
+  return makeMove(
+    artist,
+    15,
+    `${artist.name.toUpperCase()} · ${SPECIAL_NAMES[element]}`,
+    'special',
+    element,
+    7,
+    power,
+    'enemy',
+    `Signature special: spend 3 Spotlight for ${power} damage, 3 crowd pressure and a second wave. It closes your turn.`,
+    [
+      { damage: power },
+      { crowd: 3 },
+      { strikes: 2 },
+      ...(signatureStatus ? [signatureStatus] : []),
+    ],
+    0.3,
+    SPECIAL_UNLOCK_LEVEL,
+    true,
+  )
 }
 
 const MACKO_MOVES: Move[] = [
@@ -412,7 +678,7 @@ const SIGNATURE_MOVES: Record<string, SignatureMoveSpec[]> = {
 function buildSignatureMoves(artist: Artist): Move[] {
   const moves = buildMoves(artist)
   const specs = SIGNATURE_MOVES[artist.id]
-  if (!specs) return moves
+  if (!specs) return [...moves, ...buildAdvancedMoves(artist), buildSpecialMove(artist)]
   const slots = [0, 2, 3] as const
   specs.forEach((spec, index) => {
     const slot = slots[index]
@@ -430,13 +696,15 @@ function buildSignatureMoves(artist: Artist): Move[] {
       spec.pierce ?? 0,
     )
   })
-  return moves
+  return [...moves, ...buildAdvancedMoves(artist), buildSpecialMove(artist)]
 }
 
 export const MOVES_BY_ARTIST: Record<string, Move[]> = Object.fromEntries(
   ARTISTS.map((artist) => [
     artist.id,
-    artist.id === 'macko-deville' ? MACKO_MOVES : buildSignatureMoves(artist),
+    artist.id === 'macko-deville'
+      ? [...MACKO_MOVES, ...buildAdvancedMoves(artist), buildSpecialMove(artist)]
+      : buildSignatureMoves(artist),
   ]),
 )
 
@@ -446,12 +714,28 @@ export const MOVES_BY_ID: Record<string, Move> = Object.fromEntries(
     .map((move) => [move.id, move]),
 )
 
+const RUNTIME_MOVES: Record<string, Move[]> = {}
+const RUNTIME_MOVES_BY_ID: Record<string, Move> = {}
+
+/** Registers the local career performer's generated move pool. */
+export function registerArtistMoves(artistId: string, moves: Move[]) {
+  RUNTIME_MOVES[artistId] = moves
+  for (const move of moves) RUNTIME_MOVES_BY_ID[move.id] = move
+}
+
+export function unregisterArtistMoves(artistId: string) {
+  const moves = RUNTIME_MOVES[artistId]
+  if (!moves) return
+  for (const move of moves) delete RUNTIME_MOVES_BY_ID[move.id]
+  delete RUNTIME_MOVES[artistId]
+}
+
 export function movesForArtist(artistId: string): Move[] {
-  return MOVES_BY_ARTIST[artistId] ?? MOVES_BY_ARTIST[ARTISTS[0].id]
+  return RUNTIME_MOVES[artistId] ?? MOVES_BY_ARTIST[artistId] ?? MOVES_BY_ARTIST[ARTISTS[0].id]
 }
 
 export function moveById(moveId: string): Move | undefined {
-  return MOVES_BY_ID[moveId]
+  return RUNTIME_MOVES_BY_ID[moveId] ?? MOVES_BY_ID[moveId]
 }
 
 export function defaultLoadout(artistId: string): string[] {
@@ -460,16 +744,25 @@ export function defaultLoadout(artistId: string): string[] {
   return [bySlot(0), bySlot(2), bySlot(3)].filter((id): id is string => Boolean(id))
 }
 
-export function isMoveUnlocked(move: Move, level: number): boolean {
+export function moveUnlockLevel(move: Move): number {
+  if (move.unlockLevel !== undefined) return move.unlockLevel
   const slot = Number(move.id.split('-move-').pop())
-  if (!Number.isFinite(slot)) return true
-  if (slot === 1) return level >= 2
-  if (slot === 4) return level >= 3
-  return true
+  if (!Number.isFinite(slot)) return 1
+  if (slot === 1) return 2
+  if (slot === 4) return 3
+  return 1
+}
+
+export function isMoveUnlocked(move: Move, level: number): boolean {
+  return level >= moveUnlockLevel(move)
+}
+
+export function specialMoveForArtist(artistId: string): Move | undefined {
+  return movesForArtist(artistId).find((move) => move.special)
 }
 
 export function levelFromXp(xp: number): number {
-  return Math.min(MAX_ARTIST_LEVEL, 1 + Math.floor(Math.max(0, xp) / XP_PER_LEVEL))
+  return Math.min(MAX_CARD_LEVEL, 1 + Math.floor(Math.max(0, xp) / XP_PER_LEVEL))
 }
 
 export function progressFor(
@@ -478,9 +771,11 @@ export function progressFor(
 ): ArtistProgress {
   const found = progress?.[artistId]
   return {
-    xp: Math.max(0, Math.round(found?.xp ?? 0)),
-    level: Math.min(MAX_ARTIST_LEVEL, Math.max(1, Math.round(found?.level ?? 1))),
+    xp: Math.min(MAX_CARD_LEVEL * XP_PER_LEVEL, Math.max(0, Math.round(found?.xp ?? 0))),
+    level: Math.min(MAX_CARD_LEVEL, Math.max(1, Math.round(found?.level ?? 1))),
     loadout: found?.loadout,
+    badges: found?.badges ?? {},
+    badgeLoadout: found?.badgeLoadout ?? [],
   }
 }
 
@@ -489,10 +784,11 @@ export function sanitizeLoadout(artistId: string, loadout: unknown, level = 1): 
   const byId = new Set(moves.map((move) => move.id))
   const requested = Array.isArray(loadout)
     ? loadout.filter(
-        (id): id is string =>
-          typeof id === 'string' &&
-          byId.has(id) &&
-          isMoveUnlocked(moves.find((move) => move.id === id)!, Math.max(1, level)),
+        (id): id is string => {
+          if (typeof id !== 'string' || !byId.has(id)) return false
+          const move = moves.find((entry) => entry.id === id)!
+          return !move.special && isMoveUnlocked(move, Math.max(1, level))
+        },
       )
     : []
   const picked = [...new Set(requested)].slice(0, MAX_EQUIPPED_MOVES)
@@ -503,7 +799,9 @@ export function sanitizeLoadout(artistId: string, loadout: unknown, level = 1): 
   }
   for (const move of moves) {
     if (picked.length >= MAX_EQUIPPED_MOVES) break
-    if (isMoveUnlocked(move, level) && !picked.includes(move.id)) picked.push(move.id)
+    if (!move.special && isMoveUnlocked(move, level) && !picked.includes(move.id)) {
+      picked.push(move.id)
+    }
   }
   return picked.slice(0, MAX_EQUIPPED_MOVES)
 }
@@ -529,19 +827,34 @@ export function awardArtistXp(
   progress: Record<string, ArtistProgress>,
   plays: Record<string, number>,
   won: boolean,
+  xpMultiplier = 1,
 ): Record<string, ArtistProgress> {
   const next = { ...progress }
+  const multiplier = Number.isFinite(xpMultiplier) ? Math.max(1, xpMultiplier) : 1
   for (const [artistId, count] of Object.entries(plays)) {
     if (!count || !MOVES_BY_ARTIST[artistId]) continue
     const current = progressFor(progress, artistId)
-    const xp = Math.min(MAX_ARTIST_LEVEL * XP_PER_LEVEL, current.xp + count * 30 + (won ? 20 : 0))
+    const baseXp = count * 30 + (won ? 20 : 0)
+    const xp = Math.min(MAX_CARD_LEVEL * XP_PER_LEVEL, current.xp + Math.round(baseXp * multiplier))
     next[artistId] = { ...current, xp, level: Math.max(current.level, levelFromXp(xp)) }
   }
   return next
 }
 
+/**
+ * The first ten card levels use the original stat curve. Every 39 levels after
+ * that adds one prestige stat tier, so a high-level master card is stronger without
+ * turning normal battles into one-shot maths. Festival CPU cards use the same
+ * curve when an event matches the player's card level.
+ */
+export function battleStatTier(level: number): number {
+  const clamped = Math.min(MAX_CARD_LEVEL, Math.max(1, Math.round(level)))
+  if (clamped <= MAX_MOVE_LEVEL) return clamped
+  return MAX_MOVE_LEVEL + Math.min(10, Math.floor((clamped - MAX_MOVE_LEVEL) / 39))
+}
+
 export function battleStatsFor(artist: Artist, level = 1): { hp: number; attack: number; defense: number } {
-  const bonusLevel = Math.max(0, level - 1)
+  const bonusLevel = Math.max(0, battleStatTier(level) - 1)
   return {
     hp: artist.battle.hp + bonusLevel * 2,
     attack: artist.battle.attack + Math.floor(bonusLevel / 2),
@@ -565,6 +878,8 @@ export function moveTypeLabel(type: MoveType): string {
       return 'DEBUFF'
     case 'support':
       return 'SUPPORT'
+    case 'special':
+      return 'SIGNATURE SPECIAL'
   }
 }
 

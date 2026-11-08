@@ -36,7 +36,7 @@ export function CinematicOverlay({ cinematic, era, onSkip, autoMs = 3600 }: Cine
       <div className="cine__grain" aria-hidden="true" />
       <div className="cine__bar cine__bar--top" aria-hidden="true" />
       <div className="cine__bar cine__bar--bottom" aria-hidden="true" />
-      <button className="cine__skip" onClick={onSkip} aria-label="Skip cinematic">
+      <button className="cine__skip" onClick={onSkip} aria-label="Skip cinematic" data-gamepad-back>
         SKIP <span>▸</span>
       </button>
 

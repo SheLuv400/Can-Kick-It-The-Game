@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Artist } from '../game/types'
 import { portraitUrl } from '../game/portraits'
 import { PortraitArt } from './PortraitArt'
+import { CareerPresetArt } from './CareerPresetArt'
 
 /**
  * Card art, locked.
@@ -13,6 +14,16 @@ import { PortraitArt } from './PortraitArt'
  */
 export function Portrait({ artist, crop = 'card' }: { artist: Artist; crop?: 'card' | 'avatar' }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
+  if (artist.personal) {
+    return (
+      <span className={`portrait-career-wrap portrait-career-wrap--${crop}`}>
+        <CareerPresetArt
+          presetId={artist.personal.presetId}
+          mode={crop === 'avatar' ? 'thumb' : 'card'}
+        />
+      </span>
+    )
+  }
   const src = portraitUrl(artist.id)
 
   if (src && failedSrc !== src) {

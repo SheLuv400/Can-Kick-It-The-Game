@@ -1,6 +1,6 @@
 {
   "entrypoint": "index.js",
-  "compatibilityDate": "2026-10-01",
+  "compatibilityDate": "2026-11-05",
   "modules": [
     {
       "name": "index.js",
@@ -8,6 +8,6 @@
       "path": "./index.js"
     }
   ],
-  "assetsDirectory": "./site-public",
+  "assetsDirectory": "./site-optimized",
   "spa": true
 }

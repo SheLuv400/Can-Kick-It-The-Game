@@ -986,12 +986,34 @@ export const ARTIST_BY_ID: Record<string, Artist> = Object.fromEntries(
   ARTISTS.map((artist) => [artist.id, artist]),
 )
 
+/**
+ * Local-only cards, such as the My Artist Career performer, are registered at
+ * runtime. They are never added to ARTISTS, the collection or the online pool.
+ */
+const RUNTIME_ARTISTS: Record<string, Artist> = {}
+
+export function registerArtistCard(artist: Artist) {
+  RUNTIME_ARTISTS[artist.id] = artist
+}
+
+export function unregisterArtistCard(artistId: string) {
+  delete RUNTIME_ARTISTS[artistId]
+}
+
+export function isKnownArtistId(artistId: string): boolean {
+  return Boolean(ARTIST_BY_ID[artistId] || RUNTIME_ARTISTS[artistId])
+}
+
+export function runtimeArtist(artistId: string): Artist | undefined {
+  return RUNTIME_ARTISTS[artistId]
+}
+
 export const ARTIST_BY_SLOT: Record<string, Artist> = Object.fromEntries(
   ARTISTS.map((artist) => [artist.slot, artist]),
 )
 
 export function getArtist(id: string): Artist {
-  return ARTIST_BY_ID[id] ?? ARTISTS[0]
+  return RUNTIME_ARTISTS[id] ?? ARTIST_BY_ID[id] ?? ARTISTS[0]
 }
 
 export function effectLabel(effect: Effect, artist: Artist): string {

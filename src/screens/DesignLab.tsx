@@ -28,7 +28,7 @@ export function DesignLab({ currentTheme, selectedDirection, onSelect, onBack }:
           ← BACK TO THE SHOW
         </button>
         <span className="lab__crumb">THE DESIGN ROOM · ART DIRECTION REVIEW</span>
-        <span className="lab__audio">AUDIO DEFERRED</span>
+        <span className="lab__audio">AUDIO · ARENA MIX</span>
       </header>
 
       <section className="lab__intro">
@@ -141,7 +141,7 @@ export function DesignLab({ currentTheme, selectedDirection, onSelect, onBack }:
               <div className="preview-menu__nav">
                 <span className="pm-logo">CIKI</span>
                 <span className="pm-links">THE 26 · MIXTAPE · DESIGN</span>
-                <span className="pm-audio">AUDIO SOON</span>
+                <span className="pm-audio">AUDIO LIVE</span>
               </div>
               <div className="preview-menu__body">
                 <span className="pm-kicker">A CONCERT CARD BATTLER</span>

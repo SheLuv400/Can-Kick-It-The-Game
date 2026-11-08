@@ -1,0 +1,425 @@
+/* ============================================================
+   PROFILE ART — chosen artist portrait across identity surfaces
+   ============================================================ */
+
+.arena-account__avatar,
+.account-card__avatar,
+.player-card-avatar,
+.friend-row__avatar,
+.online-player__avatar,
+.team__label-avatar,
+.label__masthead-avatar {
+  position: relative;
+  overflow: hidden;
+}
+
+.arena-account__avatar .portrait,
+.account-card__avatar .portrait,
+.player-card-avatar .portrait,
+.friend-row__avatar .portrait,
+.online-player__avatar .portrait,
+.team__label-avatar .portrait,
+.label__masthead-avatar .portrait {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 42%;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------- portrait picker */
+.avatar-picker-modal {
+  z-index: 180;
+  padding: 0.8rem;
+}
+
+.avatar-picker-panel {
+  display: flex;
+  width: min(980px, 100%);
+  max-height: min(92svh, 58rem);
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  border-color: rgba(244, 200, 78, 0.34);
+  border-radius: 4px;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(244, 200, 78, 0.12), transparent 32%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 5px),
+    linear-gradient(145deg, #15100c, #080605 64%);
+  color: #f4e8d0;
+  box-shadow: 0 3rem 8rem rgba(0, 0, 0, 0.76), 0 0 40px rgba(244, 200, 78, 0.08);
+}
+
+.avatar-picker-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid rgba(244, 200, 78, 0.2);
+}
+
+.avatar-picker-head h2 {
+  margin: 0.25rem 0 0;
+  color: #f8e9c2;
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: clamp(1.7rem, 5vw, 2.6rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 0.95;
+}
+
+.avatar-picker-head p {
+  max-width: 54ch;
+  margin: 0.45rem 0 0;
+  color: rgba(244, 232, 208, 0.48);
+  font-size: 0.55rem;
+  line-height: 1.6;
+}
+
+.avatar-picker-head .icon-btn {
+  flex: none;
+  border: 1px solid rgba(244, 200, 78, 0.28);
+  border-radius: 50%;
+  color: #e8cf91;
+}
+
+.avatar-picker-head .icon-btn:hover {
+  border-color: #f4c84e;
+  background: rgba(244, 200, 78, 0.1);
+}
+
+.avatar-picker-tools {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 14px 24px 10px;
+}
+
+.avatar-picker-search {
+  display: grid;
+  width: min(430px, 100%);
+  gap: 5px;
+}
+
+.avatar-picker-search span {
+  color: rgba(244, 232, 208, 0.42);
+  font-size: 0.43rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.avatar-picker-search input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid rgba(244, 200, 78, 0.22);
+  border-radius: 2px;
+  outline: none;
+  background: rgba(0, 0, 0, 0.28);
+  color: #f4e8d0;
+  font-family: inherit;
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+}
+
+.avatar-picker-search input:focus {
+  border-color: #f4c84e;
+  box-shadow: 0 0 0 2px rgba(244, 200, 78, 0.09);
+}
+
+.avatar-picker-search input::placeholder {
+  color: rgba(244, 232, 208, 0.28);
+}
+
+.avatar-picker-count {
+  flex: none;
+  padding-bottom: 9px;
+  color: #f4c84e;
+  font-size: 0.44rem;
+  letter-spacing: 0.16em;
+}
+
+.avatar-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 9px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 24px 18px;
+  scrollbar-color: rgba(244, 200, 78, 0.42) transparent;
+}
+
+.avatar-picker-card {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid rgba(244, 232, 208, 0.1);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.022);
+  color: #f4e8d0;
+  text-align: left;
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+}
+
+.avatar-picker-card:hover {
+  border-color: rgba(244, 200, 78, 0.55);
+  background: rgba(244, 200, 78, 0.07);
+  transform: translateY(-1px);
+}
+
+.avatar-picker-card.is-selected {
+  border-color: #f4c84e;
+  background: rgba(244, 200, 78, 0.11);
+  box-shadow: inset 0 0 0 1px rgba(244, 200, 78, 0.3);
+}
+
+.avatar-picker-card__art {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background:
+    radial-gradient(circle at 35% 28%, #6b5124, #151009 70%);
+}
+
+.avatar-picker-card__art .portrait {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 34%;
+  border-radius: 0;
+  filter: saturate(1.04) contrast(1.04);
+}
+
+.avatar-picker-card__art > i {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  z-index: 3;
+  display: grid;
+  min-width: 19px;
+  height: 19px;
+  place-items: center;
+  padding: 0 4px;
+  border: 1px solid rgba(255, 224, 154, 0.55);
+  border-radius: 2px;
+  background: rgba(8, 6, 5, 0.82);
+  color: #ffe09a;
+  font-size: 0.42rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.avatar-picker-card.is-selected .avatar-picker-card__art {
+  box-shadow: inset 0 0 0 1px #f4c84e;
+}
+
+.avatar-picker-card b {
+  overflow: hidden;
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avatar-picker-card em {
+  overflow: hidden;
+  color: rgba(244, 232, 208, 0.4);
+  font-size: 0.37rem;
+  font-style: normal;
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avatar-picker-empty {
+  display: grid;
+  place-items: center;
+  gap: 7px;
+  min-height: 12rem;
+  margin: 0 24px 18px;
+  border: 1px dashed rgba(244, 200, 78, 0.18);
+  color: rgba(244, 232, 208, 0.45);
+  text-align: center;
+}
+
+.avatar-picker-empty b {
+  color: #e8cf91;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+}
+
+.avatar-picker-empty span {
+  font-size: 0.5rem;
+}
+
+.avatar-picker-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 13px 24px 18px;
+  border-top: 1px solid rgba(244, 200, 78, 0.17);
+}
+
+.avatar-picker-foot p {
+  margin: 0;
+  color: rgba(244, 232, 208, 0.38);
+  font-size: 0.47rem;
+  line-height: 1.55;
+}
+
+.avatar-picker-foot > div {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+.avatar-picker-foot .btn {
+  border-color: rgba(244, 200, 78, 0.25);
+  color: #e9d6a2;
+  font-size: 0.45rem;
+}
+
+/* ------------------------------------------------------- placements */
+.team__label-avatar {
+  width: 4.8rem;
+  aspect-ratio: 1;
+  flex: none;
+  border: 1px solid #ffe09a;
+  background: radial-gradient(circle at 35% 28%, #5e4621, #171009 72%);
+  box-shadow: inset 0 0 0 3px rgba(24, 14, 2, 0.24), 0 0 18px rgba(242, 193, 78, 0.18);
+}
+
+.team__label-avatar .portrait {
+  object-position: 50% 28%;
+  filter: saturate(1.02) contrast(1.06) brightness(0.96);
+}
+
+.team__label-avatar-crest {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  z-index: 3;
+  display: grid;
+  width: 1.2rem;
+  height: 1.2rem;
+  place-items: center;
+  border: 1px solid rgba(255, 224, 154, 0.85);
+  border-radius: 2px;
+  color: #1b1103;
+  font-family: var(--display);
+  font-size: 0.58rem;
+  line-height: 1;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.55);
+}
+
+.label__masthead-copy {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: clamp(0.8rem, 1.6vw, 1.3rem);
+}
+
+.label__masthead-avatar {
+  width: clamp(4.2rem, 7vw, 6.1rem);
+  aspect-ratio: 1;
+  flex: none;
+  border: 1px solid rgba(242, 193, 78, 0.78);
+  border-radius: 2px;
+  background: radial-gradient(circle at 35% 28%, #5e4621, #171009 72%);
+  box-shadow: 0 0 0 4px #08070a, 0 0 0 5px rgba(242, 193, 78, 0.22);
+}
+
+.label__masthead-avatar .portrait {
+  object-position: 50% 28%;
+  filter: saturate(0.9) contrast(1.08) brightness(0.94);
+}
+
+.account-modal .account-actions__signout {
+  grid-column: 1 / -1;
+}
+
+.player-card-foot__actions {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .avatar-picker-modal {
+    padding: 0.55rem;
+  }
+
+  .avatar-picker-head,
+  .avatar-picker-tools,
+  .avatar-picker-foot {
+    padding-inline: 15px;
+  }
+
+  .avatar-picker-head {
+    padding-top: 18px;
+  }
+
+  .avatar-picker-tools {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .avatar-picker-count {
+    padding-bottom: 0;
+  }
+
+  .avatar-picker-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    padding-inline: 15px;
+  }
+
+  .avatar-picker-foot {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .avatar-picker-foot > div {
+    width: 100%;
+  }
+
+  .avatar-picker-foot .btn {
+    flex: 1;
+  }
+
+  .label__masthead-copy {
+    align-items: flex-start;
+  }
+
+  .label__masthead-avatar {
+    width: 4rem;
+  }
+
+  .team__label-avatar {
+    width: 3.7rem;
+  }
+
+  .player-card-foot__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

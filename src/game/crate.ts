@@ -9,6 +9,9 @@ export type CrateCategory =
   | 'untouchable'
   | 'callback'
   | 'elemental'
+  | 'heal'
+  | 'ability'
+  | 'debuff'
 
 export type CrateRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY'
 
@@ -24,10 +27,17 @@ export interface CrateDefinition {
   shield?: number
   heal?: number
   turns?: number
+  hype?: number
+  drain?: number
+  weaken?: number
+  crowd?: number
+  crowdHeal?: number
+  encore?: number
 }
 
 export const CRATE_HAND_LIMIT = 6
-export const CRATE_DRAW_COST = 'YOUR TURN'
+export const CRATE_DRAW_COST = '2 HYPE'
+export const CRATE_EXPANSION = 'EXPANSION 01'
 
 /** Balance these without touching the draw logic. */
 export const CRATE_WEIGHTS: Record<CrateRarity, number> = {
@@ -55,6 +65,9 @@ export const CATEGORY_LABEL: Record<CrateCategory, string> = {
   untouchable: 'UNTOUCHABLE HEADLINER',
   callback: 'CALL BACK ON STAGE',
   elemental: 'ELEMENTAL POWER',
+  heal: 'HEALING',
+  ability: 'ABILITY',
+  debuff: 'DEBUFF',
 }
 
 export const CRATE_CARDS: CrateDefinition[] = [
@@ -225,6 +238,117 @@ export const CRATE_CARDS: CrateDefinition[] = [
     element: 'LIGHT',
     power: 3,
   },
+  {
+    id: 'green-room',
+    name: 'GREEN ROOM',
+    category: 'heal',
+    rarity: 'UNCOMMON',
+    description: 'Restore 5 HP to one of your artists. Stackable.',
+    target: 'ally',
+    heal: 5,
+  },
+  {
+    id: 'double-track',
+    name: 'DOUBLE TRACK',
+    category: 'ability',
+    rarity: 'RARE',
+    description: 'An artist’s next attack deals +2 damage, and you gain +1 Hype. Stackable.',
+    target: 'ally',
+    power: 2,
+    hype: 1,
+  },
+  {
+    id: 'feedback-loop',
+    name: 'FEEDBACK LOOP',
+    category: 'ability',
+    rarity: 'EPIC',
+    description: 'Give an artist +2 next attack, 2 Shield HP and +1 Hype. Stackable.',
+    target: 'ally',
+    power: 2,
+    shield: 2,
+    hype: 1,
+  },
+  {
+    id: 'mosh-pit',
+    name: 'MOSH PIT',
+    category: 'ability',
+    rarity: 'UNCOMMON',
+    description: 'Deal 2 crowd pressure and gain +1 Hype. Stackable.',
+    target: 'none',
+    crowd: 2,
+    hype: 1,
+  },
+  {
+    id: 'crowd-surf',
+    name: 'CROWD SURF',
+    category: 'ability',
+    rarity: 'COMMON',
+    description: 'Deal 2 crowd pressure and restore 2 Crowd. Stackable.',
+    target: 'none',
+    crowd: 2,
+    crowdHeal: 2,
+  },
+  {
+    id: 'dead-air',
+    name: 'DEAD AIR',
+    category: 'debuff',
+    rarity: 'RARE',
+    description: 'Drain 2 Hype from the Headliner and weaken their next attack by 2. Stackable.',
+    target: 'enemy',
+    drain: 2,
+    weaken: 2,
+  },
+  {
+    id: 'voltage-drop',
+    name: 'VOLTAGE DROP',
+    category: 'debuff',
+    rarity: 'EPIC',
+    description: 'Deal 3 damage, drain 3 Hype and weaken the target. Stackable.',
+    target: 'enemy',
+    power: 3,
+    drain: 3,
+    weaken: 2,
+  },
+  {
+    id: 'encore-button',
+    name: 'ENCORE BUTTON',
+    category: 'ability',
+    rarity: 'LEGENDARY',
+    description: 'Gain +1 Encore charge. Stackable.',
+    target: 'none',
+    encore: 1,
+  },
+  {
+    id: 'frostbite',
+    name: 'FROSTBITE',
+    category: 'elemental',
+    rarity: 'RARE',
+    description: 'Deal 3 damage and apply Chill for 2 turns. Stackable.',
+    target: 'enemy',
+    element: 'ICE',
+    power: 3,
+    turns: 2,
+  },
+  {
+    id: 'hype-train',
+    name: 'HYPE TRAIN',
+    category: 'ability',
+    rarity: 'UNCOMMON',
+    description: 'Gain +2 Hype and restore 2 Crowd. Stackable.',
+    target: 'none',
+    hype: 2,
+    crowdHeal: 2,
+  },
+  {
+    id: 'triple-threat',
+    name: 'TRIPLE THREAT',
+    category: 'ability',
+    rarity: 'EPIC',
+    description: 'Give an artist +3 next attack and +1 Hype. Stackable.',
+    target: 'ally',
+    power: 3,
+    hype: 1,
+  },
 ]
 
 export const CRATE_BY_ID: Record<string, CrateDefinition> = Object.fromEntries(
@@ -233,6 +357,11 @@ export const CRATE_BY_ID: Record<string, CrateDefinition> = Object.fromEntries(
 
 export function crateCard(id: string): CrateDefinition {
   return CRATE_BY_ID[id] ?? CRATE_CARDS[0]
+}
+
+/** Unique one-shot cards never merge into a stack. Numeric ability cards can. */
+export function canStackCrate(def: CrateDefinition): boolean {
+  return def.category !== 'spotlight' && def.category !== 'rewind' && def.category !== 'callback'
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -245,7 +374,12 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 export function createCrateDeck(): string[] {
-  return shuffle(CRATE_CARDS.map((card) => card.id))
+  const ids = CRATE_CARDS.map((card) => card.id)
+  // A few extra copies make duplicate ability stacks a rare but real possibility.
+  for (const id of ['power-2', 'shield-3', 'green-room', 'double-track', 'mosh-pit', 'dead-air']) {
+    ids.push(id)
+  }
+  return shuffle(ids)
 }
 
 /** Weighted selection without replacement. The returned deck has the card removed. */

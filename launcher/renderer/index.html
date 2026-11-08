@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self';">
+  <title>Can I Kick It? - Game Launcher</title>
+  <link rel="stylesheet" href="launcher.css">
+</head>
+<body>
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 4.8v14.4L20 12z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06-1.7 1.7-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V20h-2.4v-.09a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06-1.7-1.7.06-.06A1.7 1.7 0 0 0 8.6 15a1.7 1.7 0 0 0-1.56-1.03H7v-2.4h.04A1.7 1.7 0 0 0 8.6 10.5a1.7 1.7 0 0 0-.34-1.87L8.2 8.57l1.7-1.7.06.06a1.7 1.7 0 0 0 1.87.34A1.7 1.7 0 0 0 12.86 5.7V5.6h2.4v.1a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06 1.7 1.7-.06.06a1.7 1.7 0 0 0-.34 1.87 1.7 1.7 0 0 0 1.56 1.03H21v2.4h-.09A1.7 1.7 0 0 0 19.4 15z"/></symbol>
+    <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v6H5a1 1 0 0 1-1-1zM20 14h-3v6h2a1 1 0 0 0 1-1z"/></symbol>
+    <symbol id="i-news" viewBox="0 0 24 24"><path d="M4 5h13v14H5a1 1 0 0 1-1-1zM17 8h3v10a2 2 0 0 1-2 2M7 9h6M7 13h6M7 17h4"/></symbol>
+    <symbol id="i-cards" viewBox="0 0 24 24"><rect x="7" y="4" width="11" height="15" rx="1.5"/><path d="M16 7h1.5A1.5 1.5 0 0 1 19 8.5v10a1.5 1.5 0 0 1-1.5 1.5H8"/><path d="m10 13 2.5-3 2.5 3"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></symbol>
+    <symbol id="i-bus" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10H4zM4 16h16M6 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM18 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM4 10h16"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5M6.1 9a7 7 0 0 1 11.4-2.6L20 9M4 15l2.5 2.6A7 7 0 0 0 17.9 15"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5"/></symbol>
+    <symbol id="i-minimize" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-maximize" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 8.2 7.4 11 12 4.6 16.6 11 21 8.2 19 19H5z" fill="currentColor" stroke="none"/><path d="M5 21h14" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="14" rx="1"/><path d="M8 3v6M16 3v6M4 10h16"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/><path d="M3 4h2l2.4 11.4a1.5 1.5 0 0 0 1.5 1.2h8.7a1.5 1.5 0 0 0 1.5-1.2L21 8H6"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.4 3 8.2 7 9.5 4-1.3 7-5.1 7-9.5V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5 21a7 7 0 0 1 14 0"/></symbol>
+  </svg>
+
+  <div class="app">
+    <header class="titlebar">
+      <div class="brand">
+        <span class="brand-mark"><img src="../assets/icon.png" alt=""></span>
+        <span class="brand-name">Can I Kick It? <b>— Game Launcher</b></span>
+        <span class="version-chip" id="title-version">v1.0.0</span>
+      </div>
+      <div class="titlebar-right">
+        <div class="net" id="net-status">
+          <span class="net-dot" id="net-dot"></span>
+          <span id="net-label">Online</span>
+        </div>
+        <button class="profile no-drag" type="button" data-action="settings">
+          <span class="avatar"><svg class="icon"><use href="#i-user"></use></svg></span>
+          <span>Player</span>
+          <svg class="icon chevron"><use href="#i-chevron"></use></svg>
+        </button>
+        <div class="window-controls no-drag">
+          <button type="button" id="win-min" aria-label="Minimize"><svg class="icon"><use href="#i-minimize"></use></svg></button>
+          <button type="button" id="win-max" aria-label="Maximize"><svg class="icon"><use href="#i-maximize"></use></svg></button>
+          <button type="button" id="win-close" class="close" aria-label="Close"><svg class="icon"><use href="#i-close"></use></svg></button>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <nav class="nav" aria-label="Launcher sections">
+          <button type="button" class="nav-item active" data-action="home">
+            <span class="nav-icon"><svg class="icon"><use href="#i-home"></use></svg></span>
+            <span>Home</span>
+            <svg class="icon chevron"><use href="#i-chevron"></use></svg>
+          </button>
+          <button type="button" class="nav-item" data-action="play">
+            <span class="nav-icon"><svg class="icon"><use href="#i-play"></use></svg></span>
+            <span>Play Game</span>
+            <svg class="icon chevron"><use href="#i-chevron"></use></svg>
+          </button>
+          <button type="button" class="nav-item" data-action="updates">
+            <span class="nav-icon"><svg class="icon"><use href="#i-download"></use></svg></span>
+            <span>Updates</span>
+            <svg class="icon chevron"><use href="#i-chevron"></use></svg>
+          </button>
+          <button type="button" class="nav-item" data-action="files">
+            <span class="nav-icon"><svg class="icon"><use href="#i-folder"></use></svg></span>
+            <span>Game Files</span>
+            <svg class="icon chevron"><use href="#i-chevron"></use></svg>
+          </button>
+          <button type="button" class="nav-item" data-action="settings">
+            <span class="nav-icon"><svg class="icon"><use href="#i-settings"></use></svg></span>
+            <span>Settings</span>
+            <svg class="icon chevron"><use href="#i-chevron"></use></svg>
+          </button>
+          <button type="button" class="nav-item" data-action="support">
+            <span class="nav-icon"><svg class="icon"><use href="#i-headphones"></use></svg></span>
+            <span>Support</span>
+            <svg class="icon chevron"><use href="#i-chevron"></use></svg>
+          </button>
+          <button type="button" class="nav-item" data-action="news">
+            <span class="nav-icon"><svg class="icon"><use href="#i-news"></use></svg></span>
+            <span>News</span>
+            <svg class="icon chevron"><use href="#i-chevron"></use></svg>
+          </button>
+        </nav>
+
+        <div class="deck" aria-hidden="true">
+          <div class="deck-disc"><span>CIKI</span></div>
+          <div class="deck-arm"></div>
+          <div class="deck-copy"><strong>CIKI RECORDS</strong><span>PLAY IT LOUD · 2026</span></div>
+        </div>
+        <div class="sidebar-meta"><span class="pulse"></span> LAUNCHER <span>·</span> <span id="platform-label">WINDOWS</span></div>
+      </aside>
+
+      <main class="center">
+        <section class="masthead">
+          <div class="hero-art" aria-hidden="true">
+            <img class="hero-img hero-one" src="../assets/hero/amara.webp" alt="">
+            <img class="hero-img hero-two" src="../assets/hero/krown.webp" alt="">
+            <img class="hero-img hero-three" src="../assets/hero/saint.webp" alt="">
+            <img class="hero-img hero-four" src="../assets/hero/lola.webp" alt="">
+            <img class="hero-img hero-five" src="../assets/hero/omar.webp" alt="">
+          </div>
+          <div class="hero-light" aria-hidden="true"></div>
+          <div class="masthead-content">
+            <div class="crown-mark"><svg class="icon"><use href="#i-crown"></use></svg></div>
+            <h1>CAN I KICK IT?</h1>
+            <div class="logo-plate">THE GAME</div>
+            <div class="official"><span></span> THE OFFICIAL LAUNCHER <span></span></div>
+          </div>
+          <div class="masthead-tag">CIKI RECORDS · EST. 2026</div>
+        </section>
+
+        <section class="feature" id="event-card" style="--event-accent:#f05a28">
+          <div class="stage" aria-hidden="true">
+            <div class="stage-beam beam-one"></div>
+            <div class="stage-beam beam-two"></div>
+            <div class="stage-beam beam-three"></div>
+            <div class="stage-crown"><svg class="icon"><use href="#i-crown"></use></svg></div>
+            <div class="crowd"></div>
+          </div>
+          <div class="feature-copy">
+            <span class="live-pill"><span class="live-dot"></span> LIVE EVENT</span>
+            <h2 id="event-title">THE FESTIVAL &amp;<br>TOUR CIRCUIT</h2>
+            <div class="festival-pill" id="event-festival">BLACKTOP FREQUENCY FEST</div>
+            <p id="event-detail">72-HOUR EVENT · SOLO TOUR &amp; ONLINE FESTIVAL</p>
+            <p class="event-date"><svg class="icon"><use href="#i-calendar"></use></svg><span id="event-date">FRI, NOV 6 – MON, NOV 9</span></p>
+          </div>
+          <div class="feature-arrows">
+            <button type="button" class="circle-button" id="event-prev" aria-label="Previous event"><svg class="icon"><use href="#i-chevron"></use></svg></button>
+            <button type="button" class="circle-button" id="event-next" aria-label="Next event"><svg class="icon"><use href="#i-chevron"></use></svg></button>
+          </div>
+          <div class="feature-dots" id="event-dots">
+            <button type="button" class="event-dot active" data-slide="0" aria-label="Event 1"></button>
+            <button type="button" class="event-dot" data-slide="1" aria-label="Event 2"></button>
+            <button type="button" class="event-dot" data-slide="2" aria-label="Event 3"></button>
+          </div>
+          <div class="feature-stamp">SEASON 01 <span>·</span> 3 WEEKENDS</div>
+        </section>
+
+        <section class="tiles" aria-label="Game shortcuts">
+          <button type="button" class="tile" data-action="play">
+            <span class="tile-icon"><svg class="icon"><use href="#i-cards"></use></svg></span>
+            <span class="tile-copy"><strong>MY COLLECTION</strong><span>52 cards · 50 artists</span></span>
+            <svg class="icon tile-arrow"><use href="#i-arrow"></use></svg>
+          </button>
+          <button type="button" class="tile" data-action="play">
+            <span class="tile-icon"><svg class="icon"><use href="#i-mic"></use></svg></span>
+            <span class="tile-copy"><strong>MIXTAPE STUDIO</strong><span>Build the next anthem</span></span>
+            <svg class="icon tile-arrow"><use href="#i-arrow"></use></svg>
+          </button>
+          <button type="button" class="tile" data-action="play">
+            <span class="tile-icon"><svg class="icon"><use href="#i-bus"></use></svg></span>
+            <span class="tile-copy"><strong>FESTIVAL &amp; TOUR CIRCUIT</strong><span>Six festivals · one circuit</span></span>
+            <svg class="icon tile-arrow"><use href="#i-arrow"></use></svg>
+          </button>
+        </section>
+
+        <section class="action-row">
+          <div class="status-card" id="status-card">
+            <div class="status-icon" id="status-icon"><svg class="icon"><use href="#i-download"></use></svg></div>
+            <div class="status-copy">
+              <div class="status-title" id="status-title">UPDATE READY</div>
+              <div class="status-detail" id="status-detail">Version 1.4.0 is available. Install it now or play your current build.</div>
+              <div class="progress-wrap" id="progress-wrap" hidden>
+                <div class="progress-line">
+                  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+                  <strong id="progress-percent">0%</strong>
+                </div>
+                <div class="progress-meta"><span id="progress-detail">Starting download…</span><span id="progress-speed">—</span></div>
+              </div>
+            </div>
+            <button type="button" class="icon-button cancel-button" id="cancel-button" hidden aria-label="Cancel update"><svg class="icon"><use href="#i-close"></use></svg></button>
+          </div>
+          <button type="button" class="play-button" id="play-button">
+            <span class="play-button-icon"><svg class="icon"><use href="#i-play"></use></svg></span>
+            <span id="play-label">PLAY GAME</span>
+            <span class="play-shine" aria-hidden="true"></span>
+          </button>
+        </section>
+      </main>
+
+      <aside class="rightbar">
+        <section class="panel install-panel">
+          <div class="panel-head">
+            <span class="panel-icon"><svg class="icon"><use href="#i-folder"></use></svg></span>
+            <h3>INSTALLATION</h3>
+            <span class="panel-line"></span>
+          </div>
+          <div class="field">
+            <label for="game-path">GAME LOCATION</label>
+            <div class="path-box">
+              <span id="game-path" title="">—</span>
+              <button type="button" class="square-button" id="open-folder" aria-label="Open game folder"><svg class="icon"><use href="#i-folder"></use></svg></button>
+            </div>
+          </div>
+          <div class="stat-row"><span>INSTALL SIZE</span><strong id="install-size">—</strong></div>
+          <div class="stat-row"><span>AVAILABLE SPACE</span><strong id="free-space" class="good">—</strong></div>
+        </section>
+
+        <section class="panel version-panel" id="version-panel">
+          <div class="panel-head">
+            <span class="panel-icon"><svg class="icon"><use href="#i-cart"></use></svg></span>
+            <h3>GAME VERSION</h3>
+            <span class="panel-line"></span>
+          </div>
+          <div class="version-row"><span>CURRENT VERSION</span><strong id="installed-version">—</strong></div>
+          <div class="version-row"><span>LATEST VERSION</span><strong id="latest-version">—</strong></div>
+          <div class="version-status">
+            <span id="version-status">CHECKING FOR UPDATES…</span>
+            <span class="status-pill" id="version-pill"><span></span></span>
+          </div>
+          <button type="button" class="update-button" id="update-button">
+            <svg class="icon"><use href="#i-download"></use></svg>
+            <span id="update-label">CHECK FOR UPDATES</span>
+          </button>
+          <p class="panel-note" id="last-checked">Updates are delivered through GitHub Releases.</p>
+        </section>
+
+        <section class="panel tools-panel">
+          <div class="panel-head">
+            <span class="panel-icon"><svg class="icon"><use href="#i-settings"></use></svg></span>
+            <h3>QUICK TOOLS</h3>
+            <span class="panel-line"></span>
+          </div>
+          <button type="button" class="tool-button" id="verify">
+            <svg class="icon"><use href="#i-shield"></use></svg><span>Verify / Repair Files</span>
+          </button>
+          <button type="button" class="tool-button" id="open-folder-two">
+            <svg class="icon"><use href="#i-folder"></use></svg><span>Open Game Folder</span>
+          </button>
+          <button type="button" class="tool-button" id="clear-cache">
+            <svg class="icon"><use href="#i-trash"></use></svg><span>Clear Download Cache</span>
+          </button>
+          <div class="github-line"><span class="pulse"></span> CONNECTED TO GITHUB <button type="button" class="link-button" id="open-release">RELEASE NOTES</button></div>
+        </section>
+
+        <section class="panel radio-panel">
+          <div class="panel-head">
+            <span class="panel-icon"><svg class="icon"><use href="#i-headphones"></use></svg></span>
+            <h3>CIKI RADIO</h3>
+            <span class="panel-line"></span>
+          </div>
+          <div class="radio-card">
+            <div class="equalizer" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="radio-copy"><strong>STATIC ON THE BLACKTOP</strong><span>92.3 FM · THE CIRCUIT MIX</span></div>
+            <button type="button" class="radio-button" data-action="play" aria-label="Launch the game"><svg class="icon"><use href="#i-play"></use></svg></button>
+          </div>
+          <p class="radio-note">The in-game soundtrack is waiting. Launch the game to tune in.</p>
+          <div class="radio-footer"><span class="pulse"></span> LIVE FROM THE FREQUENCY YARD</div>
+        </section>
+      </aside>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-brand">
+        <span class="footer-mark"><svg class="icon"><use href="#i-crown"></use></svg></span>
+        <div><strong>Can I Kick It? — The Game™</strong><span>Hip-Hop · R&amp;B · Pop · Card Battles · Music · Legacy</span></div>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <button type="button" data-link="patch">Patch Notes</button>
+        <button type="button" data-link="requirements">System Requirements</button>
+        <button type="button" data-link="credits">Credits</button>
+      </nav>
+      <div class="footer-right"><span id="footer-version">LAUNCHER v1.0.0</span><span class="footer-sep"></span><span>© 2026 CIKI</span></div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" hidden><span class="toast-mark" id="toast-mark"></span><span id="toast-text"></span></div>
+
+  <div class="modal-backdrop" id="settings-modal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <header class="modal-head">
+        <div><span class="eyebrow">LAUNCHER</span><h2 id="settings-title">SETTINGS</h2></div>
+        <button type="button" class="square-button" id="close-settings" aria-label="Close settings"><svg class="icon"><use href="#i-close"></use></svg></button>
+      </header>
+      <div class="modal-body">
+        <label class="modal-label">GAME INSTALL FOLDER</label>
+        <div class="path-box modal-path"><span id="settings-path">—</span></div>
+        <div class="modal-actions">
+          <button type="button" class="modal-button gold" id="choose-folder">CHOOSE FOLDER</button>
+          <button type="button" class="modal-button" id="modal-open-folder">OPEN FOLDER</button>
+        </div>
+        <label class="toggle-row">
+          <span><strong>CHECK FOR UPDATES AT STARTUP</strong><small>The launcher checks GitHub Releases and stays ready to update.</small></span>
+          <input type="checkbox" id="auto-check">
+        </label>
+        <div class="modal-meta"><span id="modal-version">Launcher v1.0.0</span><span>·</span><span>Windows</span></div>
+        <button type="button" class="text-button" id="open-logs">OPEN LAUNCHER LOG</button>
+      </div>
+    </section>
+  </div>
+
+  <script src="launcher.js"></script>
+</body>
+</html>

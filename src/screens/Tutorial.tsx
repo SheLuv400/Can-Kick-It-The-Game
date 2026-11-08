@@ -2,13 +2,15 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { Move } from '../game/types'
 import type { BackstageCard, StageCard } from '../game/battle'
 import { featureDamage } from '../game/battle'
-import { CATEGORY_LABEL, RARITY_META, crateCard } from '../game/crate'
-import { ELEMENT_META, battleStatsFor, defaultLoadout, moveById, movesForArtist } from '../game/moves'
+import { CATEGORY_LABEL, RARITY_META, crateCard, createCrateDeck } from '../game/crate'
+import { ELEMENT_META, battleStatsFor, defaultLoadout, isAttackMove, moveById, movesForArtist } from '../game/moves'
 import { getArtist } from '../game/roster'
 import { Card } from '../components/Card'
+import { BrandLogo } from '../components/BrandLogo'
 import { GameIcon } from '../components/GameIcon'
 import { Portrait } from '../components/Portrait'
 import { StageUnit } from '../components/Combat'
+import { portraitUrl } from '../game/portraits'
 
 interface TutorialProps {
   onExit: () => void
@@ -48,6 +50,9 @@ const JUNO = getArtist(TUTORIAL_ARTIST_IDS.juno)
 const KROWN = getArtist(TUTORIAL_ARTIST_IDS.krown)
 const PIXEL = getArtist(TUTORIAL_ARTIST_IDS.pixel)
 const SABLE = getArtist(TUTORIAL_ARTIST_IDS.sable)
+const HOST = getArtist('casso-royale')
+const TUTORIAL_HAND = ['cipher-jones', 'renee-blue', 'rook-havoc', 'luka-dragan', JUNO.id]
+const TUTORIAL_CRATE_STACK = createCrateDeck().length
 
 const CHAPTERS: Chapter[] = [
   { number: 1, title: 'Welcome to the Show', subtitle: 'The room, the goal, the two meters', icon: 'crowd' },
@@ -188,7 +193,7 @@ const STEPS: TutorialStep[] = [
     id: 'crate',
     chapter: 7,
     title: 'Draw from the Crate',
-    body: 'The Crate holds special cards. Click DRAW FROM THE CRATE to pull a card. Drawing ends your turn, so the card becomes usable next turn.',
+    body: 'The Crate holds special cards. Click DRAW FROM THE CRATE to pull a card for 2 Hype. Drawing no longer ends your turn, so the card can be used right away.',
     detail: 'You can hold up to six special cards. They are separate from your artist hand.',
     target: 'crate',
     action: 'CLICK DRAW FROM THE CRATE',
@@ -323,7 +328,11 @@ function makeStageCard(artistId: string, uid: string, overrides: Partial<StageCa
     defenseBonus: 0,
     guardRound: 0,
     entranceUsed: false,
+    comebackBonus: 0,
+    comebackUsed: false,
     moves: [],
+    specialCharge: 0,
+    specialUsed: false,
     ...overrides,
   }
 }
@@ -344,6 +353,7 @@ function makeKrownBackstage(): BackstageCard {
     artistId: artist.id,
     encore: false,
     level: 1,
+    hp: 0,
     maxHp: battleStatsFor(artist).hp,
     moves: movesForArtist(artist.id).slice(0, 3).map((move) => move.id),
   }
@@ -380,12 +390,12 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
     makeStageCard(SABLE.id, 'tut-sable'),
   ])
   const [backstage, setBackstage] = useState<BackstageCard[]>([])
-  const [hand, setHand] = useState<string[]>([JUNO.id])
+  const [hand, setHand] = useState<string[]>(TUTORIAL_HAND)
   const [specialHand, setSpecialHand] = useState<{ uid: string; cardId: string; drawnRound: number }[]>([])
-  const [crateCount, setCrateCount] = useState(18)
+  const [crateCount, setCrateCount] = useState(TUTORIAL_CRATE_STACK)
   const [playerCrowd, setPlayerCrowd] = useState(72)
   const [rivalCrowd, setRivalCrowd] = useState(64)
-  const [hype, setHype] = useState(12)
+  const [hype, setHype] = useState(24)
   const [round, setRound] = useState(1)
   const [selectedUid, setSelectedUid] = useState<string | null>(null)
   const [pendingDeploy, setPendingDeploy] = useState<string | null>(null)
@@ -613,7 +623,6 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
             : card,
         ),
       )
-      setHype((value) => Math.max(0, value - move.cost))
       applyHit('rival', damage)
       setLastAction(`SHARP BARS BURNED ${PIXEL.name} FOR ${damage}. BURN 2 TURNS. BACKDRAFT SET MACKO BURNING.`)
       setSelectedUid(junoCard?.uid ?? null)
@@ -633,7 +642,6 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
             : card,
         ),
       )
-      setHype((value) => Math.max(0, value - move.cost))
       setLastAction(`${move.name.toUpperCase()} CLEANSED MACKO AND RESTORED 3 HP.`)
       setStepIndex(21)
       return
@@ -648,7 +656,7 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
     setPlayerStage((stage) =>
       stage.map((card) => (card.uid === 'tut-macko' ? { ...card, hp: Math.max(1, card.hp - reduced) } : card)),
     )
-    setHype((value) => Math.min(12, value + 1))
+    setHype((value) => Math.min(24, value + 1))
     applyHit('player', reduced)
     setDefensePrompt(null)
     setLastAction(`CLAPBACK CUT THE HIT TO ${reduced}. +1 HYPE.`)
@@ -666,8 +674,8 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
     if (step.id !== 'revive') return
     const fallen = backstage[0]
     if (!fallen) return
-    if (hype < 4) {
-      showNudge('Call Back costs 4 Hype. In a real match, you would need to build Hype first.')
+    if (hype < 10) {
+      showNudge('Call Back costs 10–15 Hype in a real match. Build the meter first.')
       return
     }
     const revived = makeStageCard(fallen.artistId, 'tut-krown', {
@@ -680,7 +688,7 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
     setPlayerStage((stage) => [...stage, revived])
     setBackstage([])
     setBackstageOpen(false)
-    setHype((value) => value - 4)
+    setHype((value) => Math.max(0, value - 10))
     setLastAction(`${getArtist(fallen.artistId).name} RETURNED AT FULL HP. ACTION SPENT.`)
     setStepIndex(13)
   }
@@ -691,8 +699,8 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
     setSpecialHand([{ uid: 'tut-special-1', cardId: 'power-2', drawnRound: 1 }])
     setRound(2)
     setPlayerStage((stage) => stage.map((card) => ({ ...card, actedThisTurn: false })))
-    setHype((value) => Math.min(12, value + 2))
-    setLastAction('HOUSE MIC DRAWN. THE TURN ENDS. NEXT TURN: 6 HYPE.')
+    setHype((value) => Math.max(0, value - 2))
+    setLastAction('HOUSE MIC DRAWN FOR 2 HYPE. YOUR TURN CONTINUES.')
     setStepIndex(15)
   }
 
@@ -711,7 +719,7 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
     }
     const damage = featureDamage(playerStage, 'MIDNIGHT CARTEL', 1)
     setRivalCrowd((value) => Math.max(0, value - damage))
-    setHype((value) => Math.min(12, value + 1))
+    setHype((value) => Math.min(24, value + 1))
     applyHit('rival', damage)
     setLastAction(`MIDNIGHT CARTEL FEATURE VERSE: ${damage} CROWD DAMAGE. +1 HYPE.`)
     setStepIndex(23)
@@ -752,9 +760,9 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
     setPlayerStage([makeStageCard(MACKO.id, 'tut-macko', { moves: defaultLoadout(MACKO.id) })])
     setRivalStage([makeStageCard(PIXEL.id, 'tut-pixel'), makeStageCard(SABLE.id, 'tut-sable')])
     setBackstage([])
-    setHand([JUNO.id])
+    setHand(TUTORIAL_HAND)
     setSpecialHand([])
-    setCrateCount(18)
+    setCrateCount(TUTORIAL_CRATE_STACK)
     setPlayerCrowd(72)
     setRivalCrowd(64)
     setHype(12)
@@ -772,7 +780,15 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
 
   const blockUnintended = (event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement
-    if (target.closest('.tutorial-coach') || target.closest('.tutorial-top') || target.closest('.tutorial-victory')) {
+    if (
+      target.closest('.tutorial-coach') ||
+      target.closest('.tutorial-callout') ||
+      target.closest('.tutorial-sidecar') ||
+      target.closest('.tutorial-turn') ||
+      target.closest('.tutorial-nav') ||
+      target.closest('.tutorial-top') ||
+      target.closest('.tutorial-victory')
+    ) {
       return
     }
     if (!step.target) return
@@ -788,7 +804,41 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
   const specialRarity = specialDefinition ? RARITY_META[specialDefinition.rarity] : null
 
   return (
-    <div className="tutorial" onMouseDownCapture={blockUnintended} onClickCapture={blockUnintended}>
+    <div className="tutorial tutorial--soundcheck" data-step={step.id} onMouseDownCapture={blockUnintended} onClickCapture={blockUnintended}>
+      <div className="tutorial-venue" aria-hidden="true">
+        <div className="tutorial-venue__truss" />
+        <div className="tutorial-venue__beam tutorial-venue__beam--one" />
+        <div className="tutorial-venue__beam tutorial-venue__beam--two" />
+        <div className="tutorial-venue__beam tutorial-venue__beam--three" />
+        <div className="tutorial-venue__beam tutorial-venue__beam--four" />
+        <div className="tutorial-venue__screen tutorial-venue__screen--left">
+          {portraitUrl(PIXEL.id) && <img src={portraitUrl(PIXEL.id)} alt="" />}
+          <span>THE HEADLINER</span>
+        </div>
+        <div className="tutorial-venue__screen tutorial-venue__screen--right">
+          {portraitUrl(SABLE.id) && <img src={portraitUrl(SABLE.id)} alt="" />}
+          <span>MIDNIGHT GARDEN</span>
+        </div>
+        <div className="tutorial-venue__speaker tutorial-venue__speaker--left">
+          <i /><i /><i /><span>CIKI</span>
+        </div>
+        <div className="tutorial-venue__speaker tutorial-venue__speaker--right">
+          <i /><i /><i /><span>CIKI</span>
+        </div>
+        <div className="tutorial-venue__floor" />
+        <div className="tutorial-venue__crowd">
+          {Array.from({ length: 34 }).map((_, index) => (
+            <i key={index} style={{ '--i': index } as CSSProperties} />
+          ))}
+        </div>
+        <div className="tutorial-venue__haze" />
+        <div className="tutorial-venue__sparks">
+          {Array.from({ length: 16 }).map((_, index) => (
+            <i key={index} style={{ '--i': index } as CSSProperties} />
+          ))}
+        </div>
+      </div>
+
       <header className="tutorial-top">
         <button className="link-btn tutorial-exit" onClick={onExit}>
           ← EXIT TRAINING
@@ -806,7 +856,20 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
 
       <div className="tutorial-layout">
         <main className={`tutorial-board ${step.target ? 'is-guided' : ''}`} aria-label="Guided practice match">
+          <div className="tutorial-board__ambient" aria-hidden="true">
+            <div className="tutorial-board__led tutorial-board__led--left">
+              {portraitUrl(PIXEL.id) && <img src={portraitUrl(PIXEL.id)} alt="" />}
+              <span>THE HEADLINER</span>
+            </div>
+            <div className="tutorial-board__led tutorial-board__led--right">
+              {portraitUrl(SABLE.id) && <img src={portraitUrl(SABLE.id)} alt="" />}
+              <span>MIDNIGHT GARDEN</span>
+            </div>
+            <div className="tutorial-board__lasers" />
+          </div>
           <div className="tutorial-hud">
+            <div className="tutorial-hud__crowd-art tutorial-hud__crowd-art--left" aria-hidden="true" />
+            <div className="tutorial-hud__crowd-art tutorial-hud__crowd-art--right" aria-hidden="true" />
             <div className="tutorial-crowd tutorial-crowd--you">
               <span>YOUR CROWD</span>
               <b>{playerCrowd}</b>
@@ -814,24 +877,6 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
               <div><span style={{ width: `${(playerCrowd / 72) * 100}%` }} /></div>
               <em>THE ROOM IS YOURS</em>
             </div>
-            <button
-              className={`tutorial-hype ${focusClass('hype')}`}
-              data-tutorial-target="hype"
-              onClick={() => {
-                if (step.id !== 'hype') {
-                  showNudge('Hype is the cost of every card and every move. Follow the coach.')
-                  return
-                }
-                setLastAction(`HYPE ${hype}. MOVES SPEND IT. +2 AT THE START OF EVERY TURN. CAP 12.`)
-                setStepIndex(5)
-              }}
-              aria-label={`Hype ${hype}`}
-            >
-              <GameIcon name="bolt" />
-              <span>HYPE</span>
-              <b>{String(hype).padStart(2, '0')}</b>
-              <em>CAP 12</em>
-            </button>
             <div className="tutorial-round">
               <span>ROUND</span>
               <b>{String(round).padStart(2, '0')}</b>
@@ -851,6 +896,78 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
               </span>
             )}
           </div>
+
+          <section className="tutorial-callout" aria-label="Tutorial coach">
+            <div className="tutorial-callout__eyebrow">
+              <span>CHAPTER {String(chapter.number).padStart(2, '0')} / 10</span>
+              <i>{chapter.title}</i>
+              <em>{stepProgress}%</em>
+            </div>
+            <h2>{step.title}</h2>
+            <p className="tutorial-callout__body">{step.body}</p>
+            {step.detail && <p className="tutorial-callout__detail">{step.detail}</p>}
+            <div className="tutorial-callout__prompt">
+              <GameIcon name="spark" />
+              <span>{step.action ?? 'READ THE LESSON, THEN CONTINUE.'}</span>
+            </div>
+            {nudge && <p className="tutorial-coach__nudge">{nudge}</p>}
+            <span className="tutorial-callout__step">STEP {stepIndex + 1} OF {STEPS.length}</span>
+            <svg className="tutorial-callout__arrow" viewBox="0 0 150 150" aria-hidden="true">
+              <path d="M132 12c-47 4-80 26-96 63-10 23-9 42-2 62" />
+              <path d="m18 115 15 28 19-22" />
+            </svg>
+          </section>
+
+          <aside className="tutorial-sidecar" aria-label="Performance controls">
+            <button
+              className={`tutorial-hype ${focusClass('hype')}`}
+              data-tutorial-target="hype"
+              onClick={() => {
+                if (step.id !== 'hype') {
+                  showNudge('Hype is the cost of every card and every move. Follow the coach.')
+                  return
+                }
+                setLastAction(`HYPE ${hype}. ATTACKS ARE FREE. +3 EACH TURN. CAP 24.`)
+                setStepIndex(5)
+              }}
+              aria-label={`Hype ${hype}`}
+            >
+              <GameIcon name="bolt" />
+              <span>HYPE</span>
+              <b>{String(hype).padStart(2, '0')}</b>
+              <i>/24</i>
+              <div className="tutorial-hype__ticks">
+                {Array.from({ length: 24 }).map((_, index) => (
+                  <em key={index} className={index < hype ? 'is-lit' : ''} />
+                ))}
+              </div>
+            </button>
+            <div className="tutorial-era">
+              <GameIcon name="play" />
+              <span>ERA POWER</span>
+              <b>OPENING ACT</b>
+              <div><i /><i /><i /></div>
+            </div>
+            <button
+              className={`tutorial-action tutorial-action--feature ${focusClass('feature')} ${featureReady ? 'is-ready' : ''}`}
+              data-tutorial-target="feature"
+              onClick={playFeature}
+            >
+              <GameIcon name="spark" />
+              <span><b>FEATURE VERSE</b><em>MIDNIGHT CARTEL</em></span>
+              <strong>{featureReady ? 'READY' : '2 CREW'}</strong>
+            </button>
+            <button
+              className={`tutorial-action ${focusClass('encore')}`}
+              data-tutorial-target="encore"
+              onClick={playEncore}
+              disabled={Boolean(mackoCard?.encore)}
+            >
+              <GameIcon name="star" />
+              <span><b>ENCORE</b><em>MACKO · 1 CHARGE</em></span>
+              <strong>{mackoCard?.encore ? 'LIVE' : '1'}</strong>
+            </button>
+          </aside>
 
           <section className="tutorial-side tutorial-side--rival">
             <header>
@@ -928,55 +1045,14 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
             </div>
           </section>
 
-          <div className="tutorial-actions">
-            <button
-              className={`tutorial-action ${focusClass('feature')} ${featureReady ? 'is-ready' : ''}`}
-              data-tutorial-target="feature"
-              onClick={playFeature}
-            >
-              <GameIcon name="spark" />
-              <span><b>FEATURE VERSE</b><em>MIDNIGHT CARTEL · {featureReady ? 'READY' : 'NEEDS 2 CREW'}</em></span>
-              <strong>+1 HYPE</strong>
-            </button>
-            <button
-              className={`tutorial-action ${focusClass('encore')}`}
-              data-tutorial-target="encore"
-              onClick={playEncore}
-              disabled={Boolean(mackoCard?.encore)}
-            >
-              <GameIcon name="star" />
-              <span><b>ENCORE</b><em>MACKO · {mackoCard?.encore ? 'TRANSFORMED' : '1 CHARGE'}</em></span>
-              <strong>1</strong>
-            </button>
-            {step.id === 'final' ? (
-              <button
-                className={`tutorial-action tutorial-action--final ${focusClass('final')}`}
-                data-tutorial-target="final"
-                onClick={finalPerformance}
-              >
-                <GameIcon name="play" />
-                <span><b>FINAL PERFORMANCE</b><em>EMPTY THE HEADLINER’S ROOM</em></span>
-                <strong>WIN</strong>
-              </button>
-            ) : (
-              <button
-                className="tutorial-action tutorial-action--ghost"
-                onClick={() => showNudge('In a real match, END TURN passes the room to the Headliner and refills 2 Hype.')}
-              >
-                <GameIcon name="chevron" />
-                <span><b>END TURN</b><em>PASS THE ROOM</em></span>
-                <strong>SPACE</strong>
-              </button>
-            )}
-          </div>
-
+          <div className="tutorial-console">
           <div className="tutorial-dock">
             <div className="tutorial-hand">
               <span className="tutorial-label">YOUR HAND · {hand.length}</span>
               <div>
                 {hand.map((artistId) => {
                   const artist = getArtist(artistId)
-                  const isTarget = step.id === 'deploy-card'
+                  const isTarget = step.id === 'deploy-card' && artistId === JUNO.id
                   return (
                     <div
                       key={artistId}
@@ -1018,7 +1094,7 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
                   <i>ENDS TURN</i>
                 </span>
               </button>
-              <div className="tutorial-special">
+              <div className={`tutorial-special ${step.id === 'special' ? 'is-pick-source' : ''}`}>
                 <span className="tutorial-label">SPECIAL HAND · {specialHand.length}/6</span>
                 {specialHand.length === 0 ? (
                   <span className="tutorial-empty">NO SPECIALS HELD</span>
@@ -1030,7 +1106,7 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
                       <button
                         key={card.uid}
                         className={`tutorial-special__card ${focusClass('special')}`}
-                        data-tutorial-target="special"
+                        data-tutorial-target={step.id === 'special' ? undefined : 'special'}
                         style={{ '--rarity': rarity.color } as CSSProperties}
                         onClick={openSpecial}
                       >
@@ -1054,6 +1130,58 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
               </button>
             </div>
           </div>
+          {step.id === 'final' ? (
+            <button
+              className={`tutorial-turn tutorial-turn--final ${focusClass('final')}`}
+              data-tutorial-target="final"
+              onClick={finalPerformance}
+            >
+              <span className="tutorial-turn__record" aria-hidden="true"><i /></span>
+              <b>FINAL PERFORMANCE</b>
+              <em>EMPTY THE HEADLINER’S ROOM</em>
+            </button>
+          ) : (
+            <button
+              className="tutorial-turn"
+              onClick={() => showNudge('In a real match, END TURN passes the room to the Headliner and refills 2 Hype.')}
+            >
+              <span className="tutorial-turn__record" aria-hidden="true"><i /></span>
+              <b>END TURN</b>
+              <em>PASS THE ROOM · SPACE</em>
+            </button>
+          )}
+          </div>
+
+          <div className="tutorial-board__pit" aria-hidden="true">
+            <span>SOLD OUT · THE MIDNIGHT GARDEN</span>
+            {Array.from({ length: 28 }).map((_, index) => (
+              <i key={index} style={{ '--i': index } as CSSProperties} />
+            ))}
+          </div>
+
+          <footer className="tutorial-nav">
+            <button className="tutorial-nav__button" onClick={restart}>
+              <GameIcon name="play" /> REPLAY
+            </button>
+            <div className="tutorial-nav__dots" aria-label={`${completed} of 10 chapters complete`}>
+              {CHAPTERS.map((item) => (
+                <i
+                  key={item.number}
+                  className={`${completed >= item.number ? 'is-done' : ''} ${item.number === chapter.number ? 'is-current' : ''}`}
+                />
+              ))}
+            </div>
+            <span className="tutorial-nav__count">STEP {stepIndex + 1} / {STEPS.length}</span>
+            <button className="tutorial-nav__button" onClick={onExit}>SKIP TUTORIAL</button>
+            {step.next ? (
+              <button className="btn btn--primary tutorial-coach__next tutorial-nav__next" onClick={advance}>
+                {stepIndex >= STEPS.length - 1 ? 'REPLAY THE SHOW' : 'NEXT STEP'}
+                <GameIcon name="chevron" />
+              </button>
+            ) : (
+              <span className="tutorial-nav__wait">COMPLETE THE HIGHLIGHTED ACTION</span>
+            )}
+          </footer>
 
           {selectedCard && selectedArtist && (
             <section
@@ -1076,7 +1204,8 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
               <div className="tutorial-moves__grid">
                 {selectedMoves.map((move, index) => {
                   const element = move.element ? ELEMENT_META[move.element] : null
-                  const disabled = selectedCard.actedThisTurn || hype < move.cost
+                  const moveCost = isAttackMove(move) ? 0 : move.cost
+                  const disabled = selectedCard.actedThisTurn || hype < moveCost
                   return (
                     <button
                       key={move.id}
@@ -1094,7 +1223,7 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
                       <b>{move.name}</b>
                       <p>{move.description}</p>
                       <span className="tutorial-move__foot">
-                        <em>{move.cost} HYPE</em>
+                        <em>{isAttackMove(move) ? 'FREE ATTACK' : `${moveCost} HYPE`}</em>
                         {disabled && <i>{selectedCard.actedThisTurn ? 'ACTION SPENT' : 'NOT ENOUGH HYPE'}</i>}
                       </span>
                     </button>
@@ -1124,6 +1253,26 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
             </div>
           )}
 
+          {step.id === 'special' && specialDefinition && specialRarity && (
+            <div className="tutorial-special-pick" role="dialog" aria-label="Special card ready">
+              <span className="tutorial-special-pick__kicker">
+                SPECIAL CARD READY · {specialDefinition.rarity}
+              </span>
+              <h3>{specialDefinition.name}</h3>
+              <p>{specialDefinition.description}</p>
+              <button
+                className="tutorial-special-pick__card"
+                data-tutorial-target="special"
+                style={{ '--rarity': specialRarity.color } as CSSProperties}
+                onClick={openSpecial}
+              >
+                <span>SPECIAL HAND · 1/6</span>
+                <b>{specialDefinition.name}</b>
+                <i>{CATEGORY_LABEL[specialDefinition.category]} · TAP TO PULL IT OUT</i>
+              </button>
+            </div>
+          )}
+
           {specialOpen && specialDefinition && specialRarity && (
             <div className="tutorial-special-focus" style={{ '--rarity': specialRarity.color } as CSSProperties}>
               <div>
@@ -1136,11 +1285,27 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
           )}
         </main>
 
-        <aside className="tutorial-coach" aria-label="Tutorial coach">
+        <aside className="tutorial-coach" aria-label="Sound Check chapters">
+          <div className="tutorial-rail__brand">
+            <BrandLogo />
+            <div className="tutorial-rail__wordmark">
+              <span>THE</span>
+              <b>SOUND CHECK</b>
+              <i>OFFICIAL GAME TUTORIAL</i>
+            </div>
+            <button className="tutorial-rail__exit" onClick={onExit} aria-label="Exit training">
+              <GameIcon name="close" />
+            </button>
+          </div>
+          <div className="tutorial-rail__progress">
+            <span><b>{completed}/10</b> CHAPTERS COMPLETE</span>
+            <div><i style={{ width: `${chapterProgress}%` }} /></div>
+          </div>
           <div className="tutorial-coach__chapter">
             <span>CHAPTER {String(chapter.number).padStart(2, '0')} / 10</span>
             <i>{stepProgress}% LESSON COMPLETE</i>
           </div>
+          <div className="tutorial-rail__list-label"><span>THE PROGRAM</span><i>10 CHAPTERS</i></div>
           <h1>{chapter.title}</h1>
           <p className="tutorial-coach__subtitle">{chapter.subtitle}</p>
           <div className="tutorial-coach__rule" />
@@ -1152,7 +1317,7 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
           {step.detail && <p className="tutorial-coach__detail">{step.detail}</p>}
 
           {step.next ? (
-            <button className="btn btn--primary tutorial-coach__next" onClick={advance}>
+            <button className="btn btn--primary tutorial-coach__next" onClick={advance} data-gamepad-primary>
               {stepIndex >= STEPS.length - 1 ? 'REPLAY THE SHOW' : 'CONTINUE'}
               <GameIcon name="chevron" />
             </button>
@@ -1176,16 +1341,38 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
                   aria-current={isCurrent ? 'step' : undefined}
                 >
                   <span>{isDone ? '✓' : String(item.number).padStart(2, '0')}</span>
-                  <b>{item.title}</b>
+                  <div>
+                    <b>{item.title}</b>
+                    <i>{item.subtitle}</i>
+                  </div>
+                  {isCurrent && <em>NOW</em>}
                 </div>
               )
             })}
+          </div>
+
+          <div className="tutorial-rail__reward">
+            <span className="tutorial-rail__reward-art" aria-hidden="true"><b>CIKI</b><i>★</i></span>
+            <div>
+              <span>TUTORIAL REWARD</span>
+              <b>SOUND CHECK BADGE</b>
+              <i>{completed}/10 LESSONS SAVED</i>
+            </div>
           </div>
 
           <div className="tutorial-coach__foot">
             <button className="link-btn" onClick={restart}>RESTART</button>
             <button className="link-btn" onClick={onExit}>SKIP TUTORIAL</button>
             <span>SAVED LOCALLY</span>
+          </div>
+
+          <div className="tutorial-rail__host">
+            <div className="tutorial-rail__host-copy">
+              <span>YOUR HOST</span>
+              <b>CASSO ROYALE</b>
+              <i>“Welcome to the Midnight Garden.”</i>
+            </div>
+            <Portrait artist={HOST} crop="avatar" />
           </div>
         </aside>
       </div>
@@ -1219,10 +1406,10 @@ export function Tutorial({ onExit, onPlay }: TutorialProps) {
                       className={`btn btn--primary ${focusClass('revive')}`}
                       data-tutorial-target="revive"
                       onClick={revive}
-                      disabled={hype < 4}
+                      disabled={hype < 10}
                     >
                       CALL BACK ON STAGE
-                      <span>4 HYPE</span>
+                      <span>10 HYPE</span>
                     </button>
                   </div>
                 )

@@ -17,6 +17,7 @@ import './styles/card.css'
 import './styles/menu.css'
 import './styles/screens.css'
 import './styles/battle.css'
+import './styles/audio.css'
 import './styles/combat.css'
 import './styles/team.css'
 import './styles/builder.css'
@@ -25,15 +26,39 @@ import './styles/charts.css'
 import './styles/label.css'
 import './styles/ux-overhaul.css'
 import './styles/tutorial.css'
+import './styles/tutorial-soundcheck.css'
+import './styles/mode-arena.css'
+import './styles/menu-arena.css'
+import './styles/circuit.css'
+import './styles/announcer.css'
+import './styles/mobile.css'
+import './styles/online.css'
+import './styles/social.css'
+import './styles/profile-art.css'
+import './styles/updates.css'
+import './styles/controller.css'
+import './styles/badges.css'
+import './styles/loadout.css'
+import './styles/festival.css'
+import './styles/career.css'
+import './styles/career-models.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import { AccountProvider } from './account/AccountProvider'
+import { SocialProvider } from './account/SocialProvider'
 import { applyArtFit, readArtFit } from './game/art-fit'
+import { ControllerHUD } from './components/ControllerHUD'
 
 applyArtFit(readArtFit())
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <AccountProvider>
+      <SocialProvider>
+        <App />
+        <ControllerHUD />
+      </SocialProvider>
+    </AccountProvider>
   </StrictMode>,
 )

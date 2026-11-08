@@ -1,0 +1,33 @@
+{
+  "name": "Can I Kick It? — The Game",
+  "short_name": "Can I Kick It?",
+  "description": "A hip-hop, R&B and pop music card battler with artist badges, a friends-only Billboard, three circuits and eight venues. Build the 26, take the stage, own the room.",
+  "version": "1.4.6",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#08070a",
+  "theme_color": "#08070a",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

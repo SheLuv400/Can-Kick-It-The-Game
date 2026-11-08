@@ -1,0 +1,16 @@
+{
+  "name": "can-i-kick-it",
+  "productName": "Can I Kick It",
+  "version": "1.4.6",
+  "description": "Can I Kick It? - desktop build for playtesting",
+  "homepage": "https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SheLuv400/Can-Kick-It-The-Game.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SheLuv400/Can-Kick-It-The-Game/issues"
+  },
+  "main": "main.cjs",
+  "author": "Can I Kick It"
+}

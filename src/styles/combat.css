@@ -134,6 +134,34 @@
   font-size: 0.85em;
 }
 
+.unit-turn {
+  position: absolute;
+  top: -0.42rem;
+  left: 0.2rem;
+  z-index: 12;
+  padding: 0.12em 0.32em;
+  border: 1px solid var(--line);
+  background: #090706;
+  color: var(--ink-dim);
+  font-size: 0.28rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.unit-turn.is-ready {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, #090706);
+  color: var(--accent);
+}
+
+.unit-turn.is-spent {
+  border-color: #7d352c;
+  background: rgba(42, 12, 9, 0.94);
+  color: #ff9a88;
+}
+
 .unit-def,
 .unit-shield {
   position: relative;
@@ -553,6 +581,63 @@
   gap: 0.5rem;
 }
 
+.move-dock__actions {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 0.28rem;
+  flex-wrap: wrap;
+}
+
+.move-dock__action {
+  display: inline-flex;
+  min-height: 1.55rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38em;
+  padding: 0.28em 0.5em;
+  border: 1px solid var(--line);
+  background: #0a0807;
+  color: var(--ink-dim);
+  font-size: 0.33rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: border-color 0.18s, color 0.18s, background 0.18s;
+}
+
+.move-dock__action:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: #120e0c;
+  color: var(--ink);
+}
+
+.move-dock__action:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.move-dock__action b {
+  color: var(--accent);
+  font-size: 1em;
+}
+
+.move-dock__action--next {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--line));
+  background: color-mix(in srgb, var(--accent) 9%, #0a0807);
+  color: var(--accent);
+}
+
+.move-dock__action--cut {
+  border-color: #6d3028;
+  color: #ff9a88;
+}
+
+.move-dock__action--cut:hover:not(:disabled) {
+  border-color: #ff6a53;
+  background: rgba(49, 12, 9, 0.8);
+  color: #ffd8cf;
+}
+
 .move-dock__who {
   display: flex;
   align-items: center;
@@ -950,6 +1035,111 @@
     opacity: 0;
     transform: translate(-50%, -0.4rem) scale(1.02);
   }
+}
+
+/* The room answers a real crowd hit. This is deliberately separate from the
+   move card so simultaneous actions still read as one physical moment. */
+.crowd-impact {
+  --impact: #ff5a4a;
+  position: fixed;
+  top: clamp(6rem, 16vh, 10rem);
+  z-index: 152;
+  display: flex;
+  width: min(16rem, 30vw);
+  flex-direction: column;
+  gap: 0.05rem;
+  pointer-events: none;
+  animation: crowdImpact 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.crowd-impact--player {
+  left: clamp(0.8rem, 3.2vw, 4rem);
+  align-items: flex-start;
+  padding-left: 0.65rem;
+  border-left: 2px solid var(--impact);
+  background: linear-gradient(90deg, rgba(63, 13, 10, 0.82), transparent 82%);
+  text-align: left;
+}
+
+.crowd-impact--rival {
+  --impact: #f3c768;
+  right: clamp(0.8rem, 3.2vw, 4rem);
+  align-items: flex-end;
+  padding-right: 0.65rem;
+  border-right: 2px solid var(--impact);
+  background: linear-gradient(270deg, rgba(63, 46, 10, 0.82), transparent 82%);
+  text-align: right;
+}
+
+.crowd-impact span {
+  color: var(--impact);
+  font-size: 0.32rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.crowd-impact b {
+  color: #fff4e9;
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.8vw, 3.8rem);
+  line-height: 0.9;
+  text-shadow: 0 0.12rem 0 #000, 0 0 1.4rem color-mix(in srgb, var(--impact) 72%, transparent);
+}
+
+.crowd-impact i {
+  color: var(--impact);
+  font-size: 0.3rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+}
+
+.crowd-impact em {
+  margin-top: 0.18rem;
+  padding: 0.14em 0.34em;
+  border: 1px solid var(--impact);
+  color: var(--impact);
+  font-size: 0.26rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.crowd-impact.is-heavy b {
+  font-size: clamp(2.4rem, 5.4vw, 4.3rem);
+}
+
+.battle__board.is-impacting {
+  animation: boardImpact 0.34s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes crowdImpact {
+  0% {
+    opacity: 0;
+    transform: translateY(0.55rem) scale(0.94);
+  }
+  14%,
+  70% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-0.35rem) scale(1.03);
+  }
+}
+
+@keyframes crowdImpactFade {
+  0% { opacity: 0; }
+  14%, 72% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes boardImpact {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  18% { transform: translate3d(-0.18rem, 0.08rem, 0); }
+  36% { transform: translate3d(0.14rem, -0.05rem, 0); }
+  54% { transform: translate3d(-0.09rem, 0.03rem, 0); }
+  72% { transform: translate3d(0.05rem, 0, 0); }
 }
 
 .special-panel,
@@ -1605,4 +1795,52 @@
   .crate-reveal__card p {
     font-size: 0.6rem;
   }
+
+  .unit-turn {
+    top: -0.3rem;
+    font-size: 0.24rem;
+  }
+
+  .move-dock__actions {
+    gap: 0.2rem;
+    flex-wrap: wrap;
+  }
+
+  .move-dock__action {
+    min-height: 1.2rem;
+    padding: 0.22em 0.35em;
+  }
+
+  .crowd-impact {
+    top: 5.4rem;
+    width: 43vw;
+  }
+
+  .crowd-impact span,
+  .crowd-impact i,
+  .crowd-impact em {
+    font-size: 0.24rem;
+  }
+
+  .crowd-impact b {
+    font-size: clamp(1.5rem, 7vw, 2.4rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle__board.is-impacting {
+    animation: none;
+  }
+
+  .crowd-impact {
+    animation: crowdImpactFade 1s linear both;
+  }
+}
+
+.reduce-motion .battle__board.is-impacting {
+  animation: none;
+}
+
+.reduce-motion .crowd-impact {
+  animation: crowdImpactFade 1s linear both;
 }

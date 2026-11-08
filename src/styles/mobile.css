@@ -1,0 +1,2674 @@
+/* ============================================================
+   MOBILE PORT · phone battle layout + iOS home-screen support
+   ============================================================ */
+
+@media (max-width: 560px) {
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
+
+  .battle {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .battle__exit {
+    top: calc(env(safe-area-inset-top, 0px) + 6px);
+    left: 8px;
+  }
+
+  .battle__exit .link-btn {
+    padding: 6px 4px;
+    font-size: 8px;
+  }
+
+  .battle__venue-tag,
+  .battle__audio {
+    display: none;
+  }
+
+  .battle__tools {
+    top: calc(env(safe-area-inset-top, 0px) + 6px);
+    right: 8px;
+    gap: 3px;
+  }
+
+  .tool-btn {
+    min-height: 26px;
+    padding: 4px 6px;
+    font-size: 7px;
+    letter-spacing: 0.08em;
+  }
+
+  .battle__hud {
+    padding: calc(env(safe-area-inset-top, 0px) + 32px) 4px 0;
+  }
+
+  .battle .battle__hud .hud {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 5px;
+    min-height: 0;
+    padding: 3px 5px;
+    font-size: 9px;
+  }
+
+  .battle__hud .crowd__name,
+  .battle__hud .crowd__level,
+  .battle__hud .crowd__tokens,
+  .battle__hud .hype__ticks,
+  .battle__hud .crowd__avatar,
+  .battle__hud .crowd__hype {
+    display: none;
+  }
+
+  .battle__hud .crowd__side {
+    font-size: 0.78em;
+    letter-spacing: 0.06em;
+  }
+
+  .battle__hud .crowd__value {
+    font-size: 1.9em;
+  }
+
+  .battle__hud .meter {
+    margin-top: 2px;
+  }
+
+  .battle__hud .meter__track {
+    height: 6px;
+  }
+
+  .battle__hud .hud__core {
+    display: flex;
+    gap: 2px;
+    padding: 0 6px;
+  }
+
+  .battle__hud .hud__live,
+  .battle__hud .hud__era,
+  .battle__hud .hud__venue {
+    display: none;
+  }
+
+  .battle__hud .hud__round b {
+    font-size: 2.2em;
+  }
+
+  .battle__board {
+    flex: 1;
+    min-height: 0;
+    gap: 2px;
+    padding: 2px 4px calc(env(safe-area-inset-bottom, 0px) + 2px);
+    justify-content: flex-start;
+  }
+
+  .side {
+    gap: 1px;
+  }
+
+  .side__head {
+    gap: 4px;
+    padding: 0 2px;
+    font-size: 7px;
+    letter-spacing: 0.1em;
+  }
+
+  .side__name {
+    font-size: 7px;
+  }
+
+  .side__meta {
+    display: none;
+  }
+
+  .side__meta--gold {
+    display: inline;
+    margin-left: auto;
+    font-size: 7px;
+  }
+
+  .stage {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+    width: 100%;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .battle .stage > .stage-unit,
+  .battle .stage > .stage__empty {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .stage__empty {
+    display: none;
+  }
+
+  .battle .card--stage {
+    aspect-ratio: auto;
+  }
+
+  .battle .card--stage .card__art {
+    aspect-ratio: 1.02;
+  }
+
+  .battle .card--stage .card__body {
+    gap: 0;
+    padding: 1px 3px 2px;
+  }
+
+  .battle .card--stage .card__name {
+    font-size: 7px;
+    line-height: 1.05;
+  }
+
+  .battle .card--stage .card__stats,
+  .battle .card--stage .card__ability,
+  .battle .card--stage .card__chip,
+  .battle .card--stage .card__cost {
+    display: none;
+  }
+
+  .stage .card-shell__footer {
+    padding-top: 1px;
+  }
+
+  .stage-unit__footer {
+    gap: 1px;
+  }
+
+  .stage-unit__vitals {
+    gap: 2px;
+  }
+
+  .unit-hp {
+    height: 12px;
+    font-size: 6px;
+  }
+
+  .unit-def,
+  .unit-special,
+  .unit-statuses {
+    display: none;
+  }
+
+  .unit-targeted-tag {
+    font-size: 5px;
+  }
+
+  .target-readout {
+    display: none;
+  }
+
+  .stage__under {
+    min-height: 0;
+    gap: 2px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .stage__under::-webkit-scrollbar {
+    display: none;
+  }
+
+  .stage__select-hint,
+  .feature-rail__label {
+    display: none;
+  }
+
+  .feature-rail {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 2px;
+  }
+
+  .feature-chip {
+    padding: 3px 5px;
+    font-size: 6px;
+    white-space: nowrap;
+  }
+
+  .feature-chip--ready b {
+    font-size: 6px;
+  }
+
+  .feature-chip--ready em {
+    display: none;
+  }
+
+  .clashline {
+    min-height: 0;
+    gap: 4px;
+    padding: 2px 4px;
+  }
+
+  .clashline__tag {
+    font-size: 6px;
+  }
+
+  .clashline p {
+    font-size: 7px;
+    line-height: 1.2;
+  }
+
+  .clashline__era {
+    display: none;
+  }
+
+  .crate-dock {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 50px;
+    align-items: stretch;
+    gap: 3px;
+    min-height: 0;
+    margin-top: 2px;
+    padding: 3px;
+  }
+
+  .crate-dock__head {
+    display: none;
+  }
+
+  .crate-dock__body {
+    display: contents;
+  }
+
+  .crate-stack {
+    width: auto;
+    min-height: 0;
+    padding: 2px;
+  }
+
+  .crate-stack__disc {
+    width: 16px;
+    height: 16px;
+  }
+
+  .crate-stack__disc--1 b {
+    font-size: 9px;
+  }
+
+  .crate-stack__disc--1 i {
+    font-size: 3px;
+  }
+
+  .crate-stack__label {
+    margin-top: 12px;
+    font-size: 5px;
+  }
+
+  .crate-stack em {
+    display: none;
+  }
+
+  .crate-hand {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .crate-hand__label {
+    margin-bottom: 1px;
+    font-size: 5px;
+  }
+
+  .crate-hand__cards {
+    gap: 2px;
+  }
+
+  .crate-mini {
+    width: 34px;
+    min-height: 26px;
+    padding: 2px;
+  }
+
+  .crate-mini b,
+  .crate-mini i {
+    display: none;
+  }
+
+  .backstage-pile {
+    width: auto;
+    min-height: 0;
+    padding: 2px;
+  }
+
+  .backstage-pile b {
+    font-size: 12px;
+  }
+
+  .backstage-pile span,
+  .backstage-pile i {
+    font-size: 4px;
+  }
+
+  .crate-dock__reason {
+    display: none;
+  }
+
+  .handrow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+    margin-top: auto;
+    padding: 0;
+  }
+
+  .hand__label {
+    padding: 0 2px 1px;
+    font-size: 6px;
+  }
+
+  .hand__fan {
+    justify-content: flex-start;
+    overflow-x: auto;
+    min-height: 0;
+    gap: 3px;
+    padding: 2px;
+    scrollbar-width: none;
+  }
+
+  .hand__fan::-webkit-scrollbar {
+    display: none;
+  }
+
+  .battle .hand__slot,
+  .battle .hand__fan:has(.hand__slot:nth-child(6)) .hand__slot,
+  .battle .hand__fan:has(.hand__slot:nth-child(7)) .hand__slot {
+    width: 74px;
+  }
+
+  .battle .hand__slot:hover,
+  .battle .hand__slot:focus-within {
+    transform: translateY(var(--lift, 0px)) rotate(var(--rot, 0deg));
+  }
+
+  .hand__side {
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    gap: 4px;
+  }
+
+  .turnbox {
+    flex: 1;
+    padding: 3px 6px;
+  }
+
+  .turnbox__label,
+  .turnbox__hint {
+    display: none;
+  }
+
+  .turnbox__hype {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .hand__side .btn--end {
+    width: auto;
+    min-height: 44px;
+    flex: 0 0 42%;
+    padding: 6px 10px;
+    font-size: 8px;
+  }
+
+  .hand__side .btn--end i {
+    display: none;
+  }
+}
+
+/* The DJ KICKIT cue monitor is a developer tool; keep it off phone screens. */
+@media (max-width: 900px) {
+  .dev-announcer {
+    display: none;
+  }
+}
+
+/* Short phones (iPhone SE and similar): shrink cards rather than scroll. */
+@media (max-width: 560px) and (max-height: 720px) {
+  .battle__hud {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 28px);
+  }
+
+  .battle .card--stage .card__art {
+    aspect-ratio: 1.18;
+  }
+
+  .battle .hand__slot,
+  .battle .hand__fan:has(.hand__slot:nth-child(6)) .hand__slot,
+  .battle .hand__fan:has(.hand__slot:nth-child(7)) .hand__slot {
+    width: 66px;
+  }
+
+  .hand__label {
+    display: none;
+  }
+}
+
+/* ============================================================
+   PHONE FIT · keep the HUD, hand and attacks reachable
+   ============================================================ */
+
+/* The Sound Check turns into a compact, fixed-height game screen on
+   phones. The old single-column performance stack made the hand sit
+   several hundred pixels below the viewport. */
+@media (max-width: 720px) {
+  .tutorial--soundcheck {
+    height: 100dvh;
+    min-height: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-layout {
+    height: 100%;
+    min-height: 0;
+    padding: 4px;
+    gap: 0;
+  }
+
+  .tutorial--soundcheck .tutorial-coach {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-board {
+    height: 100%;
+    min-height: 0;
+    gap: 4px;
+    padding: 5px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-hud {
+    min-height: 48px;
+    padding: 4px 6px;
+    gap: 3px;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd {
+    padding: 0 2px;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd span {
+    font-size: 5.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd b {
+    font-size: 21px;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd i {
+    font-size: 7px;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd em,
+  .tutorial-hud__crowd-art {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-round {
+    min-width: 58px;
+    padding: 3px 4px;
+  }
+
+  .tutorial--soundcheck .tutorial-round span {
+    font-size: 5.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-round b {
+    font-size: 18px;
+  }
+
+  .tutorial--soundcheck .tutorial-round i {
+    font-size: 7px;
+  }
+
+  .tutorial--soundcheck .tutorial-round em {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-callout {
+    padding: 6px 8px;
+    border-width: 1px;
+  }
+
+  .tutorial-callout__eyebrow {
+    padding-bottom: 3px;
+    font-size: 5.5px;
+  }
+
+  .tutorial-callout h2 {
+    margin: 4px 0 2px;
+    font-size: 16px;
+  }
+
+  .tutorial-callout__body {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 8.5px;
+    line-height: 1.3;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .tutorial-callout__detail,
+  .tutorial-callout__step {
+    display: none;
+  }
+
+  .tutorial-callout__prompt {
+    margin-top: 4px;
+    padding: 4px 5px;
+    font-size: 6px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype {
+    min-height: 48px;
+    grid-template-columns: auto 1fr;
+    grid-row: auto;
+    gap: 0 3px;
+    padding: 4px 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype .game-icon {
+    width: 17px;
+    height: 17px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype > span {
+    align-self: center;
+    font-size: 5.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype b {
+    font-size: 20px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype > i {
+    font-size: 6px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype__ticks {
+    margin-top: 3px;
+    gap: 1px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype__ticks em {
+    height: 3px;
+  }
+
+  .tutorial-era {
+    min-height: 48px;
+    gap: 1px 4px;
+    padding: 4px 5px;
+  }
+
+  .tutorial-era .game-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .tutorial-era > span {
+    font-size: 5px;
+  }
+
+  .tutorial-era > b {
+    font-size: 10px;
+  }
+
+  .tutorial-era > div {
+    margin-top: 1px;
+  }
+
+  .tutorial-era > div i {
+    width: 9px;
+    height: 2px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-action {
+    min-height: 48px;
+    gap: 2px 4px;
+    padding: 4px 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-action .game-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-action b {
+    font-size: 6.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-action em {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-action strong {
+    font-size: 5.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-side {
+    gap: 1px;
+    margin-right: 0;
+  }
+
+  .tutorial--soundcheck .tutorial-side > header {
+    min-height: 15px;
+    font-size: 5.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-side > header span {
+    font-size: 9px;
+  }
+
+  .tutorial--soundcheck .tutorial-side > header b {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-stage {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+    overflow: visible;
+    padding: 3px;
+  }
+
+  .tutorial--soundcheck .tutorial-stage .unit-hp {
+    height: 11px;
+    font-size: 6px;
+  }
+
+  .tutorial--soundcheck .tutorial-slot {
+    min-height: 0;
+    aspect-ratio: 0.76;
+    padding: 3px;
+  }
+
+  .tutorial--soundcheck .tutorial-slot b {
+    font-size: 16px;
+  }
+
+  .tutorial--soundcheck .tutorial-slot span,
+  .tutorial--soundcheck .tutorial-slot i {
+    font-size: 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-clash {
+    min-height: 24px;
+    gap: 4px;
+    padding: 2px 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-clash p {
+    font-size: 6px;
+  }
+
+  .tutorial--soundcheck .tutorial-clash::before {
+    width: 22px;
+    height: 17px;
+    font-size: 10px;
+  }
+
+  .tutorial--soundcheck .tutorial-live,
+  .tutorial--soundcheck .tutorial-clash > span:last-child {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-console {
+    grid-template-columns: minmax(0, 1fr) 64px;
+    gap: 4px;
+  }
+
+  .tutorial--soundcheck .tutorial-dock {
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .tutorial--soundcheck .tutorial-crate {
+    grid-column: 1;
+    grid-row: 1;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 3px;
+    padding: 3px;
+  }
+
+  .tutorial--soundcheck .tutorial-crate__draw {
+    min-height: 38px;
+    gap: 2px;
+    padding: 3px;
+  }
+
+  .tutorial--soundcheck .tutorial-crate__record {
+    width: 22px;
+    height: 22px;
+  }
+
+  .tutorial--soundcheck .tutorial-crate__draw b {
+    font-size: 9px;
+  }
+
+  .tutorial--soundcheck .tutorial-crate__draw em,
+  .tutorial--soundcheck .tutorial-crate__draw strong,
+  .tutorial--soundcheck .tutorial-crate__draw i {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-backstage {
+    min-height: 30px;
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .tutorial--soundcheck .tutorial-backstage .game-icon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .tutorial--soundcheck .tutorial-backstage b {
+    font-size: 12px;
+  }
+
+  .tutorial--soundcheck .tutorial-backstage span,
+  .tutorial--soundcheck .tutorial-backstage i {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-hand {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 3px 4px;
+  }
+
+  .tutorial--soundcheck .tutorial-hand > div {
+    min-height: 64px;
+    justify-content: flex-start;
+    gap: 3px;
+    overflow-x: auto;
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card {
+    width: clamp(40px, calc((100vw - 166px) / 5), 56px);
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card .card__name {
+    font-size: 7px;
+  }
+
+  .tutorial--soundcheck .tutorial-label {
+    font-size: 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-turn {
+    min-height: 64px;
+  }
+
+  .tutorial--soundcheck .tutorial-turn b {
+    font-size: 12px;
+  }
+
+  .tutorial--soundcheck .tutorial-turn em {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-turn__record {
+    width: 58px;
+    height: 58px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav {
+    min-height: 30px;
+    flex-wrap: nowrap;
+    gap: 3px;
+    overflow-x: auto;
+    padding: 1px 3px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav__button {
+    min-height: 24px;
+    padding: 0 4px;
+    font-size: 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav__next {
+    min-height: 26px;
+    padding: 0 8px;
+    font-size: 5.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav__count,
+  .tutorial--soundcheck .tutorial-nav__dots,
+  .tutorial--soundcheck .tutorial-board__pit {
+    display: none;
+  }
+
+  .tutorial--soundcheck button,
+  .tutorial--soundcheck .stage-unit {
+    touch-action: manipulation;
+  }
+
+  .tutorial--soundcheck .tutorial-moves {
+    right: 4px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
+    left: 4px;
+    z-index: 95;
+    max-height: 54dvh;
+    padding: 7px;
+  }
+
+  .tutorial--soundcheck .tutorial-moves__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    overflow: visible;
+  }
+
+  .tutorial--soundcheck .tutorial-move {
+    width: auto;
+    min-height: 86px;
+    gap: 2px;
+    padding: 6px;
+  }
+
+  .tutorial--soundcheck .tutorial-move > b {
+    font-size: 14px;
+  }
+
+  .tutorial--soundcheck .tutorial-move p {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-move__foot {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .tutorial--soundcheck .tutorial-move__foot em {
+    font-size: 6px;
+  }
+}
+
+/* Actual battle screen: the hand stays above the home indicator, the
+   middle board scrolls, and the move panel becomes a top-most sheet. */
+@media (max-width: 560px) {
+  .battle {
+    --battle-hand-height: 170px;
+  }
+
+  .battle__hud {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 44px);
+  }
+
+  .battle__exit,
+  .battle__tools {
+    top: calc(env(safe-area-inset-top, 0px) + 6px);
+  }
+
+  .battle__tools {
+    gap: 2px;
+  }
+
+  .battle__tools .tool-btn {
+    min-height: 34px;
+    padding: 7px 6px;
+    font-size: 7px;
+  }
+
+  .battle__exit .link-btn {
+    min-height: 34px;
+    padding: 7px 2px;
+  }
+
+  .battle__board {
+    justify-content: flex-start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: calc(var(--battle-hand-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .battle__board::-webkit-scrollbar {
+    display: none;
+  }
+
+  .battle .handrow {
+    position: fixed;
+    right: 4px;
+    bottom: 0;
+    left: 4px;
+    z-index: 45;
+    margin-top: 0;
+    padding: 4px 3px calc(env(safe-area-inset-bottom, 0px) + 4px);
+    border-top: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(8, 6, 7, 0.58), var(--bg) 24%);
+    backdrop-filter: blur(8px);
+  }
+
+  .battle .hand__fan {
+    padding-bottom: 0;
+  }
+
+  .battle .hand__side .btn--end {
+    min-height: 46px;
+  }
+
+  .battle .hand__slot,
+  .battle .move-card,
+  .battle .target-chip,
+  .battle .tool-btn,
+  .battle .icon-btn {
+    touch-action: manipulation;
+  }
+
+  .battle .move-dock {
+    position: fixed;
+    right: 4px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
+    left: 4px;
+    z-index: 95;
+    max-height: 52dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 7px;
+    border-color: var(--accent);
+    box-shadow: 0 -16px 50px -10px #000, 0 0 30px -12px var(--glow);
+    animation: none;
+  }
+
+  .battle .move-dock__head {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 3px 0 6px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-solid);
+  }
+
+  .battle .move-dock__who .kicker {
+    font-size: 6px;
+  }
+
+  .battle .move-dock__who b {
+    font-size: 8px;
+  }
+
+  .battle .move-dock__element {
+    display: none;
+  }
+
+  .battle .move-dock__actions {
+    margin-left: auto;
+  }
+
+  .battle .move-dock__action {
+    min-height: 30px;
+    padding: 4px 6px;
+    font-size: 6px;
+  }
+
+  .battle .move-dock__moves {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    overflow: visible;
+  }
+
+  .battle .move-card {
+    width: auto;
+    min-height: 72px;
+    padding: 6px;
+  }
+
+  .battle .move-card b {
+    font-size: 11px;
+  }
+
+  .battle .move-card p {
+    font-size: 7px;
+    -webkit-line-clamp: 2;
+  }
+
+  .battle .move-card__cost {
+    font-size: 6px;
+  }
+
+  .battle .move-dock__targets {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .battle .target-chips {
+    flex-wrap: wrap;
+  }
+
+  .battle .target-chip {
+    min-height: 28px;
+    padding: 4px 6px;
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 420px) {
+  .battle .hand__slot,
+  .battle .hand__fan:has(.hand__slot:nth-child(6)) .hand__slot,
+  .battle .hand__fan:has(.hand__slot:nth-child(7)) .hand__slot {
+    width: 70px;
+  }
+}
+
+@media (max-width: 560px) and (max-height: 720px) {
+  .battle__hud {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 36px);
+  }
+
+  .battle__tools .tool-btn {
+    min-height: 30px;
+    padding: 5px;
+    font-size: 6.5px;
+  }
+
+  .battle__exit .link-btn {
+    min-height: 30px;
+    padding: 5px 2px;
+  }
+
+  .battle .move-dock {
+    max-height: 56dvh;
+  }
+}
+
+/* Main menu and overlay menus: respect the iPhone notch, keep modal
+   close controls pinned, and let long manuals scroll inside the sentinel. */
+@media (max-width: 700px) {
+  .menu.menu--arena {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .modal {
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) 8px calc(env(safe-area-inset-bottom, 0px) + 8px);
+  }
+
+  .modal__panel {
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
+  }
+
+  .modal__head {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    background: var(--panel-solid);
+  }
+
+  .battle-pause,
+  .show-intro {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  }
+
+  .battle-pause__panel {
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px);
+    overflow-y: auto;
+  }
+}
+
+/* ============================================================
+   PHONE LANDSCAPE · full rotation / side view
+   A rotated phone is wide but only ~390px tall. These rules give
+   the tutorial and battle their own short layouts instead of
+   falling back to the desktop rules above 720px.
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 540px) and (max-width: 1000px) {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
+  /* Menu and overlay safety: landscape notches sit on the sides. */
+  .menu.menu--arena {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+
+  .modal {
+    padding: calc(env(safe-area-inset-top, 0px) + 6px) calc(env(safe-area-inset-right, 0px) + 6px) calc(env(safe-area-inset-bottom, 0px) + 6px) calc(env(safe-area-inset-left, 0px) + 6px);
+  }
+
+  .modal__panel {
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 12px);
+  }
+
+  .modal__head {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    background: var(--panel-solid);
+  }
+
+  .battle-pause,
+  .show-intro {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 6px);
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
+  }
+
+  .battle-pause__panel,
+  .show-intro__panel {
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 12px);
+    overflow-y: auto;
+  }
+
+  /* ------------------------------ tutorial ------------------------------ */
+
+  .tutorial--soundcheck {
+    box-sizing: border-box;
+    height: 100dvh;
+    min-height: 0;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-layout {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 4px;
+    gap: 0;
+  }
+
+  .tutorial--soundcheck .tutorial-coach {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-board {
+    box-sizing: border-box;
+    display: grid;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas:
+      "hud hud"
+      "callout sidecar"
+      "rival player"
+      "clash clash"
+      "console console"
+      "nav nav";
+    gap: 4px;
+    padding: 4px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-hud {
+    grid-area: hud;
+    height: 44px;
+    min-height: 0;
+    gap: 4px;
+    padding: 2px 8px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-hud::before,
+  .tutorial--soundcheck .tutorial-hud::after,
+  .tutorial-hud__crowd-art {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd {
+    padding: 0 4px;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd span {
+    font-size: 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd b {
+    font-size: 22px;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd i {
+    font-size: 7px;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd em {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-crowd > div {
+    height: 4px;
+    margin-top: 2px;
+  }
+
+  .tutorial--soundcheck .tutorial-round {
+    min-width: 64px;
+    padding: 2px 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-round span {
+    font-size: 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-round b {
+    font-size: 18px;
+  }
+
+  .tutorial--soundcheck .tutorial-round i {
+    font-size: 7px;
+  }
+
+  .tutorial--soundcheck .tutorial-round em {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-callout {
+    grid-area: callout;
+    position: relative;
+    top: auto;
+    right: auto;
+    display: flex;
+    width: auto;
+    height: 64px;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0;
+    padding: 5px 7px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .tutorial-callout__eyebrow,
+  .tutorial-callout__detail,
+  .tutorial-callout__step,
+  .tutorial-callout__arrow,
+  .tutorial--soundcheck .tutorial-callout .tutorial-coach__nudge {
+    display: none;
+  }
+
+  .tutorial-callout h2 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .tutorial-callout__body {
+    display: -webkit-box;
+    overflow: hidden;
+    margin-top: 3px;
+    font-size: 7.5px;
+    line-height: 1.25;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .tutorial-callout__prompt {
+    gap: 3px;
+    margin-top: 3px;
+    padding: 3px 4px;
+    overflow: hidden;
+    font-size: 5.5px;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .tutorial-callout__prompt span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tutorial-callout__prompt .game-icon {
+    width: 10px;
+    height: 10px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar {
+    grid-area: sidecar;
+    position: relative;
+    top: auto;
+    right: auto;
+    display: grid;
+    width: auto;
+    height: 64px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype {
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    gap: 0 3px;
+    padding: 3px 4px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype .game-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype > span {
+    align-self: center;
+    font-size: 4.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype b {
+    font-size: 16px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype > i {
+    font-size: 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-hype__ticks {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-era {
+    height: 100%;
+    min-height: 0;
+    gap: 1px 3px;
+    padding: 3px 4px;
+  }
+
+  .tutorial--soundcheck .tutorial-era .game-icon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .tutorial--soundcheck .tutorial-era > span {
+    font-size: 4.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-era > b {
+    font-size: 8px;
+  }
+
+  .tutorial--soundcheck .tutorial-era > div {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-action {
+    height: 100%;
+    min-height: 0;
+    gap: 1px 3px;
+    padding: 3px 4px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-action .game-icon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-action b {
+    font-size: 5.8px;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-action em {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-sidecar .tutorial-action strong {
+    font-size: 4.8px;
+  }
+
+  .tutorial--soundcheck .tutorial-side {
+    width: auto;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    gap: 2px;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-side--rival {
+    grid-area: rival;
+  }
+
+  .tutorial--soundcheck .tutorial-side--player {
+    grid-area: player;
+  }
+
+  .tutorial--soundcheck .tutorial-side > header {
+    min-height: 15px;
+    gap: 4px;
+    padding: 0 2px;
+    font-size: 5.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-side > header span {
+    gap: 3px;
+    font-size: 8.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-side > header b {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-stage {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    flex: 1;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 2px;
+    padding: 2px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-stage > .stage-unit {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .tutorial--soundcheck .tutorial-stage .card-shell,
+  .tutorial--soundcheck .tutorial-stage .card--stage {
+    height: 100%;
+  }
+
+  .tutorial--soundcheck .tutorial-stage .card--stage {
+    aspect-ratio: auto;
+  }
+
+  .tutorial--soundcheck .tutorial-stage .card__art {
+    flex: 1 1 auto;
+    min-height: 0;
+    aspect-ratio: auto;
+  }
+
+  .tutorial--soundcheck .tutorial-stage .card__body {
+    gap: 0;
+    padding: 1px 2px;
+  }
+
+  .tutorial--soundcheck .tutorial-stage .card__name {
+    font-size: 6.5px;
+    line-height: 1.05;
+  }
+
+  .tutorial--soundcheck .tutorial-stage .card__stats,
+  .tutorial--soundcheck .tutorial-stage .card__ability,
+  .tutorial--soundcheck .tutorial-stage .card__chip,
+  .tutorial--soundcheck .tutorial-stage .card__cost {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-stage .unit-hp {
+    height: 11px;
+    font-size: 5.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-stage .unit-def,
+  .tutorial--soundcheck .tutorial-stage .unit-statuses {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-slot {
+    height: 100%;
+    aspect-ratio: auto;
+    padding: 2px;
+  }
+
+  .tutorial--soundcheck .tutorial-slot b {
+    font-size: 16px;
+  }
+
+  .tutorial--soundcheck .tutorial-slot span,
+  .tutorial--soundcheck .tutorial-slot i {
+    font-size: 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-clash {
+    grid-area: clash;
+    min-height: 18px;
+    gap: 4px;
+    padding: 1px 5px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-clash p {
+    font-size: 6px;
+  }
+
+  .tutorial--soundcheck .tutorial-clash::before {
+    width: 18px;
+    height: 14px;
+    font-size: 8px;
+  }
+
+  .tutorial--soundcheck .tutorial-live,
+  .tutorial--soundcheck .tutorial-clash > span:last-child {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-console {
+    grid-area: console;
+    display: grid;
+    height: 94px;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) 122px;
+    gap: 4px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-dock {
+    display: grid;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) clamp(140px, 22vw, 200px);
+    gap: 4px;
+  }
+
+  .tutorial--soundcheck .tutorial-hand {
+    grid-column: 1;
+    grid-row: 1;
+    height: 100%;
+    justify-content: center;
+    gap: 2px;
+    padding: 2px 4px;
+  }
+
+  .tutorial--soundcheck .tutorial-label {
+    font-size: 4.8px;
+  }
+
+  .tutorial--soundcheck .tutorial-hand > div {
+    height: 100%;
+    min-height: 0;
+    justify-content: center;
+    gap: 3px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card {
+    width: clamp(38px, 7vw, 58px);
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card .card__name {
+    font-size: 5.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-crate {
+    grid-column: 2;
+    grid-row: 1;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) 34px;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 2px;
+    padding: 2px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-crate__draw {
+    min-height: 0;
+    gap: 3px;
+    padding: 3px;
+  }
+
+  .tutorial--soundcheck .tutorial-crate__record {
+    width: 16px;
+    height: 16px;
+  }
+
+  .tutorial--soundcheck .tutorial-crate__draw b {
+    font-size: 8px;
+  }
+
+  .tutorial--soundcheck .tutorial-crate__draw em,
+  .tutorial--soundcheck .tutorial-crate__draw strong,
+  .tutorial--soundcheck .tutorial-crate__draw i {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-special {
+    min-height: 0;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-special__card {
+    min-height: 22px;
+    padding: 2px 3px;
+    font-size: 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-backstage {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    min-height: 0;
+    gap: 0;
+    padding: 1px;
+  }
+
+  .tutorial--soundcheck .tutorial-backstage .game-icon {
+    width: 10px;
+    height: 10px;
+  }
+
+  .tutorial--soundcheck .tutorial-backstage b {
+    font-size: 11px;
+  }
+
+  .tutorial--soundcheck .tutorial-backstage span,
+  .tutorial--soundcheck .tutorial-backstage i {
+    font-size: 4px;
+  }
+
+  .tutorial--soundcheck .tutorial-turn {
+    height: 100%;
+    min-height: 0;
+    padding: 2px;
+  }
+
+  .tutorial--soundcheck .tutorial-turn b {
+    font-size: 10px;
+  }
+
+  .tutorial--soundcheck .tutorial-turn em {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-turn__record {
+    width: 38px;
+    height: 38px;
+  }
+
+  .tutorial--soundcheck .tutorial-turn__record i {
+    width: 12px;
+    height: 12px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav {
+    grid-area: nav;
+    height: 26px;
+    min-height: 0;
+    gap: 3px;
+    padding: 1px 3px;
+    overflow: hidden;
+  }
+
+  .tutorial--soundcheck .tutorial-nav__button {
+    min-height: 20px;
+    padding: 0 4px;
+    font-size: 4.8px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav__next {
+    min-height: 22px;
+    padding: 0 8px;
+    font-size: 5px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav__count,
+  .tutorial--soundcheck .tutorial-nav__dots,
+  .tutorial--soundcheck .tutorial-board__pit {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-moves {
+    position: fixed;
+    inset: 4px;
+    z-index: 95;
+    max-height: none;
+    padding: 7px;
+    overflow-y: auto;
+  }
+
+  .tutorial--soundcheck .tutorial-moves > header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding-bottom: 4px;
+    background: #08050b;
+  }
+
+  .tutorial--soundcheck .tutorial-moves__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    overflow: visible;
+  }
+
+  .tutorial--soundcheck .tutorial-move {
+    min-height: 96px;
+    padding: 6px;
+  }
+
+  .tutorial--soundcheck .tutorial-move > b {
+    font-size: 14px;
+  }
+
+  .tutorial--soundcheck .tutorial-move p {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 7px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .tutorial--soundcheck .tutorial-move__foot {
+    gap: 3px;
+  }
+
+  .tutorial--soundcheck .tutorial-move__foot em {
+    font-size: 6px;
+  }
+
+  .tutorial--soundcheck .tutorial-defense {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 95;
+    width: min(460px, calc(100vw - 12px));
+    max-height: calc(100dvh - 12px);
+    overflow-y: auto;
+  }
+
+  .tutorial--soundcheck .tutorial-special-focus {
+    position: fixed;
+    right: 6px;
+    bottom: 6px;
+    z-index: 94;
+    max-height: calc(100dvh - 12px);
+    overflow-y: auto;
+  }
+
+  /* ------------------------------ battle ------------------------------ */
+
+  .battle {
+    --battle-hand-height: 108px;
+    box-sizing: border-box;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .dev-announcer {
+    display: none;
+  }
+
+  .battle__exit {
+    top: calc(env(safe-area-inset-top, 0px) + 4px);
+    left: calc(env(safe-area-inset-left, 0px) + 6px);
+  }
+
+  .battle__exit .link-btn {
+    min-height: 26px;
+    padding: 3px 3px;
+    font-size: 7px;
+  }
+
+  .battle__venue-tag,
+  .battle__audio,
+  .battle__online-badge {
+    display: none;
+  }
+
+  .battle__tools {
+    top: calc(env(safe-area-inset-top, 0px) + 4px);
+    right: calc(env(safe-area-inset-right, 0px) + 6px);
+    gap: 2px;
+  }
+
+  .battle__tools .tool-btn {
+    min-height: 26px;
+    padding: 3px 5px;
+    font-size: 6.5px;
+    letter-spacing: 0.05em;
+  }
+
+  .battle__hud {
+    flex: 0 0 auto;
+    padding: calc(env(safe-area-inset-top, 0px) + 26px) calc(env(safe-area-inset-right, 0px) + 4px) 0 calc(env(safe-area-inset-left, 0px) + 4px);
+  }
+
+  .battle .battle__hud .hud {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 4px;
+    min-height: 0;
+    padding: 2px 5px;
+    font-size: 8px;
+  }
+
+  .battle__hud .crowd__name,
+  .battle__hud .crowd__level,
+  .battle__hud .crowd__tokens,
+  .battle__hud .hype__ticks,
+  .battle__hud .crowd__avatar,
+  .battle__hud .crowd__hype,
+  .battle__hud .hud__live,
+  .battle__hud .hud__era,
+  .battle__hud .hud__venue {
+    display: none;
+  }
+
+  .battle__hud .crowd__side {
+    font-size: 0.72em;
+    letter-spacing: 0.05em;
+  }
+
+  .battle__hud .crowd__value {
+    font-size: 1.7em;
+  }
+
+  .battle__hud .meter {
+    margin-top: 1px;
+  }
+
+  .battle__hud .meter__track {
+    height: 5px;
+  }
+
+  .battle__hud .hud__core {
+    display: flex;
+    gap: 2px;
+    padding: 0 5px;
+  }
+
+  .battle__hud .hud__round b {
+    font-size: 2em;
+  }
+
+  .battle__board {
+    display: grid;
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-content: start;
+    gap: 3px;
+    padding: 2px calc(env(safe-area-inset-right, 0px) + 4px) calc(var(--battle-hand-height) + env(safe-area-inset-bottom, 0px) + 6px) calc(env(safe-area-inset-left, 0px) + 4px);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .battle__board > .side--rival {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .battle__board > .side--player {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .battle__board > .clashline {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-height: 18px;
+    gap: 4px;
+    padding: 1px 4px;
+    overflow: hidden;
+  }
+
+  .battle__board .side {
+    gap: 1px;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .battle__board .side__head {
+    min-height: 14px;
+    gap: 3px;
+    padding: 0 2px;
+    font-size: 6px;
+    letter-spacing: 0.08em;
+  }
+
+  .battle__board .side__name {
+    font-size: 6px;
+  }
+
+  .battle__board .side__meta {
+    display: none;
+  }
+
+  .battle__board .side__meta--gold {
+    display: inline;
+    margin-left: auto;
+    font-size: 6px;
+  }
+
+  .battle__board .stage {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .battle__board .stage > .stage-unit,
+  .battle__board .stage > .stage__empty {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .battle__board .stage__empty {
+    display: none;
+  }
+
+  .battle__board .card--stage {
+    aspect-ratio: auto;
+  }
+
+  .battle__board .card--stage .card__art {
+    aspect-ratio: 1.02;
+  }
+
+  .battle__board .card--stage .card__body {
+    gap: 0;
+    padding: 1px 3px 2px;
+  }
+
+  .battle__board .card--stage .card__name {
+    font-size: 7px;
+    line-height: 1.05;
+  }
+
+  .battle__board .card--stage .card__stats,
+  .battle__board .card--stage .card__ability,
+  .battle__board .card--stage .card__chip,
+  .battle__board .card--stage .card__cost {
+    display: none;
+  }
+
+  .battle__board .stage .card-shell__footer {
+    padding-top: 1px;
+  }
+
+  .battle__board .stage-unit__vitals {
+    gap: 2px;
+  }
+
+  .battle__board .unit-hp {
+    height: 12px;
+    font-size: 6px;
+  }
+
+  .battle__board .unit-def,
+  .battle__board .unit-special,
+  .battle__board .unit-statuses,
+  .battle__board .target-readout,
+  .battle__board .stage__select-hint,
+  .battle__board .feature-rail__label {
+    display: none;
+  }
+
+  .battle__board .stage__under {
+    min-height: 18px;
+    gap: 2px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .battle__board .stage__under::-webkit-scrollbar {
+    display: none;
+  }
+
+  .battle__board .feature-rail {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 2px;
+  }
+
+  .battle__board .feature-chip {
+    padding: 3px 5px;
+    font-size: 6px;
+    white-space: nowrap;
+  }
+
+  .battle__board .feature-chip--ready {
+    font-size: 6px;
+  }
+
+  .battle__board .feature-chip--ready b {
+    font-size: 6px;
+  }
+
+  .battle__board .feature-chip--ready em {
+    display: none;
+  }
+
+  .battle__board .clashline__tag {
+    font-size: 6px;
+  }
+
+  .battle__board .clashline p {
+    font-size: 7px;
+    line-height: 1.2;
+    white-space: normal;
+  }
+
+  .battle__board .clashline__era {
+    display: none;
+  }
+
+  .battle__board .crate-dock {
+    display: grid;
+    min-height: 42px;
+    grid-template-columns: 44px minmax(0, 1fr) 40px;
+    align-items: stretch;
+    gap: 2px;
+    margin-top: 1px;
+    padding: 2px;
+    overflow: hidden;
+  }
+
+  .battle__board .crate-dock__head,
+  .battle__board .crate-dock__reason {
+    display: none;
+  }
+
+  .battle__board .crate-dock__body {
+    display: contents;
+  }
+
+  .battle__board .crate-stack {
+    width: auto;
+    min-height: 0;
+    padding: 2px;
+  }
+
+  .battle__board .crate-stack__disc {
+    width: 16px;
+    height: 16px;
+  }
+
+  .battle__board .crate-stack__label {
+    margin-top: 10px;
+    font-size: 5px;
+  }
+
+  .battle__board .crate-stack em {
+    display: none;
+  }
+
+  .battle__board .crate-hand {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .battle__board .crate-hand__label {
+    margin-bottom: 1px;
+    font-size: 5px;
+  }
+
+  .battle__board .crate-hand__cards {
+    gap: 2px;
+  }
+
+  .battle__board .crate-mini {
+    width: 32px;
+    min-height: 24px;
+    padding: 2px;
+  }
+
+  .battle__board .crate-mini b,
+  .battle__board .crate-mini i {
+    display: none;
+  }
+
+  .battle__board .backstage-pile {
+    width: auto;
+    min-height: 0;
+    padding: 2px;
+  }
+
+  .battle__board .backstage-pile b {
+    font-size: 12px;
+  }
+
+  .battle__board .backstage-pile span,
+  .battle__board .backstage-pile i {
+    font-size: 4px;
+  }
+
+  .battle .handrow {
+    position: fixed;
+    right: env(safe-area-inset-right, 0px);
+    bottom: 0;
+    left: env(safe-area-inset-left, 0px);
+    z-index: 45;
+    display: flex;
+    height: var(--battle-hand-height);
+    min-height: var(--battle-hand-height);
+    flex-direction: row;
+    align-items: stretch;
+    gap: 5px;
+    margin: 0;
+    padding: 4px 5px calc(env(safe-area-inset-bottom, 0px) + 4px);
+    border-top: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(8, 6, 7, 0.72), var(--bg) 24%);
+    backdrop-filter: blur(8px);
+  }
+
+  .battle .hand {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .battle .hand__label {
+    display: none;
+  }
+
+  .battle .hand__fan {
+    height: 100%;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .battle .hand__slot,
+  .battle .hand__fan:has(.hand__slot:nth-child(6)) .hand__slot,
+  .battle .hand__fan:has(.hand__slot:nth-child(7)) .hand__slot {
+    width: clamp(56px, 8.6vw, 76px);
+    max-width: 70px;
+    transform: none;
+  }
+
+  .battle .hand__slot:hover,
+  .battle .hand__slot:focus-within {
+    z-index: 30;
+    transform: none;
+  }
+
+  .battle .hand__side {
+    width: 142px;
+    flex: none;
+    flex-direction: column;
+    justify-content: stretch;
+    gap: 2px;
+    padding: 0;
+  }
+
+  .battle .turnbox {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 3px 6px;
+  }
+
+  .battle .turnbox__label,
+  .battle .turnbox__hint {
+    display: none;
+  }
+
+  .battle .turnbox__hype {
+    margin: 0;
+    font-size: 16px;
+  }
+
+  .battle .hand__side .btn--end {
+    width: 100%;
+    min-height: 38px;
+    flex: 0 0 38px;
+    padding: 3px 6px;
+    font-size: 7px;
+  }
+
+  .battle .hand__side .btn--end i,
+  .battle .hand__tip,
+  .battle .peek {
+    display: none;
+  }
+
+  .battle .move-dock {
+    position: fixed;
+    top: auto;
+    right: calc(env(safe-area-inset-right, 0px) + 4px);
+    bottom: calc(var(--battle-hand-height) + env(safe-area-inset-bottom, 0px) + 4px);
+    left: calc(env(safe-area-inset-left, 0px) + 4px);
+    z-index: 95;
+    max-height: calc(100dvh - var(--battle-hand-height) - env(safe-area-inset-bottom, 0px) - 12px);
+    margin: 0;
+    padding: 6px;
+    gap: 4px;
+    overflow-y: auto;
+  }
+
+  .battle .move-dock__head {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 2px 0 4px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-solid);
+  }
+
+  .battle .move-dock__avatar {
+    width: 30px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .battle .move-dock__who .kicker {
+    font-size: 6px;
+  }
+
+  .battle .move-dock__who b {
+    font-size: 8px;
+  }
+
+  .battle .move-dock__hand {
+    min-height: 34px;
+    gap: 4px;
+    padding: 2px 4px;
+  }
+
+  .battle .move-dock__hand-label {
+    font-size: 6px;
+  }
+
+  .battle .move-dock__draw {
+    min-height: 28px;
+    gap: 3px;
+    padding: 2px 4px;
+    font-size: 6px;
+  }
+
+  .battle .move-dock__hand-cards {
+    gap: 3px;
+  }
+
+  .battle .move-dock__element {
+    display: none;
+  }
+
+  .battle .move-dock__actions {
+    margin-left: auto;
+  }
+
+  .battle .move-dock__action {
+    min-height: 28px;
+    padding: 3px 5px;
+    font-size: 6px;
+  }
+
+  .battle .move-dock__moves {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    overflow: visible;
+  }
+
+  .battle .move-card {
+    width: auto;
+    min-height: 70px;
+    padding: 5px;
+  }
+
+  .battle .move-card b {
+    font-size: 11px;
+  }
+
+  .battle .move-card p {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 7px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .battle .move-card__cost {
+    font-size: 6px;
+  }
+
+  .battle .move-dock__targets {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .battle .target-chips {
+    flex-wrap: nowrap;
+    gap: 3px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .battle .target-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .battle .target-chip {
+    min-height: 30px;
+    padding: 4px 6px;
+    font-size: 7px;
+  }
+}
+
+/* Very short landscape phones (e.g. SE): drop the clash strip and
+   shrink the footer slightly so the stage and hand still fit. */
+@media (orientation: landscape) and (max-height: 350px) and (max-width: 1000px) {
+  .tutorial--soundcheck .tutorial-board {
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "hud hud"
+      "callout sidecar"
+      "rival player"
+      "console console"
+      "nav nav";
+  }
+
+  .tutorial--soundcheck .tutorial-clash {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-hud {
+    height: 38px;
+  }
+
+  .tutorial--soundcheck .tutorial-callout,
+  .tutorial--soundcheck .tutorial-sidecar {
+    height: 56px;
+  }
+
+  .tutorial--soundcheck .tutorial-console {
+    height: 82px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav {
+    height: 24px;
+  }
+
+  .tutorial--soundcheck .tutorial-callout h2 {
+    font-size: 12px;
+  }
+
+  .tutorial--soundcheck .tutorial-callout__body {
+    font-size: 7px;
+    -webkit-line-clamp: 1;
+  }
+
+  .tutorial--soundcheck .tutorial-callout__prompt {
+    font-size: 5px;
+  }
+
+  .battle {
+    --battle-hand-height: 94px;
+  }
+
+  .battle .hand__side .btn--end {
+    min-height: 32px;
+    flex-basis: 32px;
+  }
+
+  .battle .move-dock {
+    max-height: calc(100dvh - var(--battle-hand-height) - env(safe-area-inset-bottom, 0px) - 10px);
+  }
+}
+
+/* ============================================================
+   PHONE PASS · safe areas, readable training copy, forfeit banner
+   ============================================================ */
+
+.result__forfeit {
+  max-width: 34rem;
+  margin: 10px auto 0;
+  padding: 8px 12px;
+  border: 1px solid rgba(246, 196, 83, 0.55);
+  background: rgba(246, 196, 83, 0.1);
+  color: #ffe3a1;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  line-height: 1.4;
+}
+
+@media (max-width: 1000px) {
+  /* Keep the only always-available exit out of the notch and reachable. */
+  .tutorial--soundcheck .tutorial-top {
+    position: fixed;
+    top: max(calc(env(safe-area-inset-top, 0px) + 8px), 16px);
+    left: max(calc(env(safe-area-inset-left, 0px) + 8px), 10px);
+    right: auto;
+    z-index: 140;
+    display: flex;
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  .tutorial--soundcheck .tutorial-top .tutorial-title,
+  .tutorial--soundcheck .tutorial-top .tutorial-progress {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-exit {
+    min-height: 42px;
+    padding: 0 12px;
+    border: 1px solid rgba(246, 196, 83, 0.48);
+    background: rgba(5, 3, 8, 0.86);
+    color: #ffe0a0;
+    font-size: 9px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+  }
+
+  /* No clipping: every lesson is readable or scrollable inside the callout. */
+  .tutorial--soundcheck .tutorial-callout {
+    height: auto;
+    min-height: 72px;
+    max-height: min(34dvh, 230px);
+    overflow-y: auto;
+    pointer-events: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tutorial--soundcheck .tutorial-callout__body {
+    display: block;
+    overflow: visible;
+    font-size: 10px;
+    line-height: 1.35;
+    -webkit-box-orient: initial;
+    -webkit-line-clamp: unset;
+  }
+
+  .tutorial--soundcheck .tutorial-callout__detail {
+    display: block;
+    font-size: 9px;
+    line-height: 1.35;
+  }
+
+  .tutorial--soundcheck .tutorial-callout__prompt {
+    overflow: visible;
+    font-size: 7.5px;
+    line-height: 1.3;
+    white-space: normal;
+  }
+
+  .tutorial--soundcheck .tutorial-callout__prompt span {
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .tutorial--soundcheck .tutorial-special-pick {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 20px);
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  .tutorial-special-pick h3 { font-size: 24px; }
+  .tutorial-special-pick p { font-size: 10px; }
+  .tutorial-special-pick__card { min-height: 74px; padding: 12px; }
+  .tutorial-special-pick__card b { font-size: 22px; }
+
+  .tutorial--soundcheck .tutorial-nav {
+    min-height: 40px;
+    padding-bottom: max(2px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .tutorial--soundcheck .tutorial-nav__button {
+    min-height: 34px;
+    font-size: 6.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav__next {
+    min-height: 36px;
+  }
+
+  .result {
+    padding-top: max(calc(env(safe-area-inset-top, 0px) + 10px), 14px);
+    padding-right: max(calc(env(safe-area-inset-right, 0px) + 10px), 14px);
+    padding-bottom: max(calc(env(safe-area-inset-bottom, 0px) + 10px), 14px);
+    padding-left: max(calc(env(safe-area-inset-left, 0px) + 10px), 14px);
+  }
+
+  .result__panel {
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 28px);
+    overflow-y: auto;
+  }
+
+  .result__actions .btn,
+  .tutorial-victory__actions .btn,
+  .battle-pause__actions .btn {
+    min-height: 44px;
+  }
+
+  .result__actions .link-btn,
+  .tutorial-victory__actions .link-btn {
+    min-height: 42px;
+  }
+
+  .tutorial-victory {
+    padding: calc(env(safe-area-inset-top, 0px) + 14px)
+      max(12px, calc(env(safe-area-inset-right, 0px) + 12px))
+      calc(env(safe-area-inset-bottom, 0px) + 18px)
+      max(12px, calc(env(safe-area-inset-left, 0px) + 12px));
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .tutorial--soundcheck .tutorial-hand > div {
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .tutorial--soundcheck .tutorial-hand > div::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card {
+    width: clamp(50px, 13vw, 58px);
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card .card__name {
+    min-height: 2.1em;
+    padding-inline: 2px;
+    font-size: 8.5px;
+    line-height: 1.05;
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card .card__body {
+    padding-inline: 2px;
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card .card__stats,
+  .tutorial--soundcheck .tutorial-hand__card .card__crew-ribbon__meta {
+    display: none;
+  }
+}
+
+/* Phones held sideways often report a wider CSS viewport than the media
+   query above expects, but their vertical space is the real constraint. */
+@media (max-width: 1000px) and (max-height: 600px) {
+  .tutorial--soundcheck .tutorial-hand > div {
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card {
+    width: clamp(50px, 6.5vw, 58px);
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card .card__name {
+    min-height: 2.1em;
+    font-size: 8.5px;
+    line-height: 1.05;
+  }
+
+  .tutorial--soundcheck .tutorial-hand__card .card__stats,
+  .tutorial--soundcheck .tutorial-hand__card .card__crew-ribbon__meta {
+    display: none;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 400px) and (max-width: 1000px) {
+  .tutorial--soundcheck .tutorial-callout {
+    min-height: 52px;
+    max-height: 38dvh;
+    padding: 4px 6px;
+  }
+
+  .tutorial--soundcheck .tutorial-callout h2 {
+    font-size: 12px;
+  }
+
+  .tutorial--soundcheck .tutorial-callout__body {
+    font-size: 8px;
+    -webkit-line-clamp: unset;
+  }
+
+  .tutorial--soundcheck .tutorial-callout__detail {
+    font-size: 7.5px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav {
+    min-height: 32px;
+  }
+
+  .tutorial--soundcheck .tutorial-nav__button {
+    min-height: 28px;
+  }
+}

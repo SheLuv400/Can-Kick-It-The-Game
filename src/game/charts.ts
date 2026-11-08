@@ -1,4 +1,5 @@
 import { ARTISTS, getArtist } from './roster'
+import { trackFor } from './tracks'
 
 /**
  * THE CIKI 26 — a living weekly chart.
@@ -102,6 +103,8 @@ export function pickTitle(seed: string): string {
 }
 
 function signatureSingle(id: string): string {
+  const track = trackFor(id)
+  if (track) return track.title
   const artist = getArtist(id)
   const parts = artist.encore.name.split('—')
   const title = (parts[1] ?? '').trim()
@@ -173,6 +176,7 @@ export function loadCharts(): ChartState {
     const entries: ChartEntry[] = ARTISTS.map((artist) => {
       const base = defaults.find((entry) => entry.id === artist.id)!
       const saved = stored.get(artist.id)
+      const mappedSingle = trackFor(artist.id)?.title
       return {
         ...base,
         rank: 0,
@@ -184,7 +188,8 @@ export function loadCharts(): ChartState {
         peak: clamp(Math.round(num(saved?.peak, base.peak)), 1, ARTISTS.length),
         weeks: Math.max(1, Math.round(num(saved?.weeks, base.weeks))),
         single:
-          typeof saved?.single === 'string' && saved.single.trim() ? saved.single : base.single,
+          mappedSingle ??
+          (typeof saved?.single === 'string' && saved.single.trim() ? saved.single : base.single),
         impact: Math.max(0, Math.round(num(saved?.impact, 0))),
       }
     })
@@ -284,18 +289,23 @@ export function advanceCharts(state: ChartState): ChartState {
 
   const advanced = state.entries.map((entry) => {
     const artist = getArtist(entry.id)
+    const mappedSingle = trackFor(entry.id)?.title
     let popularity = entry.popularity + (Math.random() - 0.5) * 1.7
     let momentum = entry.momentum * 0.62
-    let single = entry.single
+    let single = mappedSingle ?? entry.single
     const event = events.get(entry.id)
 
     if (event) {
       const name = artist.name
       if (event === 'release') {
-        single = pickTitle(`${entry.id}-${week}`)
         popularity += 6 + Math.random() * 5
         momentum += 0.3 + Math.random() * 0.25
-        push(entry.id, 'up', `${name} drops "${single}" and the request line melts.`)
+        if (mappedSingle) {
+          push(entry.id, 'up', `${name} pushes "${mappedSingle}" back to radio and the request line melts.`)
+        } else {
+          single = pickTitle(`${entry.id}-${week}`)
+          push(entry.id, 'up', `${name} drops "${single}" and the request line melts.`)
+        }
       } else if (event === 'radio') {
         popularity += 2 + Math.random() * 3
         momentum += 0.12 + Math.random() * 0.14
@@ -327,7 +337,7 @@ export function advanceCharts(state: ChartState): ChartState {
 
     return {
       ...entry,
-      single,
+      single: mappedSingle ?? single,
       popularity,
       momentum: clamp(momentum, -1, 1),
       prevSpins: entry.spins,

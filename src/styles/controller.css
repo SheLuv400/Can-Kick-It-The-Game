@@ -1,0 +1,120 @@
+body.is-controller :focus {
+  outline: 2px solid var(--accent-2, #f6e8bd) !important;
+  outline-offset: 4px !important;
+}
+
+body.is-controller .card:focus,
+body.is-controller .stage-unit:focus,
+body.is-controller .arena-mode:focus,
+body.is-controller .move-card:focus,
+body.is-controller .move-special:focus,
+body.is-controller .target-chip:focus,
+body.is-controller .crate-mini:focus,
+body.is-controller .feature-chip:focus,
+body.is-controller .crate-stack:focus,
+body.is-controller .backstage-pile:focus {
+  box-shadow:
+    0 0 0 2px rgba(8, 6, 7, 0.92),
+    0 0 0 5px var(--accent-2, #f6e8bd),
+    0 0 30px rgba(246, 232, 189, 0.4) !important;
+  outline-offset: 5px !important;
+}
+
+body.is-controller .modal__panel :focus,
+body.is-controller .battle-pause__panel :focus,
+body.is-controller .result__panel :focus {
+  scroll-margin: 28px;
+}
+
+.controller-hud {
+  position: fixed;
+  left: 50%;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 6000;
+  display: flex;
+  max-width: calc(100vw - 24px);
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid rgba(216, 180, 92, 0.55);
+  background: rgba(10, 7, 6, 0.92);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(246, 232, 189, 0.08);
+  color: #f4e8d0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.11em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.controller-hud.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.controller-hud__status {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: #f6e8bd;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.controller-hud__status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8fd18c;
+  box-shadow: 0 0 8px rgba(143, 209, 140, 0.7);
+}
+
+.controller-hud__hints {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 10px;
+  color: #b6a68a;
+}
+
+.controller-hud__hints span {
+  white-space: nowrap;
+}
+
+.controller-hud__hints b {
+  color: #f4e8d0;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .controller-hud {
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    gap: 7px;
+    padding: 7px 9px;
+    font-size: 7.5px;
+    letter-spacing: 0.07em;
+  }
+
+  .controller-hud__hints {
+    gap: 2px 7px;
+  }
+
+  .controller-hud--battle {
+    max-width: calc(100vw - 16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .controller-hud {
+    transition: none;
+  }
+}

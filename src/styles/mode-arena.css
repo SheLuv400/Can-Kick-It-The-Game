@@ -1,0 +1,270 @@
+/* ============================================================
+   THE MIDNIGHT GARDEN · shared mode atmosphere
+   Carries the stage lighting, marquee bulbs and artist-card
+   presence from the battleground into the supporting modes.
+   ============================================================ */
+
+/* ------------------------- marquee top rails ------------------------- */
+
+.team__topbar::after,
+.builder .subpage__top::after,
+.collection .subpage__top::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  z-index: 3;
+  height: 3px;
+  background-image: radial-gradient(circle at 1.5px 50%, #ffe7aa 0 1px, transparent 1.35px);
+  background-size: 18px 3px;
+  content: '';
+  opacity: 0.34;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.builder .subpage__top::after,
+.collection .subpage__top::after {
+  background-image: radial-gradient(circle at 1.5px 50%, var(--accent) 0 1px, transparent 1.35px);
+  opacity: 0.38;
+}
+
+/* ---------------------- ultimate team hero stage ---------------------- */
+
+.team__hero {
+  width: min(1500px, calc(100% - 2 * clamp(1rem, 2.4vw, 2.4rem)));
+  margin-inline: auto;
+  isolation: isolate;
+}
+
+.team__hero-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.team__hero-beams {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.team__hero-beams i {
+  position: absolute;
+  top: -24%;
+  left: 45%;
+  width: 28rem;
+  height: 49rem;
+  background: linear-gradient(180deg, rgba(255, 224, 142, 0.28), rgba(137, 76, 255, 0.04) 62%, transparent 88%);
+  clip-path: polygon(47% 0, 53% 0, 100% 100%, 0 100%);
+  filter: blur(9px);
+  opacity: 0.42;
+  transform-origin: 50% 0;
+}
+
+.team__hero-beams i:nth-child(1) {
+  transform: rotate(-18deg);
+}
+
+.team__hero-beams i:nth-child(2) {
+  left: 66%;
+  width: 22rem;
+  background: linear-gradient(180deg, rgba(212, 76, 255, 0.24), rgba(137, 76, 255, 0.03) 68%, transparent 88%);
+  transform: rotate(8deg);
+}
+
+.team__hero-beams i:nth-child(3) {
+  left: 84%;
+  width: 17rem;
+  background: linear-gradient(180deg, rgba(242, 193, 78, 0.22), transparent 82%);
+  transform: rotate(24deg);
+}
+
+.team__hero-cards {
+  position: absolute;
+  top: auto;
+  right: 2.1rem;
+  bottom: 9rem;
+  width: 30rem;
+  height: 16.6rem;
+  z-index: 4;
+}
+
+.team__hero-floor {
+  position: absolute;
+  right: -8%;
+  bottom: -1.3rem;
+  left: -8%;
+  z-index: -1;
+  height: 5.4rem;
+  background: radial-gradient(ellipse at center, rgba(242, 193, 78, 0.26), rgba(137, 76, 255, 0.08) 42%, transparent 72%);
+  filter: blur(10px);
+}
+
+.team__hero-card {
+  position: absolute;
+  bottom: 0;
+  width: clamp(7rem, 8vw, 8.1rem);
+  filter: drop-shadow(0 1.3rem 1.4rem rgba(0, 0, 0, 0.72)) brightness(1.12) saturate(1.04);
+  transform-origin: 50% 100%;
+}
+
+.team__hero-card::before {
+  position: absolute;
+  inset: -0.28rem;
+  z-index: 2;
+  border: 1px solid rgba(255, 224, 154, 0.7);
+  border-radius: 0.32rem;
+  background: linear-gradient(145deg, rgba(255, 228, 153, 0.34), rgba(148, 72, 255, 0.18) 52%, rgba(0, 0, 0, 0.5));
+  box-shadow: 0 0 1.4rem rgba(244, 199, 75, 0.16), inset 0 0 1.4rem rgba(244, 199, 75, 0.08);
+  content: '';
+  pointer-events: none;
+}
+
+.team__hero-card .card-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.team__hero-card--0 {
+  left: 0;
+  z-index: 1;
+  transform: rotate(-9deg) scale(0.94);
+}
+
+.team__hero-card--1 {
+  bottom: 1.1rem;
+  left: 33%;
+  z-index: 3;
+  transform: rotate(3deg) scale(1.04);
+}
+
+.team__hero-card--2 {
+  right: 0;
+  z-index: 2;
+  transform: rotate(9deg) scale(0.96);
+}
+
+.team__hero-heading,
+.team__hero-strip {
+  z-index: 6;
+}
+
+/* -------------------------- shortcut tiles -------------------------- */
+
+.team__shortcut {
+  isolation: isolate;
+}
+
+.team__shortcut::after {
+  position: absolute;
+  top: 0.28rem;
+  right: 0.58rem;
+  z-index: 0;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  color: rgba(255, 224, 154, 0.13);
+  content: attr(data-index);
+  font-family: var(--display);
+  font-size: 2.7rem;
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  box-shadow: none;
+  pointer-events: none;
+  transition: color 0.18s ease;
+}
+
+.team__shortcut:hover::after {
+  color: rgba(255, 224, 154, 0.28);
+}
+
+/* ------------------------ supporting mode light ------------------------ */
+
+.charts__body,
+.label__body {
+  position: relative;
+  isolation: isolate;
+}
+
+.charts__body::before,
+.label__body::before {
+  position: absolute;
+  top: -2.6rem;
+  right: 0;
+  left: 0;
+  z-index: -1;
+  height: 31rem;
+  background:
+    linear-gradient(112deg, transparent 11%, rgba(242, 193, 78, 0.055) 11.35%, transparent 25%),
+    linear-gradient(68deg, transparent 61%, rgba(137, 76, 255, 0.06) 61.35%, transparent 82%),
+    radial-gradient(42% 100% at 22% 0%, rgba(242, 193, 78, 0.13), transparent 72%),
+    radial-gradient(34% 94% at 82% 0%, rgba(137, 76, 255, 0.12), transparent 70%);
+  content: '';
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000, transparent);
+  mask-image: linear-gradient(#000, transparent);
+}
+
+.charts__masthead,
+.label__masthead {
+  position: relative;
+}
+
+.charts__masthead::after,
+.label__masthead::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 224, 154, 0.45), transparent);
+  content: '';
+  pointer-events: none;
+}
+
+.builder::after {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: 56vh;
+  background:
+    linear-gradient(113deg, transparent 10%, rgba(255, 90, 31, 0.055) 10.35%, transparent 24%),
+    linear-gradient(63deg, transparent 58%, rgba(41, 231, 205, 0.04) 58.35%, transparent 78%),
+    radial-gradient(38% 75% at 18% 0%, rgba(255, 90, 31, 0.15), transparent 72%),
+    radial-gradient(28% 60% at 84% 0%, rgba(255, 90, 31, 0.07), transparent 70%);
+  content: '';
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000 45%, transparent);
+  mask-image: linear-gradient(#000 45%, transparent);
+}
+
+.builder__deck {
+  background:
+    radial-gradient(80% 40% at 20% 0%, rgba(255, 90, 31, 0.11), transparent 65%),
+    linear-gradient(150deg, rgba(255, 90, 31, 0.06), transparent 38%),
+    #151513;
+}
+
+.collection__hero {
+  background:
+    radial-gradient(58% 120% at 22% -20%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 70%),
+    radial-gradient(32% 100% at 88% 0%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 72%);
+}
+
+@media (max-width: 1320px) {
+  .team__hero-stage {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .team__shortcut::after {
+    transition: none;
+  }
+}

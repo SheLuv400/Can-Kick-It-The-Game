@@ -1,94 +1,195 @@
-.track-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 150;
-  display: grid;
-  place-items: center;
-  padding: 1.5rem;
+.showcase__pills .is-track {
+  color: #ffe9b0;
+  border-color: rgba(232, 200, 119, 0.5);
 }
 
-.track-modal__scrim {
+/* In-game record player */
+.track-player {
+  position: fixed;
+  inset: 0;
+  z-index: 205;
+  display: grid;
+  padding: clamp(0.75rem, 3vw, 1.5rem);
+  place-items: center;
+}
+
+.track-player__scrim {
   position: absolute;
   inset: 0;
   border: 0;
   cursor: pointer;
   background:
-    radial-gradient(120% 80% at 50% 0%, rgba(94, 58, 130, 0.28), transparent 70%),
-    rgba(4, 3, 8, 0.84);
-  backdrop-filter: blur(7px);
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
+    rgba(4, 3, 8, 0.86);
+  backdrop-filter: blur(9px);
 }
 
-.track-modal__panel {
+.track-player__panel {
   position: relative;
   z-index: 1;
-  width: min(34rem, 100%);
-  padding: 1.15rem 1.25rem 1.1rem;
-  border: 1px solid rgba(232, 200, 119, 0.38);
-  border-radius: 1.1rem;
+  width: min(35rem, 100%);
+  max-height: min(92svh, 46rem);
+  padding: 1.05rem 1.1rem 1rem;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--line));
+  border-radius: 1rem;
   background:
-    linear-gradient(160deg, rgba(30, 20, 44, 0.98), rgba(9, 7, 14, 0.99));
+    linear-gradient(160deg, color-mix(in srgb, var(--panel-solid) 98%, black), color-mix(in srgb, var(--panel-solid) 84%, black));
   box-shadow:
-    0 2rem 5rem rgba(0, 0, 0, 0.6),
+    0 2rem 5rem rgba(0, 0, 0, 0.62),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  color: #f7f1e4;
+  color: var(--ink);
 }
 
-.track-modal__head {
+.track-player__panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+.track-player__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.track-modal__close {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
+.track-player__close {
   width: 1.9rem;
   height: 1.9rem;
+  border: 1px solid color-mix(in srgb, var(--line) 86%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel-solid) 60%, transparent);
+  color: var(--ink-dim);
   line-height: 1;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.8);
 }
 
-.track-modal__panel h2 {
-  margin: 0.35rem 0 0.2rem;
-  font-family: var(--display, inherit);
-  font-size: clamp(1.6rem, 3.4vw, 2.2rem);
+.track-player__panel h2 {
+  margin: 0.35rem 0 0.15rem;
+  overflow-wrap: anywhere;
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+  font-weight: 400;
+  line-height: 1;
   letter-spacing: 0.01em;
   text-transform: uppercase;
 }
 
-.track-modal__credit {
-  margin: 0 0 1rem;
-  color: rgba(247, 241, 228, 0.6);
+.track-player__credit {
+  margin: 0 0 0.8rem;
+  color: var(--ink-dim);
   font-family: var(--mono, inherit);
-  font-size: 0.62rem;
-  letter-spacing: 0.16em;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.track-modal__frame {
-  display: block;
-  width: 100%;
-  height: 11rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 0.85rem;
-  background: #0b0910;
+.track-player__stage {
+  position: relative;
+  width: min(100%, 520px);
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 0.8rem;
+  background: linear-gradient(180deg, #090d1f 0%, #121936 55%, #1b2346 100%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 20%, var(--line)),
+    0 1.2rem 3rem rgba(0, 0, 0, 0.35);
 }
 
-.track-modal__foot {
+.track-player__source {
+  position: relative;
+  width: 520px;
+  height: 240px;
+  transform-origin: top left;
+}
+
+.track-player__frame {
+  display: block;
+  width: 520px;
+  height: 240px;
+  border: 0;
+  background: #0a0e24;
+  -webkit-mask-image:
+    linear-gradient(to bottom, #000 0 168px, transparent 190px),
+    radial-gradient(circle at 100% 0%, transparent 0 88px, #000 112px);
+  mask-image:
+    linear-gradient(to bottom, #000 0 168px, transparent 190px),
+    radial-gradient(circle at 100% 0%, transparent 0 88px, #000 112px);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.track-player__guard {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  cursor: default;
+}
+
+.track-player__guard--top {
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 105px;
+}
+
+.track-player__guard--left {
+  top: 105px;
+  bottom: 0;
+  left: 0;
+  width: 172px;
+}
+
+.track-player__guard--right {
+  top: 105px;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+}
+
+.track-player__guard--bottom {
+  right: 0;
+  bottom: 0;
+  width: 140px;
+  height: 70px;
+}
+
+.track-player__foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-top: 0.9rem;
-  color: rgba(247, 241, 228, 0.45);
+  gap: 0.75rem;
+  margin-top: 0.8rem;
+  color: var(--ink-dim);
   font-family: var(--mono, inherit);
-  font-size: 0.56rem;
-  letter-spacing: 0.18em;
+  font-size: 0.52rem;
+  letter-spacing: 0.16em;
 }
 
-.showcase__pills .is-track {
-  color: #ffe9b0;
-  border-color: rgba(232, 200, 119, 0.5);
+.track-player__hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .track-player {
+    align-items: end;
+    padding: 0.5rem;
+  }
+
+  .track-player__panel {
+    width: 100%;
+    max-height: 92svh;
+    padding: 0.95rem 0.85rem 0.9rem;
+    border-radius: 0.9rem 0.9rem 0 0;
+  }
+
+  .track-player__foot {
+    flex-wrap: wrap;
+  }
 }

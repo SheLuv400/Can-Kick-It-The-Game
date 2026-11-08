@@ -1,7 +1,8 @@
 import { Portrait } from '../components/Portrait'
 import { chartEntry, CHART_SIZE, movement, type ChartState } from '../game/charts'
 import { ARTISTS, getArtist } from '../game/roster'
-import type { LabelState } from '../game/label'
+import { trackFor } from '../game/tracks'
+import { chartRoyalties, type LabelState } from '../game/label'
 import type { TeamProgress } from '../game/types'
 
 interface ChartsProps {
@@ -15,6 +16,7 @@ interface ChartsProps {
 
 const day = (week: number) => `WEEK ${String(week).padStart(2, '0')}`
 const count = (value: number) => value.toLocaleString('en-US')
+const singleFor = (id: string, fallback: string) => trackFor(id)?.title ?? fallback
 
 export function Charts({ charts, label, team, onAdvance, onBack, onLabel }: ChartsProps) {
   const chartEntries = charts.entries.slice(0, CHART_SIZE)
@@ -24,8 +26,15 @@ export function Charts({ charts, label, team, onAdvance, onBack, onLabel }: Char
   const totalSpins = chartEntries.reduce((sum, entry) => sum + entry.spins, 0)
   const labelsRanks = label.signed
     .map((entry) => chartEntry(charts, entry.id))
-    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
+    .filter(
+      (entry): entry is NonNullable<typeof entry> =>
+        entry !== undefined && entry.rank <= CHART_SIZE,
+    )
     .sort((a, b) => a.rank - b.rank)
+  const royaltyById = new Map(
+    chartRoyalties(label, charts).map((line) => [line.artistId, line]),
+  )
+  const weeklyRoyalty = [...royaltyById.values()].reduce((sum, line) => sum + line.amount, 0)
 
   return (
     <main className="team charts">
@@ -74,7 +83,8 @@ export function Charts({ charts, label, team, onAdvance, onBack, onLabel }: Char
             <p className="charts__deck">
               {ARTISTS.length} artists, one living chart. Every release, radio spin, leak and
               scandal moves the board each week — and the cards you play in battle push your artists
-              into the Top {CHART_SIZE}.
+              into the Top {CHART_SIZE}. Signed artists collect weekly royalties while their singles
+              hold a chart seat.
             </p>
           </div>
 
@@ -115,7 +125,7 @@ export function Charts({ charts, label, team, onAdvance, onBack, onLabel }: Char
                       {index === 0 ? 'THIS WEEK’S #1' : `#${entry.rank} · ${artist.crew}`}
                     </span>
                     <h2>{artist.name}</h2>
-                    <p>“{entry.single}”</p>
+                    <p>“{singleFor(entry.id, entry.single)}”</p>
                     <div className="charts__podium-stats">
                       <span>
                         <b>{count(entry.spins)}</b> SPINS
@@ -179,7 +189,7 @@ export function Charts({ charts, label, team, onAdvance, onBack, onLabel }: Char
                         </i>
                       </span>
                     </span>
-                    <span className="charts__single">“{entry.single}”</span>
+                    <span className="charts__single">“{singleFor(entry.id, entry.single)}”</span>
                     <span className="charts__spins">
                       <b>{count(entry.spins)}</b>
                       <i>SPINS</i>
@@ -228,22 +238,40 @@ export function Charts({ charts, label, team, onAdvance, onBack, onLabel }: Char
                   OPEN OFFICE →
                 </button>
               </header>
-              {labelsRanks.length ? (
-                <ul className="charts__roster">
-                  {labelsRanks.map((entry) => {
-                    const artist = getArtist(entry.id)
-                    return (
-                      <li key={entry.id}>
-                        <b>#{entry.rank}</b>
-                        <span>
-                          <i>{artist.name}</i>
-                          <em>“{entry.single}”</em>
-                        </span>
-                        <small>{count(entry.spins)}</small>
-                      </li>
-                    )
-                  })}
-                </ul>
+              {label.signed.length ? (
+                labelsRanks.length ? (
+                  <>
+                    <ul className="charts__roster">
+                      {labelsRanks.map((entry) => {
+                        const artist = getArtist(entry.id)
+                        return (
+                          <li key={entry.id}>
+                            <b>#{entry.rank}</b>
+                            <span>
+                              <i>{artist.name}</i>
+                              <em>“{singleFor(entry.id, entry.single)}”</em>
+                            </span>
+                            <span className="charts__roster-money">
+                              <small>{count(entry.spins)} SPINS</small>
+                              <b>+{count(royaltyById.get(entry.id)?.amount ?? 0)} RC</b>
+                            </span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                    <div className="charts__royalty-total">
+                      <span>WEEKLY CHART ROYALTIES</span>
+                      <b>
+                        {count(weeklyRoyalty)} <em>RC</em>
+                      </b>
+                    </div>
+                  </>
+                ) : (
+                  <p className="charts__empty">
+                    Your roster is signed but outside the Top 26. Releases and battle plays can push
+                    them onto the board.
+                  </p>
+                )
               ) : (
                 <p className="charts__empty">
                   No artists signed. Open the Label Office, sign a roster and put your own names on

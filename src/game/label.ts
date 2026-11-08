@@ -1,5 +1,5 @@
 import { ARTISTS, getArtist } from './roster'
-import { chartEntry, pickTitle, type ChartState } from './charts'
+import { CHART_SIZE, chartEntry, pickTitle, type ChartEntry, type ChartState } from './charts'
 
 /**
  * RECORD LABEL OFFICE — the management sim behind Ultimate Team.
@@ -176,6 +176,67 @@ export function signedArtist(state: LabelState, id: string): SignedArtist | unde
 
 export function albumsFor(state: LabelState, id: string): Album[] {
   return state.albums.filter((album) => album.artistId === id && album.status === 'RELEASED')
+}
+
+export type ChartRoyaltyTier = 'SMASH' | 'CHARTING' | 'OFF CHART'
+
+export interface ChartRoyaltyLine {
+  artistId: string
+  rank: number | null
+  spins: number
+  amount: number
+  tier: ChartRoyaltyTier
+}
+
+/**
+ * One signed artist's weekly royalty. Only a Top-26 record earns money;
+ * rank, spins, upward movement and the released catalog all lift the check.
+ */
+export function chartRoyaltyFor(
+  signed: SignedArtist,
+  entry: ChartEntry | undefined,
+  released: number,
+): ChartRoyaltyLine {
+  if (!entry || entry.rank > CHART_SIZE) {
+    return {
+      artistId: signed.id,
+      rank: entry?.rank ?? null,
+      spins: entry?.spins ?? 0,
+      amount: 0,
+      tier: 'OFF CHART',
+    }
+  }
+
+  const climb = entry.prevRank === null ? 0 : Math.max(0, entry.prevRank - entry.rank)
+  const amount = money(
+    30 +
+      entry.spins * 0.02 +
+      (CHART_SIZE + 1 - entry.rank) * 8 +
+      entry.popularity * 0.6 +
+      Math.min(30, climb * 4) +
+      released * 12 +
+      signed.morale * 0.15,
+  )
+
+  return {
+    artistId: signed.id,
+    rank: entry.rank,
+    spins: entry.spins,
+    amount,
+    tier: entry.rank <= 10 ? 'SMASH' : 'CHARTING',
+  }
+}
+
+/** Projected weekly royalty for every artist on the current roster. */
+export function chartRoyalties(state: LabelState, charts: ChartState): ChartRoyaltyLine[] {
+  return state.signed.map((signed) =>
+    chartRoyaltyFor(
+      signed,
+      chartEntry(charts, signed.id),
+      state.albums.filter((album) => album.artistId === signed.id && album.status === 'RELEASED')
+        .length,
+    ),
+  )
 }
 
 export function signingFee(id: string, charts: ChartState): number {
@@ -493,6 +554,32 @@ export function signArtist(
   }
 }
 
+export function dropArtist(
+  state: LabelState,
+  id: string,
+  credits: number,
+): LabelActionResult | null {
+  const signed = state.signed.find((entry) => entry.id === id)
+  if (!signed) return null
+  const artist = getArtist(id)
+  return {
+    credits,
+    label: {
+      ...state,
+      signed: state.signed.filter((entry) => entry.id !== id),
+      ledger: [
+        {
+          id: newId('ledger'),
+          week: state.week,
+          text: `DROPPED ${artist.name} · REMAINING BENEFITS LOST`,
+          amount: 0,
+        },
+        ...state.ledger,
+      ].slice(0, 60),
+    },
+  }
+}
+
 export function startAlbum(
   state: LabelState,
   input: {
@@ -691,14 +778,8 @@ export function advanceLabelWeek(state: LabelState, charts: ChartState, credits:
     notes.push(`${album.title} · ${artist.name} debuted #${projection.debut}`)
   }
 
-  for (const signed of state.signed) {
-    const entry = chartEntry(charts, signed.id)
-    const popularity = entry?.popularity ?? 45
-    const released = albums.filter(
-      (album) => album.artistId === signed.id && album.status === 'RELEASED',
-    ).length
-    royalty += Math.round(popularity * 2.2 + released * 45 + signed.morale * 0.4)
-  }
+  const royaltyLines = chartRoyalties({ ...state, albums }, charts)
+  royalty = royaltyLines.reduce((sum, line) => sum + line.amount, 0)
 
   const newExpenses = [...state.expenses]
   const pending = newExpenses.filter((expense) => expense.status === 'PENDING')
@@ -719,8 +800,14 @@ export function advanceLabelWeek(state: LabelState, charts: ChartState, credits:
   }
 
   const ledger: LedgerEntry[] = []
-  if (royalty > 0) {
-    ledger.push({ id: newId('ledger'), week, text: 'CATALOG ROYALTIES', amount: royalty })
+  for (const line of royaltyLines) {
+    if (line.amount <= 0) continue
+    ledger.push({
+      id: newId('ledger'),
+      week,
+      text: `CHART ROYALTY · ${getArtist(line.artistId).name} · #${line.rank}`,
+      amount: line.amount,
+    })
   }
   for (const album of albums) {
     if (album.status === 'RELEASED' && album.releaseWeek === week && album.revenue) {
@@ -746,7 +833,7 @@ export function advanceLabelWeek(state: LabelState, charts: ChartState, credits:
       expenses: newExpenses,
       crises: newCrises,
       reputation,
-      revenue: state.revenue + revenue,
+      revenue: state.revenue + revenue + royalty,
       ledger: [...ledger, ...state.ledger].slice(0, 60),
     },
   }

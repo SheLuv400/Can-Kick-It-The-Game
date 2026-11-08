@@ -1,0 +1,10 @@
+{
+  "name": "can-i-kick-it-launcher",
+  "productName": "Can I Kick It Launcher",
+  "version": "1.0.1",
+  "description": "Windows launcher and updater for Can I Kick It? - The Game",
+  "main": "main.cjs",
+  "author": "Can I Kick It",
+  "license": "UNLICENSED",
+  "private": true
+}

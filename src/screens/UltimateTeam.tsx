@@ -1,5 +1,8 @@
 import type { Settings, TeamProgress } from '../game/types'
+import type { CircuitId } from '../game/circuits'
 import { getArtist } from '../game/roster'
+import { Card } from '../components/Card'
+import { Portrait } from '../components/Portrait'
 import { chartEntry, type ChartState } from '../game/charts'
 import { roleInfo, type LabelState } from '../game/label'
 import {
@@ -13,11 +16,12 @@ import {
 interface UltimateTeamProps {
   settings: Settings
   label: LabelState
+  avatarArtistId: string | null
   charts: ChartState
   onBack: () => void
   onDeck: () => void
   onCollection: () => void
-  onCircuit: () => void
+  onCircuit: (circuit: CircuitId) => void
   onClaim: (missionId: string) => void
   onTeamChange: (patch: Partial<TeamProgress>) => void
   onLabel: () => void
@@ -36,6 +40,7 @@ const number = (value: number) => value.toLocaleString('en-US')
 export function UltimateTeam({
   settings,
   label,
+  avatarArtistId,
   charts,
   onBack,
   onDeck,
@@ -55,6 +60,7 @@ export function UltimateTeam({
   }, null)
   const rank = buzzState(team.buzz)
   const crest = CRESTS.find((item) => item.id === team.crest) ?? CRESTS[0]
+  const labelArtist = avatarArtistId ? getArtist(avatarArtistId) : null
   const cleared = MISSIONS.filter((mission) => missionProgress(mission, settings) >= mission.target)
   const claimable = MISSIONS.filter((mission) => canClaimMission(mission, settings))
   const circuitComplete = team.circuitWins >= CIRCUIT_STOPS.length
@@ -65,6 +71,10 @@ export function UltimateTeam({
     team.circuitWins === 0 ? 'START CIRCUIT' : circuitComplete ? 'REPLAY CIRCUIT' : 'CONTINUE CIRCUIT'
 
   const deck = settings.deck.map(getArtist)
+  const billIds = [...settings.deck, 'macko-deville', 'juno-maison', 'cipher-jones']
+    .filter((artistId, index, all) => all.indexOf(artistId) === index)
+    .slice(0, 3)
+  const bill = billIds.map(getArtist)
   const avgHype = deck.length ? deck.reduce((sum, artist) => sum + artist.cost, 0) / deck.length : 0
   const avgBars = deck.length ? deck.reduce((sum, artist) => sum + artist.bars, 0) / deck.length : 0
   const defensive = deck.filter((artist) =>
@@ -128,16 +138,30 @@ export function UltimateTeam({
 
       <section className="team__hero">
         <div className="team__hero-glow" aria-hidden="true" />
-        <div className="team__hero-grid" aria-hidden="true" />
-        <div className="team__hero-crown" aria-hidden="true">
-          <svg viewBox="0 0 240 180" role="presentation">
-            <path d="M24 54 72 91 120 24l48 67 48-37-23 97H47Z" />
-            <path d="M53 158h134" />
-            <circle cx="24" cy="54" r="6" />
-            <circle cx="216" cy="54" r="6" />
-            <circle cx="120" cy="24" r="6" />
-          </svg>
-        </div>
+        <div className="team__hero-grid" aria-hidden="true" />          <div className="team__hero-crown" aria-hidden="true">
+            <svg viewBox="0 0 240 180" role="presentation">
+              <path d="M24 54 72 91 120 24l48 67 48-37-23 97H47Z" />
+              <path d="M53 158h134" />
+              <circle cx="24" cy="54" r="6" />
+              <circle cx="216" cy="54" r="6" />
+              <circle cx="120" cy="24" r="6" />
+            </svg>
+          </div>
+          <div className="team__hero-stage" aria-hidden="true">
+            <div className="team__hero-beams">
+              <i />
+              <i />
+              <i />
+            </div>
+            <div className="team__hero-cards">
+              {bill.map((artist, index) => (
+                <div className={`team__hero-card team__hero-card--${index}`} key={artist.id}>
+                  <Card artist={artist} size="hero" />
+                </div>
+              ))}
+              <span className="team__hero-floor" />
+            </div>
+          </div>
         <div className="team__hero-heading">
           <p className="team__eyebrow">
             <span />
@@ -153,9 +177,18 @@ export function UltimateTeam({
 
         <div className="team__hero-strip">
           <section className="team__label-card">
-            <div className={`team__crest team__crest--${crest.id}`} aria-hidden="true">
-              {crest.glyph}
-            </div>
+            {labelArtist ? (
+              <div className="team__label-avatar" title={`Label profile artist — ${labelArtist.name}`}>
+                <Portrait artist={labelArtist} crop="avatar" />
+                <span className={`team__label-avatar-crest team__crest--${crest.id}`} aria-hidden="true">
+                  {crest.glyph}
+                </span>
+              </div>
+            ) : (
+              <div className={`team__crest team__crest--${crest.id}`} aria-hidden="true">
+                {crest.glyph}
+              </div>
+            )}
             <div className="team__label-copy">
               <span className="team__label-kicker">YOUR LABEL</span>
               <label className="team__name-field">
@@ -218,42 +251,42 @@ export function UltimateTeam({
       </section>
 
       <section className="team__shortcuts" aria-label="Ultimate Team shortcuts">
-        <button className="team__shortcut team__shortcut--circuit" onClick={onCircuit}>
+        <button className="team__shortcut team__shortcut--circuit" data-index="01" onClick={() => onCircuit('music')}>
           <span className="team__shortcut-icon" aria-hidden="true">
             ♛
           </span>
           <b>PLAY MUSIC CIRCUIT</b>
           <em>COMPETE · EARN · PROGRESS</em>
         </button>
-        <button className="team__shortcut team__shortcut--mixtape" onClick={onDeck}>
+        <button className="team__shortcut team__shortcut--mixtape" data-index="02" onClick={onDeck}>
           <span className="team__shortcut-icon" aria-hidden="true">
             ▤
           </span>
           <b>MIXTAPE STUDIO</b>
           <em>BUILD &amp; EDIT YOUR DECKS</em>
         </button>
-        <button className="team__shortcut team__shortcut--collection" onClick={onCollection}>
+        <button className="team__shortcut team__shortcut--collection" data-index="03" onClick={onCollection}>
           <span className="team__shortcut-icon" aria-hidden="true">
             ▥
           </span>
           <b>MY COLLECTION</b>
           <em>ARTISTS · ERAS · GROUPS</em>
         </button>
-        <button className="team__shortcut team__shortcut--missions" onClick={() => scrollTo('team-missions')}>
+        <button className="team__shortcut team__shortcut--missions" data-index="04" onClick={() => scrollTo('team-missions')}>
           <span className="team__shortcut-icon" aria-hidden="true">
             ✓
           </span>
           <b>MISSIONS</b>
           <em>FOUNDING · CIRCUIT · LEGACY</em>
         </button>
-        <button className="team__shortcut team__shortcut--label" onClick={onLabel}>
+        <button className="team__shortcut team__shortcut--label" data-index="05" onClick={onLabel}>
           <span className="team__shortcut-icon" aria-hidden="true">
             ♛
           </span>
           <b>LABEL OFFICE</b>
           <em>SIGN · BUDGET · RELEASE</em>
         </button>
-        <button className="team__shortcut team__shortcut--charts" onClick={onCharts}>
+        <button className="team__shortcut team__shortcut--charts" data-index="06" onClick={onCharts}>
           <span className="team__shortcut-icon" aria-hidden="true">
             ≡
           </span>
@@ -285,7 +318,7 @@ export function UltimateTeam({
                 <span>WIN REWARD</span>
                 <b>250 RC · 90 BUZZ</b>
               </div>
-              <button className="btn btn--primary team__circuit-play" onClick={onCircuit}>
+              <button className="btn btn--primary team__circuit-play" onClick={() => onCircuit('underground')}>
                 {circuitButton}
                 <i>→</i>
               </button>

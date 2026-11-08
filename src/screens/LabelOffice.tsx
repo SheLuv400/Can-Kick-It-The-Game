@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Portrait } from '../components/Portrait'
-import { chartEntry, pickTitle, type ChartState } from '../game/charts'
+import { TrackPlayer } from '../components/TrackPlayer'
+import { CHART_SIZE, chartEntry, pickTitle, type ChartState } from '../game/charts'
 import {
   MAX_BUDGET,
   MAX_ROSTER,
   albumProjection,
   albumsFor,
+  chartRoyalties,
   marketHeat,
   roleInfo,
   signingBoard,
@@ -13,17 +15,20 @@ import {
   type LabelState,
 } from '../game/label'
 import { getArtist } from '../game/roster'
+import { trackFor } from '../game/tracks'
 import type { TeamProgress } from '../game/types'
 
 interface LabelOfficeProps {
   team: TeamProgress
   label: LabelState
+  avatarArtistId: string | null
   charts: ChartState
   onBack: () => void
   onTeam: () => void
   onCharts: () => void
   onAdvance: () => void
   onSign: (artistId: string) => void
+  onDropArtist: (artistId: string) => void
   onStartAlbum: (input: {
     artistId: string
     title: string
@@ -50,23 +55,28 @@ const count = (value: number) => value.toLocaleString('en-US')
 export function LabelOffice({
   team,
   label,
+  avatarArtistId,
   charts,
   onBack,
   onTeam,
   onCharts,
   onAdvance,
   onSign,
+  onDropArtist,
   onStartAlbum,
   onReviewExpense,
   onResolveCrisis,
 }: LabelOfficeProps) {
   const [tab, setTab] = useState<Tab>('office')
+  const labelArtist = avatarArtistId ? getArtist(avatarArtistId) : null
   const [selected, setSelected] = useState(label.signed[0]?.id ?? '')
   const [title, setTitle] = useState('')
   const [production, setProduction] = useState(350)
   const [marketing, setMarketing] = useState(250)
   const [offset, setOffset] = useState(2)
   const [flash, setFlash] = useState('')
+  const [trackOpen, setTrackOpen] = useState(false)
+  const [dropTarget, setDropTarget] = useState<string | null>(null)
   const flashTimer = useRef<number | null>(null)
 
   const role = roleInfo(label)
@@ -79,7 +89,11 @@ export function LabelOffice({
   const activeAlbum = label.albums.find(
     (album) => album.artistId === activeId && album.status === 'IN PRODUCTION',
   )
+  const activeTrack = activeArtist ? trackFor(activeArtist.id) : undefined
   const activeEntry = activeId ? chartEntry(charts, activeId) : undefined
+  const royaltyLines = chartRoyalties(label, charts)
+  const royaltyById = new Map(royaltyLines.map((line) => [line.artistId, line]))
+  const weeklyRoyalty = royaltyLines.reduce((sum, line) => sum + line.amount, 0)
   const cost = Math.round(production + marketing)
   const projected = albumProjection({
     popularity: activeEntry?.popularity ?? 50,
@@ -104,6 +118,7 @@ export function LabelOffice({
 
   useEffect(() => {
     setTitle('')
+    setTrackOpen(false)
   }, [activeId])
 
   const greenlight = () => {
@@ -157,17 +172,28 @@ export function LabelOffice({
 
       <div className="label__body">
         <section className="label__masthead">
-          <div>
-            <p className="label__kicker">
-              <span /> {team.labelName} · SEASON 01
-            </p>
-            <h1>
-              LABEL <em>OFFICE</em>
-            </h1>
-            <p className="label__deck">
-              Sign the roster, budget the albums, pick the release week, approve the invoices and put
-              out the fires. Every decision moves the chart.
-            </p>
+          <div className="label__masthead-copy">
+            {labelArtist && (
+              <span
+                className="label__masthead-avatar"
+                title={`Label profile artist — ${labelArtist.name}`}
+              >
+                <Portrait artist={labelArtist} crop="avatar" />
+              </span>
+            )}
+            <div>
+              <p className="label__kicker">
+                <span /> {team.labelName} · SEASON 01
+              </p>
+              <h1>
+                LABEL <em>OFFICE</em>
+              </h1>
+              <p className="label__deck">
+                Sign the roster, budget the albums, pick the release week, approve the invoices and put
+                out the fires. Every decision moves the chart — and charting artists pay weekly
+                royalties back into the label.
+              </p>
+            </div>
           </div>
 
           <div className="label__controls">
@@ -183,7 +209,7 @@ export function LabelOffice({
             <span className="label__hint">
               {openCrises.length
                 ? `RESOLVE ${openCrises.length} OPEN ${openCrises.length === 1 ? 'CRISIS' : 'CRISES'} TO ADVANCE`
-                : 'SALARIES · ROYALTIES · NEW INVOICES · CHART WEEK'}
+                : 'CHART ROYALTIES · NEW INVOICES · CHART WEEK'}
             </span>
           </div>
         </section>
@@ -273,6 +299,19 @@ export function LabelOffice({
                   <em>RC</em>
                 </div>
               </div>
+              <div className="label__royalty">
+                <div>
+                  <span>CHART ROYALTIES</span>
+                  <em>EST. FROM CURRENT TOP 26</em>
+                </div>
+                <b>
+                  {count(weeklyRoyalty)} <em>RC / WK</em>
+                </b>
+                <p>
+                  Only signed artists on the chart collect. Higher rank, spins, upward movement and
+                  released catalog lift each weekly payout.
+                </p>
+              </div>
               <div className="label__net">
                 <span>NET</span>
                 <b className={label.revenue - label.spending >= 0 ? 'is-up' : 'is-down'}>
@@ -298,6 +337,8 @@ export function LabelOffice({
                     const artist = getArtist(entry.id)
                     const position = chartEntry(charts, entry.id)
                     const catalog = albumsFor(label, entry.id)
+                    const royalty = royaltyById.get(entry.id)
+                    const track = trackFor(entry.id)
                     const inStudio = label.albums.some(
                       (album) => album.artistId === entry.id && album.status === 'IN PRODUCTION',
                     )
@@ -319,10 +360,28 @@ export function LabelOffice({
                             {artist.crew} · {artist.genre}
                           </i>
                           <span className="label__artist-meta">
-                            <em>CHART #{position?.rank ?? '—'}</em>
+                            <em>
+                              {position && position.rank <= CHART_SIZE
+                                ? `CHART #${position.rank}`
+                                : 'OFF CHART'}
+                            </em>
                             <em>{catalog.length} REL.</em>
+                            {royalty && royalty.amount > 0 && (
+                              <em
+                                className="is-earning"
+                                title={`${royalty.tier} · ${count(royalty.spins)} weekly spins`}
+                              >
+                                +{count(royalty.amount)} RC/WK
+                              </em>
+                            )}
                             {inStudio && <em className="is-studio">IN STUDIO</em>}
                           </span>
+                          {track && (
+                            <span className="label__artist-single">
+                              <em>PUSHING</em>
+                              <b>“{track.title}”</b>
+                            </span>
+                          )}
                           <span className="label__morale">
                             <i style={{ width: `${entry.morale}%` }} />
                             <em>MORALE {entry.morale}</em>
@@ -397,7 +456,11 @@ export function LabelOffice({
                     </span>
                     <div className="label__scout-copy">
                       <span className="label__scout-tag">
-                        {position ? `CHART #${position.rank} · ${count(position.spins)} SPINS` : 'UNRANKED'}
+                        {position && position.rank <= CHART_SIZE
+                          ? `CHART #${position.rank} · ${count(position.spins)} SPINS`
+                          : position
+                            ? `OFF CHART · ${count(position.spins)} SPINS`
+                            : 'UNRANKED'}
                       </span>
                       <h3>{artist.name}</h3>
                       <p>
@@ -544,6 +607,60 @@ export function LabelOffice({
                       ))}
                     </div>
                   </div>
+
+                  <div className="label__drop-artist">
+                    <div>
+                      <span>ROSTER MOVE</span>
+                      <b>DROP {activeArtist.name}</b>
+                      <em>Frees one slot. Every remaining benefit is lost. No refund.</em>
+                    </div>
+                    <button className="btn btn--ghost btn--sm" onClick={() => setDropTarget(activeId)}>
+                      DROP ARTIST
+                    </button>
+                  </div>
+                  {dropTarget === activeId && (
+                    <div className="label__drop-confirm" role="alertdialog" aria-label="Confirm artist drop">
+                      <span>DROP {activeArtist.name} FROM THE LABEL?</span>
+                      <p>
+                        The slot opens immediately. Unreleased plans, morale, chart benefits and all
+                        remaining artist perks are lost. Record credits are not refunded.
+                      </p>
+                      <div>
+                        <button
+                          className="btn btn--ghost btn--sm"
+                          onClick={() => setDropTarget(null)}
+                        >
+                          KEEP ARTIST
+                        </button>
+                        <button
+                          className="btn btn--primary btn--sm"
+                          onClick={() => {
+                            onDropArtist(activeId)
+                            setDropTarget(null)
+                            flashNotice(`DROPPED · ${activeArtist.name}`)
+                            setTab('scout')
+                          }}
+                        >
+                          CONFIRM DROP
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTrack && (
+                    <div className="label__current-single">
+                      <div>
+                        <span>CURRENT SINGLE · {activeArtist?.name ?? 'YOUR ROSTER'}</span>
+                        <b>“{activeTrack.title}”</b>
+                        <em>{activeTrack.mood}</em>
+                      </div>
+                      {activeTrack.embedUrl && (
+                        <button className="btn btn--primary btn--sm" onClick={() => setTrackOpen(true)}>
+                          ▶ PLAY
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   <label className="label__field">
                     <span>ALBUM TITLE</span>
@@ -835,6 +952,17 @@ export function LabelOffice({
           </button>
         </footer>
       </div>
+
+      {trackOpen && activeTrack && activeTrack.embedUrl && activeArtist && (
+        <TrackPlayer
+          title={activeTrack.title}
+          artist={activeArtist.name}
+          mood={activeTrack.mood}
+          embedUrl={activeTrack.embedUrl}
+          onClose={() => setTrackOpen(false)}
+        />
+      )}
+
     </main>
   )
 }

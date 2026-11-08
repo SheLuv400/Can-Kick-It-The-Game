@@ -1,0 +1,665 @@
+{
+  "season": {
+    "season_id": "festival-circuit-2026",
+    "name": "THE FESTIVAL & TOUR CIRCUIT",
+    "tagline": "SIX FESTIVALS · THREE WEEKENDS · ONE CIRCUIT",
+    "starts_at": "2026-11-06T18:00:00.000Z",
+    "ends_at": "2026-11-24T00:00:00.000Z",
+    "rewards": [
+      {
+        "tier": "gold",
+        "threshold": 300,
+        "name": "GOLD STATUS",
+        "items": ["GOLDEN MICROPHONE CARD BORDER", "600 RECORD CREDITS"],
+        "credits": 600,
+        "buzz": 60
+      },
+      {
+        "tier": "platinum",
+        "threshold": 800,
+        "name": "PLATINUM STATUS",
+        "items": ["PLATINUM CARD SLEEVES", "ORIGINAL FESTIVAL BANNER", "FESTIVAL STARTER PACK: 750 RC + 100 BUZZ"],
+        "credits": 750,
+        "buzz": 100
+      },
+      {
+        "tier": "diamond",
+        "threshold": 1600,
+        "name": "DIAMOND STATUS",
+        "items": ["ANIMATED DIAMOND MIC BADGE", "FESTIVAL HEADLINER TITLE", "ALTERNATE-ART CASSO ROYALE CARD (SAME STATS)"],
+        "credits": 1000,
+        "buzz": 150,
+        "alt_artist_id": "casso-royale"
+      }
+    ],
+    "online": {
+      "win": 100,
+      "loss": 40,
+      "feature": 10,
+      "bounty": 100,
+      "streak_bonus": 10,
+      "streak_threshold": 5,
+      "same_opponent_limit_per_day": 1
+    }
+  },
+  "events": [
+    {
+      "event_id": "blacktop-frequency-fest",
+      "event_name": "BLACKTOP FREQUENCY FEST",
+      "event_type": "single_player",
+      "weekend": 1,
+      "start_time": "2026-11-06T18:00:00.000Z",
+      "end_time": "2026-11-09T18:00:00.000Z",
+      "tagline": "THE BLOCK TUNES IN. THE BLOCK TURNS UP.",
+      "venue": {
+        "id": "frequency-yard",
+        "name": "THE FREQUENCY YARD",
+        "room": "BLACKTOP AMPHITHEATRE",
+        "city": "OUTER BOROUGHS",
+        "tagline": "NIGHT 01 · 4,000 WATTS · SOLD OUT",
+        "art": "frequency",
+        "stage_slots": 5,
+        "accent": "#f05a28"
+      },
+      "event_poster": {
+        "motif": "frequency",
+        "eyebrow": "CIKI LIVE SERIES · WEEKEND ONE",
+        "stamp": "NO SIGNAL / NO CEILING",
+        "palette": ["#f05a28", "#e8b62c", "#f3e6cd", "#17110c"]
+      },
+      "music_theme": "STATIC ON THE BLACKTOP · 92.3 FM",
+      "battle_theme": "BLACKTOP NIGHT · ORANGE SODIUM LIGHTS",
+      "eligible_tags": ["genre:HIP-HOP"],
+      "setlist_requirements": [
+        {
+          "kind": "genre",
+          "value": "HIP-HOP",
+          "count": 6,
+          "label": "HIP-HOP CARDS"
+        }
+      ],
+      "special_modifiers": {
+        "id": "blacktop-first-hiphop",
+        "title": "FIRST HIT FREQUENCY",
+        "rule": "The first successful Hip-Hop attack each player turn gains 10% additional damage.",
+        "detail": "Both sides get one boosted Hip-Hop attack per turn. The boost is consumed only when the hit lands."
+      },
+      "progression_multiplier": 2,
+      "card_mastery_multiplier": 2,
+      "reward_multiplier": 1.25,
+      "circuit_rewards": {
+        "stop": 75,
+        "repeat": 20,
+        "headliner": 150,
+        "objective": 25
+      },
+      "objectives": [
+        {
+          "id": "bf-pack",
+          "title": "PACK THE BLACKTOP",
+          "detail": "Play 4 artists into your live set.",
+          "kind": "play-cards",
+          "target": 4,
+          "rewardCredits": 45,
+          "rewardBuzz": 10
+        },
+        {
+          "id": "bf-feature",
+          "title": "PROJECT THE HOOK",
+          "detail": "Call one Feature Verse.",
+          "kind": "feature",
+          "target": 1,
+          "rewardCredits": 50,
+          "rewardBuzz": 12
+        },
+        {
+          "id": "bf-clean",
+          "title": "NO DEAD AIR",
+          "detail": "Win without losing an artist.",
+          "kind": "no-loss",
+          "target": 1,
+          "rewardCredits": 70,
+          "rewardBuzz": 20
+        }
+      ],
+      "honors": ["LIVE MIX", "CROWD SURGE", "HEADLINER"],
+      "stops": [
+        {
+          "stop_id": "corner-stage",
+          "stop_name": "THE CORNER STAGE",
+          "venue_room": "CORNER STAGE · 6PM",
+          "opponent": "THE CORNER STAGE ALL-STARS",
+          "strategy": { "kind": "genre", "value": "HIP-HOP", "label": "BARS FIRST" },
+          "difficulty": "OPENING",
+          "dialogue": "The block brought crates, extension cords and a point to prove. Keep the first set clean.",
+          "objectives": ["bf-pack"],
+          "headliner": false,
+          "reward_credits": 80,
+          "reward_buzz": 15
+        },
+        {
+          "stop_id": "record-shop",
+          "stop_name": "THE RECORD SHOP",
+          "venue_room": "CRATE BASEMENT · 8PM",
+          "opponent": "THE CRATE DIGGERS",
+          "strategy": { "kind": "crew", "value": "CONCRETE POETS", "label": "CREW LAW" },
+          "difficulty": "OPENING",
+          "dialogue": "The clerk locked the door. The shelves are the stage. The crew with the deepest bag wins.",
+          "objectives": ["bf-pack", "bf-feature"],
+          "headliner": false,
+          "reward_credits": 100,
+          "reward_buzz": 20
+        },
+        {
+          "stop_id": "rooftop-session",
+          "stop_name": "THE ROOFTOP SESSION",
+          "venue_room": "FREQUENCY ROOF · 10PM",
+          "opponent": "THE ROOFTOP FREQUENCIES",
+          "strategy": { "kind": "genre", "value": "R&B", "label": "HOOKS OVER HEADLINES" },
+          "difficulty": "HEADLINER",
+          "dialogue": "The city is listening through the vents. This set needs a hook that travels farther than the skyline.",
+          "objectives": ["bf-feature"],
+          "headliner": false,
+          "reward_credits": 120,
+          "reward_buzz": 25
+        },
+        {
+          "stop_id": "underground-club",
+          "stop_name": "THE UNDERGROUND CLUB",
+          "venue_room": "SUB-LEVEL · MIDNIGHT",
+          "opponent": "THE LOW CEILING",
+          "strategy": { "kind": "crew", "value": "MIDNIGHT CARTEL", "label": "LOW LIGHT PRESSURE" },
+          "difficulty": "HEADLINER",
+          "dialogue": "No marquee. No guest list. Just a low ceiling and a crowd that can hear you breathe.",
+          "objectives": ["bf-pack", "bf-clean"],
+          "headliner": false,
+          "reward_credits": 140,
+          "reward_buzz": 30
+        },
+        {
+          "stop_id": "main-headliner",
+          "stop_name": "THE MAIN HEADLINER STAGE",
+          "venue_room": "THE FREQUENCY YARD · 1AM",
+          "opponent": "THE BLACKTOP HEADLINER",
+          "strategy": { "kind": "balanced", "value": "ALL", "label": "FULL ROOM FINALE" },
+          "difficulty": "LEGEND",
+          "dialogue": "The block, the shop, the roof and the basement all came with you. Now close the festival like the whole city is on the bill.",
+          "objectives": ["bf-feature", "bf-clean"],
+          "headliner": true,
+          "reward_credits": 240,
+          "reward_buzz": 55
+        }
+      ]
+    },
+    {
+      "event_id": "velvet-afterdark-sessions",
+      "event_name": "VELVET AFTERDARK SESSIONS",
+      "event_type": "single_player",
+      "weekend": 2,
+      "start_time": "2026-11-13T18:00:00.000Z",
+      "end_time": "2026-11-16T18:00:00.000Z",
+      "tagline": "SLOW SONGS. HARD DOORS. NO LAST CALL.",
+      "venue": {
+        "id": "velvet-atrium",
+        "name": "THE VELVET ATRIUM",
+        "room": "AFTERDARK BALLROOM",
+        "city": "UPTOWN",
+        "tagline": "BLACK TIE · CANDLELIGHT · ONE NIGHT",
+        "art": "velvet",
+        "stage_slots": 5,
+        "accent": "#b77cff"
+      },
+      "event_poster": {
+        "motif": "velvet",
+        "eyebrow": "CIKI LIVE SERIES · WEEKEND TWO",
+        "stamp": "DOORS 10 / HEARTS 2",
+        "palette": ["#b77cff", "#e8b62c", "#f3e6cd", "#120c1a"]
+      },
+      "music_theme": "VELVET AFTERDARK · BLUE ROOM RADIO",
+      "battle_theme": "CANDLELIGHT · PURPLE VELVET · AFTER HOURS",
+      "eligible_tags": ["genre:R&B"],
+      "setlist_requirements": [
+        {
+          "kind": "genre",
+          "value": "R&B",
+          "count": 6,
+          "label": "R&B CARDS"
+        }
+      ],
+      "special_modifiers": {
+        "id": "velvet-healing",
+        "title": "AFTERGLOW CARE",
+        "rule": "Successful healing abilities restore 10% additional HP, capped at maximum HP.",
+        "detail": "Every healing move and healing effect gets the afterdark lift. Overhealing is still lost at the cap."
+      },
+      "progression_multiplier": 2,
+      "card_mastery_multiplier": 2,
+      "reward_multiplier": 1.4,
+      "circuit_rewards": {
+        "stop": 75,
+        "repeat": 20,
+        "headliner": 150,
+        "objective": 25
+      },
+      "objectives": [
+        {
+          "id": "va-feature",
+          "title": "CANDLELIGHT FEATURE",
+          "detail": "Call one Feature Verse.",
+          "kind": "feature",
+          "target": 1,
+          "rewardCredits": 50,
+          "rewardBuzz": 12
+        },
+        {
+          "id": "va-encore",
+          "title": "ONE MORE SONG",
+          "detail": "Trigger one Encore.",
+          "kind": "encore",
+          "target": 1,
+          "rewardCredits": 55,
+          "rewardBuzz": 15
+        },
+        {
+          "id": "va-clean",
+          "title": "KEEP THE ROOM",
+          "detail": "Win without losing an artist.",
+          "kind": "no-loss",
+          "target": 1,
+          "rewardCredits": 70,
+          "rewardBuzz": 20
+        }
+      ],
+      "honors": ["SLOW BURN", "CROWD KEEPER", "AFTERGLOW"],
+      "stops": [
+        {
+          "stop_id": "velvet-lobby",
+          "stop_name": "THE VELVET LOBBY",
+          "venue_room": "LOBBY SESSION · 9PM",
+          "opponent": "THE LOBBY VELVETS",
+          "strategy": { "kind": "genre", "value": "R&B", "label": "SILK FIRST" },
+          "difficulty": "OPENING",
+          "dialogue": "The doors are still closed. The lobby is already full. Make the first slow song feel like a secret.",
+          "objectives": ["va-feature"],
+          "headliner": false,
+          "reward_credits": 90,
+          "reward_buzz": 18
+        },
+        {
+          "stop_id": "blue-room",
+          "stop_name": "THE BLUE ROOM",
+          "venue_room": "BLUE ROOM · 11PM",
+          "opponent": "THE BLUE ROOM ORCHESTRA",
+          "strategy": { "kind": "crew", "value": "VELVET COURT", "label": "COURT IN SESSION" },
+          "difficulty": "OPENING",
+          "dialogue": "A string section, a shuttered bar and a crowd that came to feel everything twice.",
+          "objectives": ["va-feature", "va-clean"],
+          "headliner": false,
+          "reward_credits": 110,
+          "reward_buzz": 24
+        },
+        {
+          "stop_id": "mirror-suite",
+          "stop_name": "THE MIRROR SUITE",
+          "venue_room": "MIRROR SUITE · 1AM",
+          "opponent": "THE MIRROR COMPANY",
+          "strategy": { "kind": "genre", "value": "POP", "label": "GLASS HOOKS" },
+          "difficulty": "HEADLINER",
+          "dialogue": "Every wall is a mirror. Every hook comes back sharper. Do not let the room outsing you.",
+          "objectives": ["va-encore"],
+          "headliner": false,
+          "reward_credits": 135,
+          "reward_buzz": 30
+        },
+        {
+          "stop_id": "velvet-chapel",
+          "stop_name": "THE VELVET CHAPEL",
+          "venue_room": "CHAPEL FLOOR · 3AM",
+          "opponent": "THE MIDNIGHT CHOIR",
+          "strategy": { "kind": "crew", "value": "NEON CHOIR", "label": "CHOIR PRESSURE" },
+          "difficulty": "HEADLINER",
+          "dialogue": "No phones. No requests. The choir already knows the answer. Make them ask the question.",
+          "objectives": ["va-feature", "va-encore"],
+          "headliner": false,
+          "reward_credits": 155,
+          "reward_buzz": 36
+        },
+        {
+          "stop_id": "velvet-headliner",
+          "stop_name": "THE AFTERDARK HEADLINER",
+          "venue_room": "THE VELVET ATRIUM · 4AM",
+          "opponent": "THE AFTERDARK HEADLINER",
+          "strategy": { "kind": "balanced", "value": "ALL", "label": "LAST DANCE FINALE" },
+          "difficulty": "LEGEND",
+          "dialogue": "The candles are down to the wick. The whole atrium is swaying. Give them a last dance they can carry home.",
+          "objectives": ["va-encore", "va-clean"],
+          "headliner": true,
+          "reward_credits": 280,
+          "reward_buzz": 65
+        }
+      ]
+    },
+    {
+      "event_id": "crate-city-comeback-jam",
+      "event_name": "CRATE CITY COMEBACK JAM",
+      "event_type": "single_player",
+      "weekend": 3,
+      "start_time": "2026-11-20T18:00:00.000Z",
+      "end_time": "2026-11-23T18:00:00.000Z",
+      "tagline": "DUST OFF THE CLASSICS. CALL BACK THE CROWD.",
+      "venue": {
+        "id": "crate-city-warehouse",
+        "name": "CRATE CITY WAREHOUSE",
+        "room": "LOADING DOCK 26",
+        "city": "HARBOR DISTRICT",
+        "tagline": "ALL AGES · ALL CRATES · LAST NIGHT",
+        "art": "crate",
+        "stage_slots": 5,
+        "accent": "#e8b62c"
+      },
+      "event_poster": {
+        "motif": "crate",
+        "eyebrow": "CIKI LIVE SERIES · WEEKEND THREE",
+        "stamp": "26 CRATES / ONE BLOCK",
+        "palette": ["#e8b62c", "#f05a28", "#f3e6cd", "#16100c"]
+      },
+      "music_theme": "CRATE CITY COMEBACK · WAREHOUSE TAPE",
+      "battle_theme": "DUSTY CARDBOARD · GOLD BULBS · HARBOR AIR",
+      "eligible_tags": ["crew:CONCRETE POETS"],
+      "setlist_requirements": [
+        {
+          "kind": "crew",
+          "value": "CONCRETE POETS",
+          "count": 5,
+          "label": "CONCRETE POETS CARDS"
+        }
+      ],
+      "special_modifiers": {
+        "id": "crate-city-revival",
+        "title": "THE COMEBACK CALL",
+        "rule": "The first successful Backstage revival in each match grants one bonus Hype, without exceeding the cap.",
+        "detail": "Each side can trigger the bonus once. The Hype is added after the revival cost and is capped at 24."
+      },
+      "progression_multiplier": 2,
+      "card_mastery_multiplier": 2,
+      "reward_multiplier": 1.5,
+      "circuit_rewards": {
+        "stop": 75,
+        "repeat": 20,
+        "headliner": 150,
+        "objective": 25
+      },
+      "objectives": [
+        {
+          "id": "cc-crate",
+          "title": "DUST OFF THE CRATE",
+          "detail": "Draw 2 cards from the Crate.",
+          "kind": "crate",
+          "target": 2,
+          "rewardCredits": 45,
+          "rewardBuzz": 12
+        },
+        {
+          "id": "cc-ko",
+          "title": "CLEAR THE DOCK",
+          "detail": "Defeat 2 rival artists.",
+          "kind": "ko",
+          "target": 2,
+          "rewardCredits": 55,
+          "rewardBuzz": 16
+        },
+        {
+          "id": "cc-crew",
+          "title": "CREW CALL",
+          "detail": "Get 3 artists from one crew on stage.",
+          "kind": "crew-max",
+          "target": 3,
+          "rewardCredits": 60,
+          "rewardBuzz": 18
+        }
+      ],
+      "honors": ["CRATE DIGGER", "CROWD CALLBACK", "COMEBACK KING"],
+      "stops": [
+        {
+          "stop_id": "loading-dock",
+          "stop_name": "LOADING DOCK 26",
+          "venue_room": "DOCK 26 · 7PM",
+          "opponent": "THE DOCKWORKERS",
+          "strategy": { "kind": "crew", "value": "CONCRETE POETS", "label": "CRATE LAW" },
+          "difficulty": "OPENING",
+          "dialogue": "The crates are still taped shut. The dock crew wants the first set to sound like a found record.",
+          "objectives": ["cc-crate"],
+          "headliner": false,
+          "reward_credits": 90,
+          "reward_buzz": 18
+        },
+        {
+          "stop_id": "basement-archive",
+          "stop_name": "THE BASEMENT ARCHIVE",
+          "venue_room": "ARCHIVE ROOM · 9PM",
+          "opponent": "THE ARCHIVISTS",
+          "strategy": { "kind": "crew", "value": "MIDNIGHT CARTEL", "label": "DEEP CUTS" },
+          "difficulty": "OPENING",
+          "dialogue": "Every record down here has a story. The Archivists know all of them. Bring a deeper cut.",
+          "objectives": ["cc-crate", "cc-crew"],
+          "headliner": false,
+          "reward_credits": 110,
+          "reward_buzz": 24
+        },
+        {
+          "stop_id": "golden-press",
+          "stop_name": "THE GOLDEN PRESS",
+          "venue_room": "PRESS FLOOR · 11PM",
+          "opponent": "THE GOLDEN PRESS",
+          "strategy": { "kind": "genre", "value": "POP", "label": "PRESSED FOR HOOKS" },
+          "difficulty": "HEADLINER",
+          "dialogue": "The old press is still warm. Every hook gets stamped in gold if the crowd believes it.",
+          "objectives": ["cc-ko"],
+          "headliner": false,
+          "reward_credits": 135,
+          "reward_buzz": 30
+        },
+        {
+          "stop_id": "comeback-floor",
+          "stop_name": "THE COMEBACK FLOOR",
+          "venue_room": "MAIN FLOOR · 1AM",
+          "opponent": "THE COMEBACK COMMITTEE",
+          "strategy": { "kind": "crew", "value": "STATIC KINGS", "label": "LOW-END REVIVAL" },
+          "difficulty": "HEADLINER",
+          "dialogue": "The floor has been waiting for this one. Bring somebody back and the room will remember why they came.",
+          "objectives": ["cc-crate", "cc-ko"],
+          "headliner": false,
+          "reward_credits": 160,
+          "reward_buzz": 38
+        },
+        {
+          "stop_id": "crate-city-headliner",
+          "stop_name": "THE CRATE CITY HEADLINER",
+          "venue_room": "WAREHOUSE ROOF · 3AM",
+          "opponent": "THE CRATE CITY HEADLINER",
+          "strategy": { "kind": "balanced", "value": "ALL", "label": "WHOLE-CITY FINALE" },
+          "difficulty": "LEGEND",
+          "dialogue": "The dock, the archive, the press and the floor are all in the building. This is the comeback. Do not leave a crate unopened.",
+          "objectives": ["cc-ko", "cc-crew"],
+          "headliner": true,
+          "reward_credits": 300,
+          "reward_buzz": 70
+        }
+      ]
+    },
+    {
+      "event_id": "subwoofer-showdown",
+      "event_name": "SUBWOOFER SHOWDOWN",
+      "event_type": "private_online",
+      "weekend": 1,
+      "start_time": "2026-11-06T18:00:00.000Z",
+      "end_time": "2026-11-09T18:00:00.000Z",
+      "tagline": "TWO ROOMS. ONE LOW END. NO CEILING.",
+      "venue": {
+        "id": "subwoofer-vault",
+        "name": "THE SUBWOOFER VAULT",
+        "room": "LOW END ARENA",
+        "city": "HARBOR DISTRICT",
+        "tagline": "INVITE ONLY · 1200 WATTS · ONE WINNER",
+        "art": "subwoofer",
+        "stage_slots": 5,
+        "accent": "#29e7cd"
+      },
+      "event_poster": {
+        "motif": "subwoofer",
+        "eyebrow": "CIKI ONLINE FESTIVAL · WEEKEND ONE",
+        "stamp": "FEEL IT BEFORE YOU HEAR IT",
+        "palette": ["#29e7cd", "#8f45ff", "#f3e6cd", "#080b0d"]
+      },
+      "music_theme": "SUBWOOFER SHOWDOWN · LOW END TRANSMISSION",
+      "battle_theme": "BASS VAULT · TEAL LIGHTS · CONCRETE SHAKE",
+      "eligible_tags": ["crew:STATIC KINGS"],
+      "setlist_requirements": [
+        {
+          "kind": "crew",
+          "value": "STATIC KINGS",
+          "count": 6,
+          "label": "STATIC KINGS CARDS"
+        }
+      ],
+      "special_modifiers": {
+        "id": "subwoofer-bass",
+        "title": "LOW-END SURCHARGE",
+        "rule": "Eligible low-end attacks gain 15% additional damage but cost one extra Hype.",
+        "detail": "Static Kings attack moves carry the surcharge. The damage bonus and the extra Hype apply to both players."
+      },
+      "progression_multiplier": 2,
+      "card_mastery_multiplier": 2,
+      "reward_multiplier": 1.35,
+      "circuit_rewards": {
+        "stop": 0,
+        "repeat": 0,
+        "headliner": 0,
+        "objective": 0
+      },
+      "objectives": [],
+      "honors": ["LOW END CHAMPION", "NO CEILING", "SUBWOOFER SETTER"],
+      "stops": []
+    },
+    {
+      "event_id": "chrome-and-chorus-expo",
+      "event_name": "CHROME & CHORUS EXPO",
+      "event_type": "private_online",
+      "weekend": 2,
+      "start_time": "2026-11-13T18:00:00.000Z",
+      "end_time": "2026-11-16T18:00:00.000Z",
+      "tagline": "BUILT FOR THE ARENA. DRESSED FOR THE ENCORE.",
+      "venue": {
+        "id": "chrome-pavilion",
+        "name": "THE CHROME PAVILION",
+        "room": "HALL OF CHORUS",
+        "city": "CENTER CITY",
+        "tagline": "INVITE ONLY · CHROME DOME · SOLD OUT",
+        "art": "chrome",
+        "stage_slots": 5,
+        "accent": "#9bd4ff"
+      },
+      "event_poster": {
+        "motif": "chrome",
+        "eyebrow": "CIKI ONLINE FESTIVAL · WEEKEND TWO",
+        "stamp": "SHINE LOUDER",
+        "palette": ["#9bd4ff", "#ff2d97", "#f3e6cd", "#0d0e16"]
+      },
+      "music_theme": "CHROME & CHORUS EXPO · STADIUM GLASS",
+      "battle_theme": "CHROME DOME · PINK SPOTLIGHTS · ICE WHITE",
+      "eligible_tags": ["genre:POP"],
+      "setlist_requirements": [
+        {
+          "kind": "genre",
+          "value": "POP",
+          "count": 6,
+          "label": "POP CARDS"
+        }
+      ],
+      "special_modifiers": {
+        "id": "chrome-feature",
+        "title": "CHORUS AMPLIFIER",
+        "rule": "Successful Feature Verse performances deal 10% additional damage.",
+        "detail": "The boost applies after the Feature Verse is calculated and to both players. Attack limits still close the turn."
+      },
+      "progression_multiplier": 2,
+      "card_mastery_multiplier": 2,
+      "reward_multiplier": 1.45,
+      "circuit_rewards": {
+        "stop": 0,
+        "repeat": 0,
+        "headliner": 0,
+        "objective": 0
+      },
+      "objectives": [],
+      "honors": ["CHORUS CHAMPION", "CHROME HALL OF FAME", "SOLD-OUT SETTER"],
+      "stops": []
+    },
+    {
+      "event_id": "diamond-mic-finals",
+      "event_name": "DIAMOND MIC FINALS",
+      "event_type": "private_online",
+      "weekend": 3,
+      "start_time": "2026-11-20T18:00:00.000Z",
+      "end_time": "2026-11-23T18:00:00.000Z",
+      "tagline": "THREE GENRES. TWO PLAYERS. ONE DIAMOND.",
+      "venue": {
+        "id": "diamond-room",
+        "name": "THE DIAMOND ROOM",
+        "room": "CROWN COLISEUM PRIVATE STAGE",
+        "city": "CENTER CITY",
+        "tagline": "INVITE ONLY · FINALS NIGHT · ONE MIC",
+        "art": "diamond",
+        "stage_slots": 5,
+        "accent": "#f4c84e"
+      },
+      "event_poster": {
+        "motif": "diamond",
+        "eyebrow": "CIKI ONLINE FESTIVAL · WEEKEND THREE",
+        "stamp": "THE FINAL CUT",
+        "palette": ["#f4c84e", "#b77cff", "#f3e6cd", "#0c0907"]
+      },
+      "music_theme": "DIAMOND MIC FINALS · CROWN ROOM LIVE",
+      "battle_theme": "DIAMOND ROOM · GOLD CURTAIN · FINALS NIGHT",
+      "eligible_tags": ["genre:HIP-HOP", "genre:R&B", "genre:POP"],
+      "setlist_requirements": [
+        {
+          "kind": "genre",
+          "value": "HIP-HOP",
+          "count": 5,
+          "label": "HIP-HOP CARDS"
+        },
+        {
+          "kind": "genre",
+          "value": "R&B",
+          "count": 5,
+          "label": "R&B CARDS"
+        },
+        {
+          "kind": "genre",
+          "value": "POP",
+          "count": 5,
+          "label": "POP CARDS"
+        }
+      ],
+      "special_modifiers": {
+        "id": "diamond-genre-chain",
+        "title": "DIFFERENT LANES",
+        "rule": "When two successful attacks in sequence come from artists of different genres, the second gains 10% damage.",
+        "detail": "The chain is tracked per side across the whole match. The first successful attack starts the chain; every later genre switch earns the boost."
+      },
+      "progression_multiplier": 2,
+      "card_mastery_multiplier": 2,
+      "reward_multiplier": 1.6,
+      "circuit_rewards": {
+        "stop": 0,
+        "repeat": 0,
+        "headliner": 0,
+        "objective": 0
+      },
+      "objectives": [],
+      "honors": ["TRIPLE THREAT", "DIAMOND MIC", "FESTIVAL HEADLINER"],
+      "stops": []
+    }
+  ]
+}

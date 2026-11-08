@@ -375,15 +375,86 @@
 
 .card__crew-tag {
   position: absolute;
-  top: 2.4cqw;
+  bottom: calc(2.4cqw + 2.4em);
   left: 2.4cqw;
   z-index: 7;
-  color: rgba(255, 255, 255, 0.8);
+  max-width: calc(100% - 4.8cqw);
+  overflow: hidden;
+  padding: 0.3em 0.48em;
+  border-left: 2px solid var(--crew-tint, var(--accent));
+  background: rgba(4, 4, 6, 0.58);
+  color: rgba(255, 255, 255, 0.9);
   font-family: var(--ui);
   font-size: clamp(3.5px, 1.75cqw, 6.5px);
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-overflow: ellipsis;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+.card__crew-ribbon {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.46em 0.4em;
+  border-top: 1px solid rgba(8, 4, 10, 0.72);
+  background:
+    linear-gradient(90deg, var(--crew-tint, var(--accent)), color-mix(in srgb, var(--crew-tint, var(--accent)) 78%, #0b0610));
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.62);
+  color: #0b060d;
+  font-family: var(--ui);
+  font-size: clamp(7.2px, 3.75cqw, 9px);
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.card__crew-ribbon__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card__crew-ribbon__meta {
+  flex: none;
+  margin-left: auto;
+  padding-left: 0.8em;
+  font-size: 0.7em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  opacity: 0.72;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.card--hand .card__crew-ribbon {
+  padding: 0.46em 0.4em;
+  font-size: clamp(6.8px, 3.55cqw, 8.5px);
+  letter-spacing: 0.02em;
+}
+
+.card__crew-ribbon em {
+  display: inline-block;
+  margin-left: 0.38em;
+  padding: 0.16em 0.28em;
+  background: #0c0710;
+  color: #fff8ed;
+  font-size: 0.92em;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
 }
 
 .card__stamp {
@@ -613,6 +684,9 @@
 .card--hand .card__crew-tag,
 .card--stage .card__crew-tag,
 .card--hand .card__chip--era,
+.card--hand .card__chip--genre,
+.card--stage .card__chip--era,
+.card--stage .card__chip--genre,
 .card--hand .card__evo,
 .card--stage .card__evo {
   display: none;
@@ -1229,6 +1303,10 @@
    ============================================================ */
 
 @container (max-width: 165px) {
+  .card__crew-ribbon__meta {
+    display: none;
+  }
+
   .card__chip--genre {
     display: none;
   }

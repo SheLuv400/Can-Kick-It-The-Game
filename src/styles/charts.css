@@ -659,6 +659,60 @@
   font-size: 0.44rem;
 }
 
+.charts__roster li > .charts__roster-money {
+  flex: none;
+  min-width: 0;
+  text-align: right;
+}
+
+.charts__roster-money small {
+  display: block;
+  white-space: nowrap;
+}
+
+.charts__roster-money b {
+  display: block;
+  margin-top: 0.12rem;
+  color: #58d493;
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.charts__royalty-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid rgba(88, 212, 147, 0.2);
+  background: rgba(88, 212, 147, 0.06);
+}
+
+.charts__royalty-total span {
+  color: #58d493;
+  font-size: 0.36rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.charts__royalty-total b {
+  color: var(--team-ink);
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.charts__royalty-total b em {
+  color: var(--team-dim);
+  font-size: 0.38rem;
+  font-style: normal;
+  letter-spacing: 0.08em;
+}
+
 .charts__empty {
   margin: 0.7rem 0 0;
   color: var(--team-dim);

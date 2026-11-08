@@ -362,6 +362,60 @@
   background: var(--team-gold);
 }
 
+.label__royalty {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.15rem 0.8rem;
+  margin-top: 0.55rem;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgba(88, 212, 147, 0.24);
+  background: linear-gradient(90deg, rgba(88, 212, 147, 0.08), transparent 70%);
+}
+
+.label__royalty > div > span {
+  display: block;
+  color: #58d493;
+  font-size: 0.38rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.label__royalty > div > em {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--team-dim);
+  font-size: 0.32rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+}
+
+.label__royalty > b {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: var(--team-ink);
+  font-family: 'Anton', Impact, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.label__royalty > b em {
+  color: var(--team-gold);
+  font-size: 0.5rem;
+  font-style: normal;
+  letter-spacing: 0.06em;
+}
+
+.label__royalty > p {
+  grid-column: 1 / -1;
+  margin: 0.15rem 0 0;
+  color: var(--team-dim);
+  font-size: 0.48rem;
+  line-height: 1.5;
+}
+
 .label__net {
   display: flex;
   align-items: center;
@@ -490,6 +544,40 @@
 .label__artist-meta em.is-studio {
   border-color: rgba(242, 193, 78, 0.45);
   color: var(--team-gold);
+}
+
+.label__artist-meta em.is-earning {
+  border-color: rgba(88, 212, 147, 0.45);
+  color: #58d493;
+}
+
+.label__artist-single {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.label__artist-single em {
+  flex: none;
+  color: var(--team-gold);
+  font-size: 0.28rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.label__artist-single b {
+  overflow: hidden;
+  color: var(--team-ink);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.43rem;
+  font-style: italic;
+  font-weight: 500;
+  text-overflow: ellipsis;
 }
 
 .label__morale {
@@ -895,6 +983,63 @@
   border-color: var(--team-gold);
   background: rgba(242, 193, 78, 0.14);
   color: var(--team-gold-soft);
+}
+
+.label__current-single {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid rgba(242, 193, 78, 0.32);
+  background:
+    linear-gradient(115deg, rgba(242, 193, 78, 0.13), rgba(242, 193, 78, 0.02) 65%),
+    #0c090f;
+}
+
+.label__current-single > div {
+  min-width: 0;
+}
+
+.label__current-single span {
+  display: block;
+  color: var(--team-gold);
+  font-size: 0.33rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.label__current-single b {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.18rem;
+  color: var(--team-ink);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.92rem;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label__current-single em {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.22rem;
+  color: var(--team-dim);
+  font-size: 0.32rem;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label__current-single .btn {
+  flex: none;
+  white-space: nowrap;
 }
 
 .label__weeks {

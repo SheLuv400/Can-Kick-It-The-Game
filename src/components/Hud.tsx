@@ -6,6 +6,8 @@ interface HudSide {
   crowd: number
   maxCrowd: number
   hype: number
+  maxHype?: number
+  attacksLeft?: number
   shield: number
   counters: number
   encoreCharges: number
@@ -98,12 +100,19 @@ function CrowdMeter({
           <Icon name="bolt" className="icon--bolt" />
           <span>HYPE</span>
           <b>{String(data.hype).padStart(2, '0')}</b>
+          <i>/{data.maxHype ?? 24}</i>
         </span>
         <span className="hype__ticks" aria-hidden="true">
-          {Array.from({ length: 12 }).map((_, i) => (
+          {Array.from({ length: data.maxHype ?? 24 }).map((_, i) => (
             <span key={i} className={i < data.hype ? 'is-on' : ''} />
           ))}
         </span>
+        {typeof data.attacksLeft === 'number' && (
+          <span className="hype-chip hype-chip--attacks" title="Attacks left this turn">
+            <span>ATTACKS</span>
+            <b>{data.attacksLeft}</b>
+          </span>
+        )}
         {showLevels && <span className={`crowd__level ${low ? 'is-low' : ''}`}>{low ? 'CROWD LEAVING' : 'IN THE PALM'}</span>}
       </div>
       <div className="crowd__tokens">

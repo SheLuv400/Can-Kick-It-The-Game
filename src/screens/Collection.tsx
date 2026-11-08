@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import type { ArtistProgress, Crew, Genre, ThemeId } from '../game/types'
 import {
   ARTISTS,
@@ -13,32 +13,39 @@ import {
   battleStatsFor,
   ELEMENT_META,
   loadoutFor,
+  MAX_CARD_LEVEL,
   moveById,
   moveTypeLabel,
   progressFor,
 } from '../game/moves'
 import { Card } from '../components/Card'
 import { MoveLoadout } from '../components/MoveLoadout'
+import { BadgeLoadout } from '../components/BadgeLoadout'
+import { BADGE_CATALOG, BADGE_TIER_META, equippedBadgeRecords } from '../game/badges'
 import { PortraitUploader } from '../components/PortraitUploader'
 import { TrackPlayer } from '../components/TrackPlayer'
 import { trackFor } from '../game/tracks'
 import { applyArtFit, readArtFit, type ArtFit } from '../game/art-fit'
+import type { FestivalProgress } from '../game/festivals'
 
 interface CollectionProps {
   theme: ThemeId
   progress: Record<string, ArtistProgress>
   onLoadoutChange: (artistId: string, loadout: string[]) => void
+  onBadgeLoadoutChange: (artistId: string, badgeLoadout: string[]) => void
+  festivalProgress?: FestivalProgress | null
   onBack: () => void
   onDeck: () => void
 }
 
-export function Collection({ progress, onLoadoutChange, onBack, onDeck }: CollectionProps) {
+export function Collection({ progress, onLoadoutChange, onBadgeLoadoutChange, festivalProgress, onBack, onDeck }: CollectionProps) {
   const [genre, setGenre] = useState<Genre | 'ALL'>('ALL')
   const [crew, setCrew] = useState<Crew | 'ALL'>('ALL')
   const [activeId, setActiveId] = useState<string | null>(null)
   const [encore, setEncore] = useState(false)
   const [trackOpen, setTrackOpen] = useState(false)
   const [loadoutOpen, setLoadoutOpen] = useState(false)
+  const [badgeOpen, setBadgeOpen] = useState(false)
   const [artFit, setArtFit] = useState<ArtFit>(readArtFit)
   const [uploaderOpen, setUploaderOpen] = useState(false)
 
@@ -67,9 +74,16 @@ export function Collection({ progress, onLoadoutChange, onBack, onDeck }: Collec
         .map(moveById)
         .filter((move) => Boolean(move))
     : []
+  const artistBadges = artist ? equippedBadgeRecords(progress, artist.id) : []
+  const unlockedBadges = artist
+    ? BADGE_CATALOG.filter(
+        (badge) => (progress[artist.id]?.badges?.[badge.id]?.tier ?? 'locked') !== 'locked',
+      ).length
+    : 0
 
   useEffect(() => {
     setTrackOpen(false)
+    setBadgeOpen(false)
   }, [activeId])
 
   useEffect(() => {
@@ -187,20 +201,54 @@ export function Collection({ progress, onLoadoutChange, onBack, onDeck }: Collec
       </div>
 
       <section className="collection__grid">
-        {filtered.map((item) => (
-          <div className="collection__card" key={item.id}>
-            <Card
-              artist={item}
-              size="grid"
-              showQuote
-              onClick={() => {
-                setActiveId(item.id)
-                setEncore(false)
-              }}
-            />
-          </div>
-        ))}
+        {filtered.map((item) => {
+          const festivalFrame = festivalProgress?.claimedRewards.includes('gold')
+            ? 'is-festival-gold'
+            : festivalProgress?.claimedRewards.includes('platinum')
+              ? 'is-festival-platinum'
+              : ''
+          return (
+            <div className={`collection__card ${festivalFrame}`} key={item.id}>
+              <Card
+                artist={item}
+                size="grid"
+                showQuote
+                onClick={() => {
+                  setActiveId(item.id)
+                  setEncore(false)
+                }}
+              />
+            </div>
+          )
+        })}
       </section>
+
+      {festivalProgress && festivalProgress.claimedRewards.length > 0 && (
+        <section className="collection-festival-locker" aria-label="The Festival & Tour Circuit rewards">
+          <div>
+            <span className="kicker">THE FESTIVAL &amp; TOUR CIRCUIT · REWARD LOCKER</span>
+            <h2>EARNED ON THE ROAD.</h2>
+            <p>
+              These rewards persist on this device after the event window closes. The Diamond
+              alternate art keeps the original Casso Royale stats.
+            </p>
+            <div className="collection-festival-locker__badges">
+              {festivalProgress.claimedRewards.map((tier) => (
+                <span key={tier} className={`festival-locker-badge is-${tier}`}>
+                  <b>{tier.toUpperCase()}</b>
+                  {tier === 'diamond' ? 'ANIMATED DIAMOND MIC · FESTIVAL HEADLINER' : tier === 'platinum' ? 'PLATINUM SLEEVES · FESTIVAL BANNER' : 'GOLDEN MICROPHONE BORDER'}
+                </span>
+              ))}
+            </div>
+          </div>
+          {festivalProgress.claimedRewards.includes('diamond') && (
+            <div className="collection-festival-locker__alt">
+              <Card artist={getArtist('casso-royale')} size="grid" showQuote />
+              <span>ALTERNATE ART · SAME GAMEPLAY STATS</span>
+            </div>
+          )}
+        </section>
+      )}
 
       {artist && (
         <div className="modal showcase" role="dialog" aria-modal="true" aria-label={`${artist.name} card`}>
@@ -296,7 +344,7 @@ export function Collection({ progress, onLoadoutChange, onBack, onDeck }: Collec
               {artistStats && artist.battle && (
                 <div className="showcase__combat">
                   <div className="showcase__combat-head">
-                    <span className="kicker">BATTLE PROFILE · LEVEL {artistProgress.level}</span>
+                    <span className="kicker">BATTLE PROFILE · LEVEL {artistProgress.level} / {MAX_CARD_LEVEL}</span>
                     <span
                       className="showcase__element"
                       style={{ color: ELEMENT_META[artist.battle.element].color }}
@@ -327,7 +375,7 @@ export function Collection({ progress, onLoadoutChange, onBack, onDeck }: Collec
                   <div className="showcase__moves-head">
                     <span className="kicker">EQUIPPED MOVES · {artistMoves.length}/3</span>
                     <button className="btn btn--ghost btn--sm" onClick={() => setLoadoutOpen(true)}>
-                      EDIT 3-MOVE LOADOUT
+                      EDIT LOADOUT · 15-MOVE POOL
                     </button>
                   </div>
                   <div className="showcase__moves">
@@ -349,6 +397,47 @@ export function Collection({ progress, onLoadoutChange, onBack, onDeck }: Collec
                   </div>
                 </div>
               )}
+
+              <div className="showcase__badges">
+                <div className="showcase__badges-head">
+                  <span className="kicker">BADGE PROGRAM · {artistBadges.length}/5 EQUIPPED</span>
+                  <button className="btn btn--ghost btn--sm" onClick={() => setBadgeOpen(true)}>
+                    OPEN BADGE LAB · {unlockedBadges}/10
+                  </button>
+                </div>
+                <div className="showcase__badge-row">
+                  {artistBadges.length > 0 ? (
+                    artistBadges.map(({ id, record }) => {
+                      const badge = BADGE_CATALOG.find((entry) => entry.id === id)
+                      if (!badge) return null
+                      return (
+                        <span
+                          className="showcase__badge-chip"
+                          key={id}
+                          style={
+                            {
+                              '--badge-accent': badge.accent,
+                              '--tier-color': BADGE_TIER_META[record.tier].color,
+                            } as CSSProperties
+                          }
+                        >
+                          <i>{badge.icon}</i>
+                          <b>{badge.name}</b>
+                          <em>{BADGE_TIER_META[record.tier].label}</em>
+                        </span>
+                      )
+                    })
+                  ) : (
+                    <p className="showcase__badge-empty">
+                      NO BADGES EQUIPPED · OPEN THE BADGE LAB AND BUILD A FIVE.
+                    </p>
+                  )}
+                </div>
+                <p className="showcase__badge-note">
+                  Ten programs per artist. Each tier is ground separately with matching actions;
+                  equip five that fit the set.
+                </p>
+              </div>
 
               <div className="showcase__ability">
                 <span className="kicker">{encore ? 'ENCORE ABILITY' : 'ABILITY'}</span>
@@ -389,7 +478,7 @@ export function Collection({ progress, onLoadoutChange, onBack, onDeck }: Collec
                 <button className="btn btn--primary" onClick={onDeck}>
                   BUILD AROUND THIS
                 </button>
-                {track && (
+                {track?.embedUrl && (
                   <button className="btn btn--ghost btn--sm" onClick={() => setTrackOpen(true)}>
                     ▶ PLAY “{track.title.toUpperCase()}”
                   </button>
@@ -403,7 +492,15 @@ export function Collection({ progress, onLoadoutChange, onBack, onDeck }: Collec
         </div>
       )}
 
-      {artist && track && trackOpen && <TrackPlayer track={track} onClose={() => setTrackOpen(false)} />}
+      {artist && track?.embedUrl && trackOpen && (
+        <TrackPlayer
+          title={track.title}
+          artist={artist.name}
+          mood={track.mood}
+          embedUrl={track.embedUrl}
+          onClose={() => setTrackOpen(false)}
+        />
+      )}
 
       {import.meta.env.DEV && uploaderOpen && (
         <PortraitUploader onClose={() => setUploaderOpen(false)} />
@@ -417,6 +514,15 @@ export function Collection({ progress, onLoadoutChange, onBack, onDeck }: Collec
           loadout={artistMoves.map((move) => move?.id ?? '')}
           onChange={(loadout) => onLoadoutChange(artist.id, loadout)}
           onClose={() => setLoadoutOpen(false)}
+        />
+      )}
+
+      {artist && badgeOpen && (
+        <BadgeLoadout
+          artist={artist}
+          progress={artistProgress}
+          onChange={(badgeLoadout) => onBadgeLoadoutChange(artist.id, badgeLoadout)}
+          onClose={() => setBadgeOpen(false)}
         />
       )}
 
