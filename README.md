@@ -2,17 +2,19 @@
 
 A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your badges, take the stage, own the room.
 
-**Version 1.4.1 — The Social Line Hotfix**
+**Version 1.4.5 — The 400 Club Update**
 
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Latest release:** [GitHub release v1.4.1](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.1) — THE SOCIAL LINE HOTFIX, with the Windows build.
+- **Live mobile/PWA:** 1.4.4 is deployed at the game URL above, with manifest version 1.4.4. The 1.4.5 payload is built in `dist` and `site-optimized`; it is not deployed yet.
+- **Latest public release:** [GitHub release v1.4.1](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.1) — THE SOCIAL LINE HOTFIX, with the Windows build. The 1.4.4 mobile/PWA build is live. The 1.4.4 and 1.4.5 Windows archives are built and verified locally; neither is attached to a public release yet.
 - **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickItLauncher-1.0.1-win32-x64.zip) — 152.0 MiB
   - Extract and run `CanIKickItLauncher.exe`. It installs the game, checks GitHub Releases for updates, and launches it from one place.
   - SHA-256: `066d7a2c8357c229a631dda1a263951c476e09e3279d83b10a224206bd17201b`
 - **Windows game build (manual):** [Download CanIKickIt-1.4.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickIt-1.4.1-win32-x64.zip) — 164.8 MiB
   - SHA-256: `9afebc2598f2d242d19a5439e9691c3c5c6451de7f331cef46632cd0049aebad`
+  - The 1.4.5 Windows archive is built and verified locally from the same web bundle. It is not attached to a public release yet, so this manual link remains 1.4.1.
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
@@ -28,6 +30,53 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Blocked updates:** if Windows says the game folder is blocked, fully quit `CanIKickIt.exe` in Task Manager, then retry. Launcher 1.0.1 checks for a running game before updating and retries transient folder locks; if the folder is still protected, choose a folder such as `C:\Games\CanIKickItTheGame` in **Settings → Choose Folder**.
 - **Launcher updates:** the launcher itself is version 1.0.1 and is updated separately. Game updates are handled inside it.
 - **Unsigned build:** Windows SmartScreen may warn on first launch. Choose **More info → Run anyway** if you trust the download.
+
+## What’s new in 1.4.5
+
+### THE 400 CLUB UPDATE
+
+- **Every card can reach level 400.** The old level-10 ceiling is gone; cards now use 100 XP per level and need 39,900 XP to finish.
+- **Career cards climb too.** Levels 1–50 keep the original curve, then levels 51–400 cost 500 XP each and continue raising personal card power.
+- **Festival events match your level.** Solo Festival CPU decks use the highest card level in your five-card starting lineup. Normal CPU cards stay at their difficulty levels.
+- **Career badges are the shared badges.** My Artist Career now uses the same ten programs and five tiers as every other mode. Story clears unlock a Plastic copy, career battles add tier XP, and old career badges migrate automatically.
+- **The phone menu is fixed.** All eight main-menu modes now sit in a clean two-column grid without clipped labels or horizontal overflow.
+- **Windows:** `release/CanIKickIt-1.4.5-win32-x64.zip` is built and verified from the same 1.4.5 web bundle. Size: 174,650,732 bytes (166.6 MiB). SHA-256: `c4d1725712df6e41320c2512867cd48b2a69d7bef185a41d5056692856d4f9fd`.
+
+## What’s new in 1.4.4
+
+### THE BUILT-IN MODEL UPDATE
+
+- **A built-in 12-model roster.** My Artist Career now uses the twelve supplied full-body models: six male and six female. Every model is bundled with the game and ready in the creator.
+- **The roster is locked.** The faces, fits and silhouettes are fixed. There is no face, hair, outfit or model replacement in the career creator; every model starts at 50 OVR with the same move pool and badge eligibility.
+- **Card-ready crops.** Each full-body model has a dedicated 320×480 card portrait, so the creator, artist card and career hub show the same artist at every size.
+- **Mobile card layout.** Below 720px the Artist Card stacks the portrait above the name and stats instead of squeezing both into 112px + text columns. Checked at 390×844 and 360×800.
+- **Scope note.** The roster is the supplied artwork; the game bundles optimized WebP derivatives rather than redrawing or substituting the characters. Existing careers keep their IDs, XP, AP, OVR, missions, moves, badges and decks; the fixed model now supplies their artwork.
+- **Mobile/PWA:** 1.4.4 is deployed; manifest version 1.4.4. The built payload is in `dist` and `site-optimized` (134 files, 9.80 MiB).
+- **Windows:** `release/CanIKickIt-1.4.4-win32-x64.zip` is built and verified locally with the same 1.4.4 web bundle, including all 24 full-body and card assets. Size: 173,939,402 bytes (166 MiB). SHA-256: `0026712b17d7a6f82b53c8b3b1d56d19b4f7fe6961d06d259afc20f882d73433`.
+
+## What’s new in 1.4.3
+
+### THE SIGNATURE PRESET UPDATE
+
+- **A proper signature creator.** The creator now has two presentations, each with six faces, six hairstyles and six gendered tops.
+- **The full preset wardrobe.** Six skin tones, six jewelry options and six hats cover chains, pendants, medallions, hoops, studs, fitted caps, beanies, visors, bucket hats, headbands and bandanas.
+- **Twelve shoe models replace the original shoe row.** The approved shoe sheets now supply white and red high-tops, wheat work boots, black/silver runners, purple lows, canvas lows and the chunky silver/gold pair.
+- **The portrait follows the whole fit.** Face, hair, top, jewelry, hat and shoe selections are rendered on the personal Artist Card, career hub, creator preview and battle stage.
+- **Old careers migrate safely.** Previous appearance IDs map to the closest new preset without changing artist ID, XP, AP, OVR, missions, moves, badges or deck.
+- **Mobile/PWA:** the 1.4.3 payload is built in `dist` and `site-optimized`, with manifest version 1.4.3. The creator was checked at 390×844 and 360×800 with all 12 shoes and no horizontal overflow.
+- **Windows:** `release/CanIKickIt-1.4.3-win32-x64.zip` has been rebuilt with the same web bundle. Size: 172,819,134 bytes (164.8 MiB). SHA-256: `029fb0a7b605a99ec5b18f3246ab5b8c99ba4d47cb291189296f4fca108d4dc0`. The ZIP and embedded `app.asar` passed integrity checks.
+
+## What’s new in 1.4.2
+
+### THE USERNAME HANDOFF
+
+- **Names follow the room.** When a private-room handshake exposes an opponent profile, the matching friend record now saves the opponent’s username instead of leaving `FRIEND <code>` behind.
+- **The Billboard and friends list use it.** The saved name becomes the primary player name on the friends-only Billboard and in the friends list, and it survives a reload.
+- **Online battle shows it.** The visible rival heading now shows the opponent’s username on phone and desktop, and the desktop room badge shows `VS <username> · ROOM <code>`.
+- **Windows main menu exit.** The Windows build adds a direct **EXIT GAME** control in the main menu, with the existing save-safe confirmation.
+- **Presence still refreshes names.** If both players are online, the live presence sync continues to update the friend’s name.
+- **Existing friend records.** A record that has only ever seen a friend while offline keeps its code fallback until the two of you next share a room or are online together. Rejoining a room after updating fills it in.
+- **Windows and browser share the fix.** The 1.4.2 browser build is live. The matching Windows archive is built and verified with the same bundle.
 
 ## What’s new in 1.4.1
 
