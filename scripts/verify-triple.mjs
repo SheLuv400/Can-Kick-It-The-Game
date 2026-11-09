@@ -192,6 +192,11 @@ async function main() {
     const wrapped = await roomState(guest1.page)
     check('the room wraps back to the host', wrapped?.party?.activeSeat === 'host')
     check('a full three-mic cycle advances the round', wrapped?.round > hostTurnState?.round, `${hostTurnState?.round} -> ${wrapped?.round}`)
+    await host.page.setViewportSize({ width: 390, height: 844 })
+    await host.page.waitForTimeout(150)
+    const overflow = await host.page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)
+    check('Triple Threat fits a 390px phone without horizontal overflow', !overflow)
+    await host.page.screenshot({ path: 'artifacts/triple-mobile.png', fullPage: true })
     check('no page errors during the three-mic match', errors.length === 0, errors.join(' | '))
     console.log(`[triple] ${checks.length} checks passed in room ${code}`)
   } finally {

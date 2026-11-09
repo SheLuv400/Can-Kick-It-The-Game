@@ -5,7 +5,7 @@ import { useAccount } from '../account/AccountProvider'
 import { useSocial, type FriendPresence } from '../account/SocialProvider'
 import { normalizeFriendCode } from '../account/account'
 import { inverseResult, recordOnlineMatch } from '../online/leaderboard'
-import { normalizeRoomCode, roomSeatName, roomTeam, seatSide, sideLabel, TRIPLE_SEATS, type PlayerProfile, type RoomChatControl, type RoomSeat } from '../online/protocol'
+import { FATAL_SEATS, normalizeRoomCode, roomSeatName, roomTeam, seatSide, sideLabel, TRIPLE_SEATS, type PlayerProfile, type RoomChatControl, type RoomSeat } from '../online/protocol'
 import { usePeerRoom } from '../online/usePeerRoom'
 import { getArtist } from '../game/roster'
 import { portraitUrl } from '../game/portraits'
@@ -310,15 +310,17 @@ export function Online({
   const localSeat: RoomSeat = session.localSeat ?? (session.role === 'host' ? 'host' : 'guest')
   const teamMode = session.houseRules.format === '2v2'
   const tripleMode = session.houseRules.format === 'triple-threat'
-  const localSide = tripleMode ? 'player' : seatSide(localSeat, teamMode)
+  const fatalMode = session.houseRules.format === 'fatal-4'
+  const freeForAllMode = tripleMode || fatalMode
+  const localSide = freeForAllMode ? 'player' : seatSide(localSeat, teamMode)
   const forfeitWon = Boolean(session.state && session.forfeit && session.state.winner === localSide)
   const forfeitNotice = session.forfeit
     ? `${session.forfeit.loserName} LEFT THE MATCH · ${forfeitWon ? 'FORFEIT WIN' : 'FORFEIT LOSS'}`
     : undefined
   // In 2v2 the opponent is the other team, not the first guest who joined.
-  // In Triple Threat every other mic is a rival.
+  // In a free-for-all every other mic is a rival.
   const opposingName = session.state?.party
-    ? session.state.party.format === 'triple-threat'
+    ? session.state.party.format === 'triple-threat' || session.state.party.format === 'fatal-4'
       ? session.state.party.seats
           .filter((seat) => seat.seat !== localSeat)
           .map((seat) => seat.name)
@@ -354,21 +356,23 @@ export function Online({
           roomCode: session.code,
           opponentName: opposingName,
           status: session.status,
-          canAct: tripleMode
+          canAct: freeForAllMode
             ? session.state.party?.activeSeat === localSeat
             : !session.state.party || session.activeSeat === localSeat,
           activeName:
             session.state.party?.seats.find((seat) => seat.seat === session.activeSeat)?.name ??
             'YOUR TEAMMATE',
           chat: chatControl,
-          triple: tripleMode && session.state.party
+          triple: freeForAllMode && session.state.party
             ? {
+                format: session.state.party.format === 'fatal-4' ? 'fatal-4' : 'triple-threat',
                 seats: session.state.party.seats,
                 sides: session.state.party.sides ?? {},
                 activeSeat: session.state.party.activeSeat,
                 targetSeat: session.state.party.targetSeat ?? null,
                 localSeat,
                 eliminated: session.state.party.eliminated ?? [],
+                departed: session.state.party.departed ?? [],
                 targetLocked: Boolean(session.state.party.targetLocked),
                 onTarget: (seat) => session.selectTripleTarget(seat as RoomSeat),
               }
@@ -419,9 +423,11 @@ export function Online({
   const isHost = session.role === 'host'
   const seatOrder: RoomSeat[] = teamMode
     ? ['host', 'guest', 'guest-2', 'guest-3']
-    : tripleMode
-      ? TRIPLE_SEATS
-      : ['host', 'guest']
+    : fatalMode
+      ? FATAL_SEATS
+      : tripleMode
+        ? TRIPLE_SEATS
+        : ['host', 'guest']
   const officialRules = session.houseRules.preset === 'standard'
   const roomCanStart = session.canStart && festivalDeckOk && (!festival || festivalLive)
   if (!account) {
@@ -607,7 +613,7 @@ export function Online({
                 </div>
               )}
 
-              <div className={`online-room__players ${teamMode ? 'is-teams' : ''}`}>
+              <div className={`online-room__players ${teamMode ? 'is-teams' : ''} ${fatalMode ? 'is-fatal' : ''}`}>
                 {seatOrder.map((seat) => {
                   const profile = session.seats[seat]
                   const isYou = seat === localSeat
@@ -617,9 +623,13 @@ export function Online({
                     ? roomTeam(seat) === 'player'
                       ? 'TEAM A'
                       : 'TEAM B'
-                    : isYou
-                      ? 'YOU'
-                      : 'OPPONENT'
+                    : freeForAllMode
+                      ? isYou
+                        ? 'YOUR MIC'
+                        : roomSeatName(seat)
+                      : isYou
+                        ? 'YOU'
+                        : 'OPPONENT'
                   return (
                     <div
                       key={seat}

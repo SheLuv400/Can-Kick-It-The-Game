@@ -898,6 +898,7 @@
     flex-wrap: wrap;
   }
   .format-stage--triple-threat .format-stage__center,
+  .format-stage--fatal-4 .format-stage__center,
   .format-stage--1v1 .format-stage__center {
     display: none;
   }

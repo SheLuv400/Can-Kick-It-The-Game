@@ -12,6 +12,33 @@ export interface UpdateLog {
 
 export const GAME_UPDATES: UpdateLog[] = [
   {
+    version: '1.7.0',
+    title: 'THE FATAL FOUR UPDATE',
+    label: 'FOUR CORNERS · NOV 2026',
+    summary:
+      'Fatal 4 brings four players to one private stage. Every corner brings its own deck, crowd and stage, and only one can leave with the crown.',
+    sections: {
+      new: [
+        'FATAL 4 is a four-player casual format in Online VS. The host and three guests each bring a complete 26-card kit, a 72 Crowd meter and their own corner.',
+        'Turns rotate host → Guest 1 → Guest 2 → Guest 3. Only the active corner can act, and the active player chooses which rival crowd to attack before the first action.',
+        'A corner that reaches zero Crowd is booed off stage. The last living corner wins; if the round-12 curfew arrives first, the highest surviving crowd takes the crown and a tie is a draw.',
+        'The in-battle four-corner strip shows every seat, its live crowd, its stage count and who is on the mic, targeting or waiting.',
+        'A player who leaves a free-for-all match is marked LEFT and knocked out of that corner; the remaining corners keep playing instead of turning the room into a team forfeit.',
+        'The Fatal 4 result screen lists all four final crowds, and RUN IT BACK restores every corner to 72 Crowd.',
+        'The four-corner board folds to a 2×2 grid on tablets and phones, then to one column on the smallest screens. Triple Threat now stacks cleanly at 560px and below.',
+      ],
+      fixed: [
+        'Triple Threat and Fatal 4 battle strips no longer overflow a 390px phone.',
+        'The free-for-all result screen uses its own four-corner crowd layout instead of the two-player crowd banner.',
+        'Fatal 4 curfew and turn logs now name four corners instead of reusing the three-mic copy.',
+      ],
+      changed: [
+        'Fatal 4 is casual-only in this build; ranked play remains 1v1.',
+        'The 1.6.0 Triple Threat format, 1.5.0 room text and voice chat, 1.4.9 2v2 tag team and standard 1v1 remain included.',
+      ],
+    },
+  },
+  {
     version: '1.6.0',
     title: 'THE TRIPLE THREAT UPDATE',
     label: 'THREE MICS · NOV 2026',

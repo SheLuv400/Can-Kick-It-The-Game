@@ -37,7 +37,7 @@ import {
   type Venue,
 } from '../game/circuits'
 import { swapBattleState } from '../online/perspective'
-import type { RoomChatControl } from '../online/protocol'
+import { roomSeatName, type RoomChatControl, type RoomSeat } from '../online/protocol'
 import { battleResultCopy } from '../game/result-copy'
 import { CREW_META, abilityText, getArtist } from '../game/roster'
 import { CATEGORY_LABEL, crateCard, RARITY_META } from '../game/crate'
@@ -65,12 +65,14 @@ import {
 } from '../game/house-rules'
 
 export interface TripleThreatControl {
+  format: 'triple-threat' | 'fatal-4'
   seats: BattlePartySeat[]
   sides: Record<string, SideState>
   activeSeat: string | null
   targetSeat: string | null
   localSeat: string
   eliminated: string[]
+  departed: string[]
   targetLocked: boolean
   onTarget: (seat: string) => void
 }
@@ -205,6 +207,7 @@ export function Battle({
     [online, rawState],
   )
   const triple = online?.triple
+  const isFatal = triple?.format === 'fatal-4'
   const tripleSideFor = (seat: BattlePartySeat): SideState | null => {
     if (!triple) return null
     if (seat.seat === triple.activeSeat) return state.player
@@ -885,16 +888,39 @@ export function Battle({
                 ? `NEED ${CRATE_HYPE_COST} HYPE TO DRAW`
                 : `${CRATE_HYPE_COST} HYPE · DOES NOT END TURN`
 
-  const resultCopy = battleResultCopy({
-    phase: state.phase,
-    round: state.round,
-    winner: state.winner,
-    playerCrowd: state.player.crowd,
-    rivalCrowd: state.rival.crowd,
-    online: Boolean(online),
-    rivalLabel,
-    forfeit: Boolean(forfeitNotice),
-  })
+  const resultCopy = (() => {
+    const base = battleResultCopy({
+      phase: state.phase,
+      round: state.round,
+      winner: state.winner,
+      playerCrowd: state.player.crowd,
+      rivalCrowd: state.rival.crowd,
+      online: Boolean(online),
+      rivalLabel,
+      forfeit: Boolean(forfeitNotice),
+    })
+    if (!triple || !state.party || forfeitNotice) return base
+    const winnerSeat = state.party.winnerSeat ?? null
+    const winner = state.party.seats.find((seat) => seat.seat === winnerSeat)
+    const localWon = winnerSeat === triple.localSeat
+    const curfew = state.round > CURFEW_ROUND && Boolean(winnerSeat)
+    return {
+      ...base,
+      kicker: curfew ? 'THE HOUSE LIGHTS · CURFEW' : 'THE HOUSE LIGHTS · FINAL CROWD',
+      verdict: winnerSeat
+        ? localWon
+          ? 'YOU OWN THE ROOM'
+          : `${winner?.name ?? 'THE LAST MIC'} TAKES IT`
+        : 'THE ROOM IS SPLIT',
+      tone: localWon ? ('win' as const) : winnerSeat ? ('loss' as const) : ('draw' as const),
+      title: winnerSeat ? (localWon ? 'SOLD OUT' : 'CROWD WALKED') : 'CURFEW DEAD HEAT',
+      sub: winnerSeat
+        ? localWon
+          ? 'The room is yours. Every other corner walks.'
+          : `${winner?.name ?? 'THE LAST MIC'} keeps the room. Run it back.`
+        : 'The house lights catch a dead heat.',
+    }
+  })()
 
   const lastLog = state.log[0]
   const houseLabels = state.houseRules
@@ -1049,8 +1075,8 @@ export function Battle({
         )}
         {state.party && (
           <span className="battle__party-badge">
-            {state.party.format === 'triple-threat'
-              ? <>TRIPLE THREAT · {state.party.seats.find((seat) => seat.seat === state.party?.activeSeat)?.name ?? 'OPEN MIC'}'S TURN</>
+            {state.party.format === 'triple-threat' || state.party.format === 'fatal-4'
+              ? <>{state.party.format === 'fatal-4' ? 'FATAL 4' : 'TRIPLE THREAT'} · {state.party.seats.find((seat) => seat.seat === state.party?.activeSeat)?.name ?? 'OPEN MIC'}'S TURN</>
               : <>
                   2V2 · {state.party.seats.filter((seat) => seat.team === 'player').map((seat) => seat.name).join(' + ')}
                   {' '}VS{' '}
@@ -1123,19 +1149,20 @@ export function Battle({
       </div>
 
       {triple && (
-        <section className="triple-mics" aria-label="Triple Threat mics">
+        <section className={`triple-mics ${isFatal ? 'is-fatal' : ''}`} aria-label={`${isFatal ? 'Fatal 4' : 'Triple Threat'} mics`}>
           <div className="triple-mics__head">
-            <span>TRIPLE THREAT · THREE MICS, ONE CROWN</span>
+            <span>{isFatal ? 'FATAL 4 · FOUR CORNERS, ONE CROWN' : 'TRIPLE THREAT · THREE MICS, ONE CROWN'}</span>
             <b>{triple.seats.find((seat) => seat.seat === triple.activeSeat)?.name ?? 'OPEN MIC'} ON THE MIC</b>
             <em>{canPickTripleTarget ? 'TAP A RIVAL TO CHANGE TARGET' : 'TARGET LOCKED FOR THIS TURN'}</em>
           </div>
-          <div className="triple-mics__grid">
+          <div className={`triple-mics__grid ${isFatal ? 'is-four' : ''}`}>
             {triple.seats.map((seat) => {
               const side = tripleSideFor(seat)
               const isActive = seat.seat === triple.activeSeat
               const isTarget = seat.seat === triple.targetSeat
               const isLocal = seat.seat === triple.localSeat
               const isEliminated = triple.eliminated.includes(seat.seat) || (side?.crowd ?? 0) <= 0
+              const isDeparted = triple.departed.includes(seat.seat)
               const pickable = canPickTripleTarget && !isLocal && !isActive && !isEliminated && !isTarget
               const pressure = side ? Math.max(0, Math.min(100, (side.crowd / Math.max(1, side.maxCrowd)) * 100)) : 0
               return (
@@ -1147,7 +1174,7 @@ export function Battle({
                   disabled={!pickable}
                   aria-label={`${seat.name}${isTarget ? ' target' : ''}${isActive ? ' on the mic' : ''}`}
                 >
-                  <span>{isEliminated ? 'BOOED OFF' : isActive ? 'ON MIC' : isTarget ? 'TARGET' : isLocal ? 'YOU' : 'WAITING'}</span>
+                  <span>{isDeparted ? 'LEFT' : isEliminated ? 'BOOED OFF' : isActive ? 'ON MIC' : isTarget ? 'TARGET' : isLocal ? 'YOU' : 'WAITING'}</span>
                   <b>{seat.name}</b>
                   <div className="triple-mic__crowd"><i style={{ width: `${pressure}%` }} /></div>
                   <em>{side?.crowd ?? 0} CROWD · {side?.stage.length ?? 0} ON STAGE</em>
@@ -1917,17 +1944,39 @@ export function Battle({
             </p>
             <h2>{resultCopy.title}</h2>
             <p className="result__sub">{resultCopy.sub}</p>
-            <div className="result__crowds">
-              <div>
-                <span>YOUR CROWD</span>
-                <b>{state.player.crowd}</b>
+            {triple && state.party ? (
+              <div className="result__ff" aria-label="Final free-for-all crowds">
+                {state.party.order.map((seat) => {
+                  const party = state.party!
+                  const side = party.sides?.[seat]
+                  const isWinner = party.winnerSeat === seat
+                  const isOut = party.eliminated?.includes(seat) || (side?.crowd ?? 0) <= 0
+                  const isDeparted = party.departed?.includes(seat) ?? false
+                  return (
+                    <div
+                      key={seat}
+                      className={`result__ff-seat ${isWinner ? 'is-winner' : ''} ${isOut ? 'is-out' : ''}`}
+                    >
+                      <span>{isWinner ? 'WINNER' : isDeparted ? 'LEFT THE ROOM' : isOut ? 'BOOED OFF' : 'FINAL CROWD'}</span>
+                      <b>{party.seats.find((entry) => entry.seat === seat)?.name ?? roomSeatName(seat as RoomSeat)}</b>
+                      <em>{side?.crowd ?? 0} CROWD</em>
+                    </div>
+                  )
+                })}
               </div>
-              <span className="result__dash">—</span>
-              <div>
-                <span>THEIR CROWD</span>
-                <b>{state.rival.crowd}</b>
+            ) : (
+              <div className="result__crowds">
+                <div>
+                  <span>YOUR CROWD</span>
+                  <b>{state.player.crowd}</b>
+                </div>
+                <span className="result__dash">—</span>
+                <div>
+                  <span>THEIR CROWD</span>
+                  <b>{state.rival.crowd}</b>
+                </div>
               </div>
-            </div>
+            )}
             {mvpSummary.mvp &&
               (() => {
                 const mvp = mvpSummary.mvp

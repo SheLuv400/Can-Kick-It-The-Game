@@ -41,9 +41,11 @@ function FormatRoomPreview({ format }: { format: BattleFormatDefinition }) {
       ? 'HOST'
       : format.id === 'triple-threat'
         ? `GUEST ${index}`
-        : index === 1
-          ? 'GUEST'
-          : `OPEN SLOT ${index - 1}`
+        : format.id === 'fatal-4'
+          ? `GUEST ${index}`
+          : index === 1
+            ? 'GUEST'
+            : `OPEN SLOT ${index - 1}`
 
   return (
     <div className={`format-stage format-stage--${format.id} ${format.enabled ? 'is-live' : 'is-locked'}`}>
@@ -156,7 +158,9 @@ export function HouseRulesPanel({
     ? ['host', 'guest', 'guest-2', 'guest-3']
     : rules.format === 'triple-threat'
       ? ['host', 'guest', 'guest-2']
-      : [seat, opponentSeat]
+      : rules.format === 'fatal-4'
+        ? ['host', 'guest', 'guest-2', 'guest-3']
+        : [seat, opponentSeat]
   const seatLabelFor = (entry: RoomSeat) => {
     if (entry === seat) return 'YOU'
     if (rules.format === '2v2') {
@@ -169,6 +173,12 @@ export function HouseRulesPanel({
       if (entry === 'host') return 'HOST'
       if (entry === 'guest') return 'GUEST 1'
       return 'GUEST 2'
+    }
+    if (rules.format === 'fatal-4') {
+      if (entry === 'host') return 'HOST'
+      if (entry === 'guest') return 'GUEST 1'
+      if (entry === 'guest-2') return 'GUEST 2'
+      return 'GUEST 3'
     }
     return isHost ? 'GUEST' : 'HOST'
   }

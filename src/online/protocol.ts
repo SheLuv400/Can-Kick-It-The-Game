@@ -33,6 +33,8 @@ export const TEAM_A_SEATS: RoomSeat[] = ['host', 'guest']
 export const TEAM_B_SEATS: RoomSeat[] = ['guest-2', 'guest-3']
 export const TRIPLE_SEATS: RoomSeat[] = ['host', 'guest', 'guest-2']
 export const TRIPLE_ORDER: RoomSeat[] = ['host', 'guest', 'guest-2']
+export const FATAL_SEATS: RoomSeat[] = ['host', 'guest', 'guest-2', 'guest-3']
+export const FATAL_ORDER: RoomSeat[] = ['host', 'guest', 'guest-2', 'guest-3']
 
 export function roomTeam(seat: RoomSeat): 'player' | 'rival' {
   return TEAM_A_SEATS.includes(seat) ? 'player' : 'rival'

@@ -379,6 +379,17 @@
   gap: 8px;
 }
 
+.online-room__players.is-fatal {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 560px) {
+  .online-room__players.is-fatal {
+    grid-template-columns: 1fr;
+  }
+}
+
 .online-player {
   display: flex;
   align-items: center;

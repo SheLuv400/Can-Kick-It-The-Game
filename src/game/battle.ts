@@ -266,29 +266,31 @@ export interface BattlePartySeat {
 
 /** Metadata for the host-authoritative multi-player rooms. */
 export interface BattleParty {
-  format: '2v2' | 'triple-threat'
+  format: '2v2' | 'triple-threat' | 'fatal-4'
   seats: BattlePartySeat[]
   order: string[]
   activeSeat: string | null
-  /** Triple Threat: the rival the active player is currently facing. */
+  /** Free-for-all: the rival the active player is currently facing. */
   targetSeat?: string | null
   controllers: Record<BattleTeam, string>
   /**
    * Every seat's own deck, hand, Hype, stage, Crate, Backstage and Encore state.
    * In 2v2 only the two seats currently on stage live in `player`/`rival`.
-   * In Triple Threat the active player is `player`, their chosen target is
-   * `rival`, and the third seat waits here untouched. Host-only.
+   * In Triple Threat/Fatal 4 the active player is `player`, their chosen
+   * target is `rival`, and every other seat waits here untouched. Host-only.
    */
   sides?: Record<string, SideState>
   /** Index into `order` for the seat taking the current turn. */
   turnIndex?: number
-  /** Set by the engine when a Triple Threat turn should rotate. */
+  /** Set by the engine when a free-for-all turn should rotate. */
   turnEnded?: boolean
   /** Target changes are locked after the first action of a turn. */
   targetLocked?: boolean
-  /** Triple Threat seats that have been booed off stage. */
+  /** Free-for-all seats that have been booed off stage. */
   eliminated?: string[]
-  /** Triple Threat winner, projected per client. */
+  /** Free-for-all seats that left the room instead of being crowded out. */
+  departed?: string[]
+  /** Free-for-all winner, projected per client. */
   winnerSeat?: string | null
 }
 
@@ -313,7 +315,7 @@ export interface BattleState {
   cinematics: Cinematic[]
   counterPrompt: CounterPrompt | null
   winner: 'player' | 'rival' | 'draw' | null
-  /** Triple Threat winner in canonical seat order. */
+  /** Free-for-all winner in canonical seat order. */
   winnerSeat?: string | null
   difficulty: Difficulty
   rivalActions: number
@@ -1449,8 +1451,8 @@ function applyEffects(
 }
 
 function checkWinner(state: BattleState): boolean {
-  // Triple Threat has three sides and is settled by advanceTripleTurn.
-  if (state.party?.format === 'triple-threat') return false
+  // Free-for-all rooms have three or four sides and are settled by rotation.
+  if (state.party?.format === 'triple-threat' || state.party?.format === 'fatal-4') return false
   if (state.rival.crowd <= 0) {
     state.winner = 'player'
     state.phase = 'over'
@@ -1951,7 +1953,7 @@ function advancePartyTurn(state: BattleState, endedSide: 'player' | 'rival') {
 }
 
 function endTurnFor(state: BattleState, side: 'player' | 'rival') {
-  if (state.party?.format === 'triple-threat') {
+  if (state.party?.format === 'triple-threat' || state.party?.format === 'fatal-4') {
     state.party.turnEnded = true
     return
   }
@@ -1975,13 +1977,19 @@ function endRivalTurn(state: BattleState) {
  * Rotate a three-mic free-for-all after a turn, a knockout or a target switch.
  *
  * The active seat lives in `state.player`, the chosen target in `state.rival`;
- * the waiting seat is parked in `party.sides`. The next living seat takes the
- * mic, and the next living rival becomes its target. A full cycle advances the
- * round, resolves Era changes and enforces the Curfew.
+ * the waiting seats are parked in `party.sides`. The next living seat takes
+ * the mic, and the next living rival becomes its target. A full cycle advances
+ * the round, resolves Era changes and enforces the Curfew.
  */
 export function advanceTripleTurn(state: BattleState, endedSeat: string): void {
   const party = state.party
-  if (!party || party.format !== 'triple-threat' || !party.sides) return
+  if (
+    !party ||
+    !party.sides ||
+    (party.format !== 'triple-threat' && party.format !== 'fatal-4')
+  ) {
+    return
+  }
   const activeSeat = party.activeSeat ?? endedSeat
   const targetSeat = party.targetSeat
   if (activeSeat) party.sides[activeSeat] = cloneSideState(state.player)
@@ -2046,7 +2054,13 @@ export function advanceTripleTurn(state: BattleState, endedSeat: string): void {
       state.winnerSeat = winnerSeat
       state.winner = winnerSeat ? (winnerSeat === 'host' ? 'player' : 'rival') : 'draw'
       state.phase = 'over'
-      pushLog(state, 'CURFEW. THE HOUSE LIGHTS COME UP ON THREE MICS.', 'gold')
+      pushLog(
+        state,
+        party.format === 'fatal-4'
+          ? 'CURFEW. THE HOUSE LIGHTS COME UP ON FOUR CORNERS.'
+          : 'CURFEW. THE HOUSE LIGHTS COME UP ON THREE MICS.',
+        'gold',
+      )
       return
     }
   }
@@ -2081,9 +2095,65 @@ export function advanceTripleTurn(state: BattleState, endedSeat: string): void {
   party.sides[nextTarget] = cloneSideState(state.rival)
   pushLog(
     state,
-    `TRIPLE THREAT · ${state.player.name.toUpperCase()} ON THE MIC · TARGET ${state.rival.name.toUpperCase()}`,
+    `${party.format === 'fatal-4' ? 'FATAL 4' : 'TRIPLE THREAT'} · ${state.player.name.toUpperCase()} ON THE MIC · TARGET ${state.rival.name.toUpperCase()}`,
     'gold',
   )
+}
+
+/**
+ * Remove a disconnected seat from a free-for-all without treating the whole
+ * room as one team. The leaver's corner is marked eliminated; the remaining
+ * corners keep playing, and the normal last-crowd-standing rules decide the
+ * winner if only one corner is left.
+ */
+export function dropFreeForAllSeat(state: BattleState, seat: string): boolean {
+  const party = state.party
+  if (
+    !party ||
+    !party.sides ||
+    (party.format !== 'triple-threat' && party.format !== 'fatal-4') ||
+    !party.order.includes(seat)
+  ) {
+    return false
+  }
+  const eliminated = new Set(party.eliminated ?? [])
+  if (eliminated.has(seat)) return false
+  eliminated.add(seat)
+  party.eliminated = [...eliminated]
+  party.departed = [...new Set([...(party.departed ?? []), seat])]
+  const leavingSide = party.sides[seat]
+  if (leavingSide) leavingSide.crowd = 0
+
+  const activeSeat = party.activeSeat
+  if (activeSeat === seat) {
+    state.player.crowd = 0
+    party.sides[seat] = cloneSideState(state.player)
+    advanceTripleTurn(state, seat)
+    return true
+  }
+
+  if (party.targetSeat === seat) {
+    const nextTarget =
+      party.order.find(
+        (candidate) =>
+          candidate !== activeSeat &&
+          !eliminated.has(candidate) &&
+          (party.sides?.[candidate]?.crowd ?? 0) > 0,
+      ) ?? null
+    party.targetSeat = nextTarget
+    party.targetLocked = false
+    if (nextTarget && party.sides?.[nextTarget]) {
+      state.rival = cloneSideState(party.sides[nextTarget])
+      state.rival.name =
+        party.seats.find((entry) => entry.seat === nextTarget)?.name ?? state.rival.name
+    }
+  }
+
+  const alive = party.order.filter(
+    (candidate) => !eliminated.has(candidate) && (party.sides?.[candidate]?.crowd ?? 0) > 0,
+  )
+  if (alive.length <= 1) advanceTripleTurn(state, activeSeat ?? seat)
+  return true
 }
 
 function bestAffordable(side: SideState, era: 1 | 2 | 3): string | null {

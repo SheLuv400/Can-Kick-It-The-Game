@@ -101,8 +101,7 @@ export const BATTLE_FORMATS: BattleFormatDefinition[] = [
     subtitle: 'Four corners. One room.',
     players: 4,
     teams: 4,
-    enabled: false,
-    unavailableReason: 'Locked until the battle engine supports four-sided free-for-alls.',
+    enabled: true,
   },
 ]
 

@@ -68,4 +68,51 @@ check(state.party.winnerSeat === 'host', 'last living crowd did not win')
 check(state.winnerSeat === 'host' && state.winner === 'player', 'winner was not projected for the host')
 check(state.phase === 'over', 'match did not end with one crowd left')
 
+// Fatal 4 extends the same rotation to a fourth corner.
+const fatal = makeState()
+const fatalSides = {
+  host: cloneSideState(fatal.player),
+  guest: cloneSideState(fatal.rival),
+  'guest-2': cloneSideState(makeState().player),
+  'guest-3': cloneSideState(makeState().player),
+}
+fatal.party = {
+  format: 'fatal-4',
+  seats: [
+    { seat: 'host', name: 'HOST', team: 'player' },
+    { seat: 'guest', name: 'GUEST 1', team: 'rival' },
+    { seat: 'guest-2', name: 'GUEST 2', team: 'rival' },
+    { seat: 'guest-3', name: 'GUEST 3', team: 'rival' },
+  ],
+  order: ['host', 'guest', 'guest-2', 'guest-3'],
+  activeSeat: 'host',
+  targetSeat: 'guest',
+  controllers: { player: 'host', rival: 'guest' },
+  sides: fatalSides,
+  turnIndex: 0,
+  turnEnded: false,
+  targetLocked: false,
+  eliminated: [],
+  winnerSeat: null,
+}
+fatal.player = cloneSideState(fatalSides.host)
+fatal.rival = cloneSideState(fatalSides.guest)
+fatal.phase = 'player'
+fatal.player.crowd = 1
+fatal.rival.crowd = 0
+advanceTripleTurn(fatal, 'host')
+check(fatal.party.eliminated?.includes('guest'), 'Fatal 4 did not eliminate the zero-crowd target')
+check(fatal.party.activeSeat === 'guest-2', 'Fatal 4 did not rotate to the next living seat')
+check(fatal.party.targetSeat === 'guest-3', 'Fatal 4 did not target the next living rival')
+
+fatal.player.crowd = 0
+advanceTripleTurn(fatal, 'guest-2')
+check(fatal.party.activeSeat === 'guest-3', 'Fatal 4 skipped the surviving fourth corner')
+check(fatal.party.targetSeat === 'host', 'Fatal 4 did not target the last surviving rival')
+
+fatal.player.crowd = 0
+advanceTripleTurn(fatal, 'guest-3')
+check(fatal.party.winnerSeat === 'host', 'Fatal 4 did not crown the last living corner')
+check(fatal.phase === 'over', 'Fatal 4 did not end with one corner left')
+
 console.log(`triple-engine-check: ${checks} checks passed`)
