@@ -35,6 +35,7 @@ import {
   type Venue,
 } from '../game/circuits'
 import { swapBattleState } from '../online/perspective'
+import type { RoomChatControl } from '../online/protocol'
 import { battleResultCopy } from '../game/result-copy'
 import { CREW_META, abilityText, getArtist } from '../game/roster'
 import { CATEGORY_LABEL, crateCard, RARITY_META } from '../game/crate'
@@ -50,6 +51,7 @@ import { SettingsModal } from '../components/SettingsModal'
 import { VolumeSlider } from '../components/VolumeSlider'
 import { Portrait } from '../components/Portrait'
 import { CrateDock, MoveDock, StageUnit } from '../components/Combat'
+import { RoomChat } from '../components/RoomChat'
 import { BATTLE_TRACK, audioEngine, useAudioSnapshot } from '../game/audio'
 import { announcerEngine, useAnnouncerSnapshot } from '../game/announcer'
 import { specialMoveForArtist } from '../game/moves'
@@ -70,6 +72,7 @@ export interface OnlineBattleControl {
   /** False when another teammate owns the active turn. */
   canAct?: boolean
   activeName?: string
+  chat?: RoomChatControl
 }
 
 export interface BattlePerformance {
@@ -237,6 +240,7 @@ export function Battle({
   const [exitOpen, setExitOpen] = useState(false)
   const [pauseOpen, setPauseOpen] = useState(false)
   const [pauseSettingsOpen, setPauseSettingsOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
   const [targetUid, setTargetUid] = useState<string | null>(null)
   const [allyTargetUid, setAllyTargetUid] = useState<string | null>(null)
   const [selectedStageUid, setSelectedStageUid] = useState<string | null>(null)
@@ -520,6 +524,10 @@ export function Battle({
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (chatOpen) {
+          setChatOpen(false)
+          return
+        }
         if (pauseSettingsOpen || rulesOpen) return
         if (exitOpen) {
           setExitOpen(false)
@@ -555,6 +563,16 @@ export function Battle({
         audioEngine.playSfx(next ? 'pause' : 'resume')
         return
       }
+      const target = event.target as HTMLElement | null
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return
+      }
+      if (chatOpen) return
       if (
         event.key.toLowerCase() === 'n' &&
         playerTurn &&
@@ -601,6 +619,7 @@ export function Battle({
     pauseSettingsOpen,
     rulesOpen,
     exitOpen,
+    chatOpen,
     selectedStageUid,
     selectNextReady,
     started,
@@ -1029,6 +1048,14 @@ export function Battle({
         <button className={`tool-btn ${logOpen ? 'is-on' : ''}`} onClick={() => setLogOpen(true)}>
           THE NIGHT
         </button>
+        {online?.chat && (
+          <button
+            className={`tool-btn ${chatOpen ? 'is-on' : ''}`}
+            onClick={() => setChatOpen((open) => !open)}
+          >
+            CHAT
+          </button>
+        )}
       </div>
 
       <div className="battle__hud">
@@ -2001,6 +2028,24 @@ export function Battle({
               </button>
             </div>
             <span className="result__fine">BATTLE SCORE · SOUTHERN STEEL · SOUND FX LIVE</span>
+          </div>
+        </div>
+      )}
+
+      {online?.chat && chatOpen && (
+        <div className="battle-chat-overlay" onClick={() => setChatOpen(false)}>
+          <div
+            className="battle-chat-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Room chat"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <RoomChat
+              control={online.chat}
+              compact
+              onClose={() => setChatOpen(false)}
+            />
           </div>
         </div>
       )}

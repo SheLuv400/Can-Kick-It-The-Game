@@ -2,19 +2,19 @@
 
 A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your badges, take the stage, own the room.
 
-**Version 1.4.9 — The 2v2 House Rules Update**
+**Version 1.5.0 — The Live Line Update**
 
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Live mobile/PWA:** 1.4.9 is deployed at the game URL above, with manifest version 1.4.9. The production site serves the 1.4.9 payload.
-- **Latest public release:** [GitHub release v1.4.8](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.4.8) — THE LOCAL AP UPDATE, with the Windows build and release notes. The 1.4.9 web build is live; the 1.4.9 Windows archive is not published yet.
+- **Live mobile/PWA:** 1.5.0 is deployed at the game URL above, with manifest version 1.5.0. The production site serves the 1.5.0 payload.
+- **Latest public release:** [GitHub release v1.5.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.5.0) — THE LIVE LINE UPDATE, with the Windows build and release notes. The 1.5.0 web build and Windows archive ship together.
 - **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickItLauncher-1.0.1-win32-x64.zip) — 152.0 MiB
   - Extract and run `CanIKickItLauncher.exe`. It installs the game, checks GitHub Releases for updates, and launches it from one place.
   - SHA-256: `066d7a2c8357c229a631dda1a263951c476e09e3279d83b10a224206bd17201b`
-- **Windows game build (manual):** [Download CanIKickIt-1.4.8-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.8/CanIKickIt-1.4.8-win32-x64.zip) — 166.6 MiB
-  - SHA-256: `bbfa83ac72b0c53ee2c2736b8b61b2c77af3890b1ec991dfdf54860f7bf84750`
-  - The 1.4.8 archive is attached to the public v1.4.8 release. It passed ZIP integrity checks, and the embedded `app.asar` reports 1.4.8.
+- **Windows game build (manual):** [Download CanIKickIt-1.5.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.5.0/CanIKickIt-1.5.0-win32-x64.zip) — 166.6 MiB
+  - SHA-256: `2afdd7f91535948e0a14248d4ff1925b5f270ee0b44228fcc73d8f171887f012`
+  - The 1.5.0 archive is attached to the public v1.5.0 release. It passed ZIP integrity checks, and the embedded `app.asar` reports 1.5.0.
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
@@ -31,6 +31,20 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Launcher updates:** the launcher itself is version 1.0.1 and is updated separately. Game updates are handled inside it.
 - **Unsigned build:** Windows SmartScreen may warn on first launch. Choose **More info → Run anyway** if you trust the download.
 
+## What’s new in 1.5.0
+
+### THE LIVE LINE UPDATE
+
+- **Room text chat.** Every private room now carries host-relayed text chat from the lobby through the final round. Messages are capped at 180 characters, stamped with the sender's seat and room name, and rate-limited to keep the line readable.
+- **Opt-in voice chat.** Each seat can open its own microphone and join a direct peer-to-peer voice mesh. The game uses the device's default input, so a phone mic, wired headset or Bluetooth headset works through the normal system input selection.
+- **On/off in both places.** Text chat and voice chat each have a toggle in the private-room panel and in the battle chat drawer. Text can be hidden locally without leaving the room; voice off stops the microphone tracks and closes every voice call.
+- **1v1 through 2v2.** A four-seat 2v2 room builds a six-link mesh so every player hears the other three. A 1v1 room carries one direct link. Voice survives the lobby-to-battle hand-off and can be re-joined from the battle drawer.
+- **Typing cannot play the game.** While a chat field has focus, or while the battle chat drawer is open, the SPACE and N shortcuts are paused. Escape closes the drawer.
+- **Clean teardown.** Leaving a room, losing the host or closing the tab stops the microphone and closes every voice link. Chat history stays in the room and is sent to a joining guest.
+- **Network note.** Voice is direct WebRTC audio with STUN; a strict office or school network can block the media link even when text chat and the battle data connection still work.
+- **Release status.** The 1.5.0 mobile/PWA payload is live at the game URL above with manifest 1.5.0. The 1.5.0 Windows archive is attached to the public v1.5.0 release.
+- **1v1 and 2v2 remain intact.** Standard 1v1 keeps the 72 Crowd meter, and 2v2 keeps its four seats, 144 shared Crowd and House Rules.
+
 ## What’s new in 1.4.9
 
 ### THE 2V2 HOUSE RULES UPDATE
@@ -43,7 +57,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Clear endings.** The result screen separates a Crowd-out (**SOLD OUT** / **CROWD WALKED**), a curfew decision (**CURFEW**) and a forfeit (**FORFEIT**). A player who leaves ends the match as a team forfeit; a rematch restores both 144 Crowd meters.
 - **Casual only for now.** 2v2 rooms are casual in this build; ranked play remains 1v1.
 - **1v1 stays the main event.** Standard 1v1 keeps the 72 Crowd meter, the original turn flow and no tag-team party.
-- **Release status.** The 1.4.9 mobile/PWA payload is live at the game URL above with manifest 1.4.9. The Windows download above remains 1.4.8.
+- **Release status.** Superseded by 1.5.0 on the web and Windows.
 
 ## What’s new in 1.4.8
 
@@ -52,9 +66,9 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Local CPU wins pay AP.** Each win awards 1 AP, up to 5 AP per career save per day. Losses and draws pay none.
 - **The ceiling fits the build.** AP now caps at 315: 245 for the full 50→99 OVR climb plus 70 for all seven non-starter elements.
 - **The new source is visible.** The Career Hub button, post-show results, development screen and settings notes show the reward and daily cap.
-- **Release status.** The 1.4.8 mobile/PWA payload was superseded on the web by 1.4.9; the 1.4.8 Windows archive remains the current download.
+- **Release status.** Superseded by 1.5.0. The 1.4.8 Windows archive remains available on its release page.
 - **Windows:** The 1.4.8 archive is attached to the public v1.4.8 release and verified. SHA-256: `bbfa83ac72b0c53ee2c2736b8b61b2c77af3890b1ec991dfdf54860f7bf84750`.
-- **Launcher:** 1.0.1 is unchanged. Existing launcher installs detect 1.4.8 automatically.
+- **Launcher:** 1.0.1 is unchanged. Existing launcher installs detect 1.5.0 automatically.
 
 ## What’s new in 1.4.7
 
@@ -86,7 +100,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Festival events match your level.** Solo Festival CPU decks use the highest card level in your five-card starting lineup. Normal CPU cards stay at their difficulty levels.
 - **Career badges are the shared badges.** My Artist Career now uses the same ten programs and five tiers as every other mode. Story clears unlock a Plastic copy, career battles add tier XP, and old career badges migrate automatically.
 - **The phone menu is fixed.** All eight main-menu modes now sit in a clean two-column grid without clipped labels or horizontal overflow.
-- **Mobile/PWA:** 1.4.5 shipped with manifest version 1.4.5; it has since been replaced by 1.4.9.
+- **Mobile/PWA:** 1.4.5 shipped with manifest version 1.4.5; it has since been replaced by 1.5.0.
 - **Windows:** `release/CanIKickIt-1.4.5-win32-x64.zip` is built and verified from the same 1.4.5 web bundle. Size: 174,650,732 bytes (166.6 MiB). SHA-256: `c4d1725712df6e41320c2512867cd48b2a69d7bef185a41d5056692856d4f9fd`.
 
 ## What’s new in 1.4.4
@@ -98,7 +112,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Card-ready crops.** Each full-body model has a dedicated 320×480 card portrait, so the creator, artist card and career hub show the same artist at every size.
 - **Mobile card layout.** Below 720px the Artist Card stacks the portrait above the name and stats instead of squeezing both into 112px + text columns. Checked at 390×844 and 360×800.
 - **Scope note.** The roster is the supplied artwork; the game bundles optimized WebP derivatives rather than redrawing or substituting the characters. Existing careers keep their IDs, XP, AP, OVR, missions, moves, badges and decks; the fixed model now supplies their artwork.
-- **Mobile/PWA:** 1.4.4 shipped with manifest version 1.4.4; it has since been replaced by 1.4.9.
+- **Mobile/PWA:** 1.4.4 shipped with manifest version 1.4.4; it has since been replaced by 1.5.0.
 - **Windows:** `release/CanIKickIt-1.4.4-win32-x64.zip` is built and verified locally with the same 1.4.4 web bundle, including all 24 full-body and card assets. Size: 173,939,402 bytes (166 MiB). SHA-256: `0026712b17d7a6f82b53c8b3b1d56d19b4f7fe6961d06d259afc20f882d73433`.
 
 ## What’s new in 1.4.3

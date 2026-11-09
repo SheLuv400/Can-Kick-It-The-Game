@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog, ipcMain, screen, shell } = require('electron')
+const { app, BrowserWindow, dialog, ipcMain, screen, session, shell } = require('electron')
 const http = require('node:http')
 const fs = require('node:fs')
 const path = require('node:path')
@@ -367,8 +367,34 @@ function launch(server, port) {
 }
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
+
+function allowLocalAudioCapture() {
+  const isLocalApp = (url) =>
+    typeof url === 'string' && url.startsWith('http://127.0.0.1:')
+  const isAudioOnly = (details) => {
+    const types = details?.mediaTypes ?? (details?.mediaType ? [details.mediaType] : null)
+    return !types || types.every((type) => type === 'audio')
+  }
+  session.defaultSession.setPermissionRequestHandler(
+    (webContents, permission, callback, details) => {
+      callback(
+        permission === 'media' &&
+          isLocalApp(webContents?.getURL?.()) &&
+          isAudioOnly(details),
+      )
+    },
+  )
+  session.defaultSession.setPermissionCheckHandler(
+    (_webContents, permission, requestingOrigin, details) =>
+      permission === 'media' &&
+      isLocalApp(requestingOrigin) &&
+      isAudioOnly(details),
+  )
+}
+
 app.whenReady().then(() => {
   readWindowState()
+  allowLocalAudioCapture()
   registerDesktopIpc()
   launch(createServer(), BASE_PORT)
 })

@@ -52,6 +52,35 @@ export function roomSeatName(seat: RoomSeat): string {
   return 'GUEST 3'
 }
 
+/** A single chat line. The host stamps the seat, name and time. */
+export interface ChatMessage {
+  id: string
+  seat: RoomSeat
+  name: string
+  text: string
+  at: number
+}
+
+export type VoiceChatStatus = 'off' | 'requesting' | 'on' | 'error'
+
+/**
+ * UI-facing chat/voice surface. The transport lives in usePeerRoom so the
+ * conversation survives the lobby -> battle hand-off.
+ */
+export interface RoomChatControl {
+  messages: ChatMessage[]
+  seats: Partial<Record<RoomSeat, PlayerProfile>>
+  localSeat: RoomSeat
+  textEnabled: boolean
+  voiceEnabled: boolean
+  voiceStatus: VoiceChatStatus
+  voiceError: string
+  voiceActive: RoomSeat[]
+  onToggleText: () => void
+  onToggleVoice: () => void
+  onSend: (text: string) => void
+}
+
 export interface RoomRulesState {
   config: HouseRulesConfig
   revision: number
@@ -63,6 +92,8 @@ export type ClientMessage =
   | { type: 'hello'; profile: PlayerProfile }
   | { type: 'action'; action: BattleAction }
   | { type: 'rules-ready'; revision: number; seat: RoomSeat; ready: boolean }
+  | { type: 'chat'; text: string }
+  | { type: 'voice'; active: boolean }
   | { type: 'rematch' }
   | { type: 'leave' }
 
@@ -75,9 +106,21 @@ export interface RoomForfeit {
 
 /** Host -> guest. The host owns the only authoritative battle state. */
 export type HostMessage =
-  | { type: 'welcome'; profile: PlayerProfile; code: string; rules: RoomRulesState; seat: RoomSeat; seats: Partial<Record<RoomSeat, PlayerProfile>> }
+  | {
+      type: 'welcome'
+      profile: PlayerProfile
+      code: string
+      rules: RoomRulesState
+      seat: RoomSeat
+      seats: Partial<Record<RoomSeat, PlayerProfile>>
+      chat?: ChatMessage[]
+      voicePeers?: Partial<Record<RoomSeat, string>>
+      voiceActive?: RoomSeat[]
+    }
   | { type: 'rules'; rules: RoomRulesState }
   | { type: 'room'; seats: Partial<Record<RoomSeat, PlayerProfile>> }
+  | { type: 'chat'; message: ChatMessage }
+  | { type: 'voice-roster'; peers: Partial<Record<RoomSeat, string>>; active: RoomSeat[] }
   | { type: 'start'; state: BattleState }
   | { type: 'state'; state: BattleState; forfeit?: RoomForfeit }
   | { type: 'left'; reason?: string }

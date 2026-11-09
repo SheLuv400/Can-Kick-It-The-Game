@@ -12,6 +12,29 @@ export interface UpdateLog {
 
 export const GAME_UPDATES: UpdateLog[] = [
   {
+    version: '1.5.0',
+    title: 'THE LIVE LINE UPDATE',
+    label: 'ROOM CHAT · NOV 2026',
+    summary:
+      'Online VS private rooms now carry live text chat and opt-in voice chat from the lobby through the final round. Both controls live in the room and in the battle chat drawer, so every seat can talk without leaving the match.',
+    sections: {
+      new: [
+        'ROOM CHAT opens in every private room and stays available during the battle. Messages are relayed only to the seated players in that room.',
+        'VOICE CHAT is an optional peer-to-peer microphone link for every seat, from 1v1 to four-player 2v2. It uses the phone, headset or Bluetooth microphone your device exposes.',
+        'TEXT CHAT and VOICE CHAT each have their own on/off control in the lobby and in the battle chat drawer, so a player can listen without typing or mute the mic without leaving the room.',
+        'Chat is capped at 180 characters and rate-limited, and messages are stamped with the sender\'s seat and room name by the host.',
+      ],
+      fixed: [
+        'Leaving a room now tears down the microphone stream and every voice link, so the mic is not left live.',
+        'Typing a space in chat no longer ends the turn; game keys pause while a chat field has focus.',
+      ],
+      changed: [
+        'Voice is opt-in per player. Joining voice asks for microphone permission and uses echo cancellation, noise suppression and automatic gain control.',
+        'The 1.4.9 2v2, House Rules and result-ending changes remain included in this build.',
+      ],
+    },
+  },
+  {
     version: '1.4.9',
     title: 'THE 2V2 HOUSE RULES UPDATE',
     label: 'TAG TEAM · NOV 2026',

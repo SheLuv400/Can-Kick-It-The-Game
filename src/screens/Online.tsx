@@ -5,7 +5,7 @@ import { useAccount } from '../account/AccountProvider'
 import { useSocial, type FriendPresence } from '../account/SocialProvider'
 import { normalizeFriendCode } from '../account/account'
 import { inverseResult, recordOnlineMatch } from '../online/leaderboard'
-import { normalizeRoomCode, roomSeatName, roomTeam, seatSide, sideLabel, type PlayerProfile, type RoomSeat } from '../online/protocol'
+import { normalizeRoomCode, roomSeatName, roomTeam, seatSide, sideLabel, type PlayerProfile, type RoomChatControl, type RoomSeat } from '../online/protocol'
 import { usePeerRoom } from '../online/usePeerRoom'
 import { getArtist } from '../game/roster'
 import { portraitUrl } from '../game/portraits'
@@ -14,6 +14,7 @@ import { Battle, type BattlePerformance } from './Battle'
 import { PlayerCardModal } from '../components/PlayerCardModal'
 import { HouseRulesPanel } from '../components/HouseRules'
 import { Portrait } from '../components/Portrait'
+import { RoomChat } from '../components/RoomChat'
 import {
   festivalById,
   festivalCountdown,
@@ -320,6 +321,19 @@ export function Online({
         .map((seat) => seat.name)
         .join(' + ')
     : session.opponentName
+  const chatControl: RoomChatControl = {
+    messages: session.chatMessages,
+    seats: session.seats,
+    localSeat,
+    textEnabled: session.textChatEnabled,
+    voiceEnabled: session.voiceChatEnabled,
+    voiceStatus: session.voiceStatus,
+    voiceError: session.voiceError,
+    voiceActive: session.voiceActive,
+    onToggleText: session.toggleTextChat,
+    onToggleVoice: session.toggleVoiceChat,
+    onSend: session.sendChat,
+  }
 
   if (session.phase === 'battle' && session.state) {
     return (
@@ -337,6 +351,7 @@ export function Online({
           activeName:
             session.state.party?.seats.find((seat) => seat.seat === session.activeSeat)?.name ??
             'YOUR TEAMMATE',
+          chat: chatControl,
         }}
         onExit={backToMenu}
         onRematch={session.requestRematch}
@@ -614,6 +629,8 @@ export function Online({
                 })}
               </div>
             </div>
+
+            <RoomChat control={chatControl} />
 
             <HouseRulesPanel
               rules={session.houseRules}

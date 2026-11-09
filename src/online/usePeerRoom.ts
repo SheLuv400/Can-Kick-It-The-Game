@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Peer, type DataConnection } from 'peerjs'
+import { Peer, type DataConnection, type MediaConnection } from 'peerjs'
 import {
   battleReducer,
   cloneBattleState,
@@ -37,9 +37,11 @@ import {
 import {
   normalizeRoomCode,
   ROOM_CODE_LENGTH,
+  ROOM_SEATS,
   sideLabel,
   roomSeatName,
   roomTeam,
+  type ChatMessage,
   type ClientMessage,
   type HostMessage,
   type PlayerProfile,
@@ -47,6 +49,7 @@ import {
   type RoomMessage,
   type RoomRulesState,
   type RoomSeat,
+  type VoiceChatStatus,
 } from './protocol'
 
 export type OnlineRole = 'host' | 'guest'
@@ -104,6 +107,39 @@ const PEER_OPTIONS = {
 const TEAM_ORDER: RoomSeat[] = ['host', 'guest-2', 'guest', 'guest-3']
 /** 2v2 teams share one Crowd meter at twice the normal 72 online maximum. */
 const TEAM_CROWD = 144
+const CHAT_MAX_CHARS = 180
+const CHAT_HISTORY_LIMIT = 80
+const CHAT_RATE_WINDOW_MS = 2500
+const CHAT_RATE_MAX = 4
+
+function cleanChatText(value: unknown): string {
+  if (typeof value !== 'string') return ''
+  return value
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, CHAT_MAX_CHARS)
+}
+
+function makeChatId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+function sanitizeChatMessage(value: unknown): ChatMessage | null {
+  if (!value || typeof value !== 'object') return null
+  const raw = value as Partial<ChatMessage>
+  if (typeof raw.id !== 'string' || !raw.id) return null
+  if (typeof raw.seat !== 'string' || !ROOM_SEATS.includes(raw.seat as RoomSeat)) return null
+  const text = cleanChatText(raw.text)
+  if (!text) return null
+  return {
+    id: raw.id.slice(0, 64),
+    seat: raw.seat as RoomSeat,
+    name: typeof raw.name === 'string' ? sideLabel(raw.name) : 'PLAYER',
+    text,
+    at: typeof raw.at === 'number' && Number.isFinite(raw.at) ? raw.at : Date.now(),
+  }
+}
 
 export interface PeerRoom {
   phase: OnlinePhase
@@ -126,6 +162,15 @@ export interface PeerRoom {
   rulesAccepted: RoomSeat[]
   rulesReady: RoomSeat[]
   canStart: boolean
+  chatMessages: ChatMessage[]
+  textChatEnabled: boolean
+  voiceChatEnabled: boolean
+  voiceStatus: VoiceChatStatus
+  voiceError: string
+  voiceActive: RoomSeat[]
+  sendChat: (text: string) => void
+  toggleTextChat: () => void
+  toggleVoiceChat: () => void
   createRoom: (profile: PlayerProfile) => void
   joinRoom: (code: string, profile: PlayerProfile) => void
   startMatch: () => void
@@ -168,6 +213,12 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
   const [rulesRevision, setRulesRevision] = useState(1)
   const [rulesAccepted, setRulesAccepted] = useState<RoomSeat[]>([])
   const [rulesReady, setRulesReady] = useState<RoomSeat[]>([])
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [textChatEnabled, setTextChatEnabled] = useState(true)
+  const [voiceChatEnabled, setVoiceChatEnabled] = useState(false)
+  const [voiceStatus, setVoiceStatus] = useState<VoiceChatStatus>('off')
+  const [voiceError, setVoiceError] = useState('')
+  const [voiceActive, setVoiceActive] = useState<RoomSeat[]>([])
 
   const peerRef = useRef<Peer | null>(null)
   const connRef = useRef<DataConnection | null>(null)
@@ -188,6 +239,16 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
   const rulesRevisionRef = useRef(1)
   const rulesAcceptedRef = useRef<RoomSeat[]>([])
   const rulesReadyRef = useRef<RoomSeat[]>([])
+  const chatHistoryRef = useRef<ChatMessage[]>([])
+  const chatEnabledRef = useRef(true)
+  const chatRateRef = useRef<Partial<Record<RoomSeat, number[]>>>({})
+  const voiceEnabledRef = useRef(false)
+  const voiceRequestRef = useRef(0)
+  const voicePeersRef = useRef<Partial<Record<RoomSeat, string>>>({})
+  const voiceActiveRef = useRef<RoomSeat[]>([])
+  const localStreamRef = useRef<MediaStream | null>(null)
+  const mediaCallsRef = useRef<Map<string, MediaConnection>>(new Map())
+  const remoteAudioRef = useRef<Map<string, HTMLAudioElement>>(new Map())
 
   const enterPhase = useCallback((next: OnlinePhase) => {
     phaseRef.current = next
@@ -298,6 +359,246 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     return true
   }, [sendRules, setRuleSeats])
 
+  const resetChat = useCallback(() => {
+    chatHistoryRef.current = []
+    chatRateRef.current = {}
+    setChatMessages([])
+  }, [])
+
+  const pushChat = useCallback((message: ChatMessage) => {
+    const next = [...chatHistoryRef.current, message].slice(-CHAT_HISTORY_LIMIT)
+    chatHistoryRef.current = next
+    setChatMessages(next)
+  }, [])
+
+  const toggleTextChat = useCallback(() => {
+    const enabled = !chatEnabledRef.current
+    chatEnabledRef.current = enabled
+    setTextChatEnabled(enabled)
+    setStatus(enabled ? 'TEXT CHAT ON' : 'TEXT CHAT MUTED ON THIS DEVICE')
+  }, [])
+
+  const clearRemoteAudio = useCallback((peerId?: string) => {
+    const ids = peerId ? [peerId] : [...remoteAudioRef.current.keys()]
+    for (const id of ids) {
+      const audio = remoteAudioRef.current.get(id)
+      if (!audio) continue
+      audio.pause()
+      audio.srcObject = null
+      audio.remove()
+      remoteAudioRef.current.delete(id)
+    }
+  }, [])
+
+  const closeMediaCall = useCallback((peerId: string) => {
+    const call = mediaCallsRef.current.get(peerId)
+    if (call) {
+      mediaCallsRef.current.delete(peerId)
+      try {
+        call.close()
+      } catch {
+        // The call can close between the lookup and close.
+      }
+    }
+    clearRemoteAudio(peerId)
+  }, [clearRemoteAudio])
+
+  const playRemoteStream = useCallback((peerId: string, stream: MediaStream) => {
+    let audio = remoteAudioRef.current.get(peerId)
+    if (!audio) {
+      audio = document.createElement('audio')
+      audio.autoplay = true
+      audio.setAttribute('playsinline', '')
+      audio.style.display = 'none'
+      document.body.appendChild(audio)
+      remoteAudioRef.current.set(peerId, audio)
+    }
+    audio.srcObject = stream
+    void audio.play().catch(() => {
+      setVoiceError('TAP THE VOICE BUTTON TO ALLOW AUDIO PLAYBACK.')
+    })
+  }, [])
+
+  const attachMediaCall = useCallback((call: MediaConnection) => {
+    const peerId = call.peer
+    mediaCallsRef.current.set(peerId, call)
+    call.on('stream', (stream) => playRemoteStream(peerId, stream))
+    call.on('close', () => {
+      if (mediaCallsRef.current.get(peerId) === call) mediaCallsRef.current.delete(peerId)
+      clearRemoteAudio(peerId)
+    })
+    call.on('error', () => {
+      if (mediaCallsRef.current.get(peerId) === call) mediaCallsRef.current.delete(peerId)
+      clearRemoteAudio(peerId)
+      setVoiceError('A VOICE LINK DROPPED. TOGGLE VOICE OFF AND ON TO RETRY.')
+    })
+  }, [clearRemoteAudio, playRemoteStream])
+
+  const syncVoiceCalls = useCallback(() => {
+    const stream = localStreamRef.current
+    const peer = peerRef.current
+    if (!voiceEnabledRef.current || !stream || !peer) {
+      for (const peerId of [...mediaCallsRef.current.keys()]) closeMediaCall(peerId)
+      return
+    }
+    const localSeat = seatRef.current
+    const activePeers = new Set<string>()
+    for (const seat of voiceActiveRef.current) {
+      if (seat === localSeat) continue
+      const peerId = voicePeersRef.current[seat]
+      if (!peerId) continue
+      activePeers.add(peerId)
+      if (mediaCallsRef.current.has(peerId)) continue
+      if (ROOM_SEATS.indexOf(localSeat) < ROOM_SEATS.indexOf(seat)) {
+        try {
+          const call = peer.call(peerId, stream)
+          if (call) attachMediaCall(call)
+        } catch {
+          setVoiceError('COULD NOT REACH A VOICE PEER. CHECK THE CONNECTION.')
+        }
+      }
+    }
+    for (const peerId of [...mediaCallsRef.current.keys()]) {
+      if (!activePeers.has(peerId)) closeMediaCall(peerId)
+    }
+  }, [attachMediaCall, closeMediaCall])
+
+  const sendVoiceRoster = useCallback(() => {
+    if (roleRef.current !== 'host') return
+    const active = voiceActiveRef.current.filter((seat) => Boolean(seatsRef.current[seat]))
+    sendHostMessage({
+      type: 'voice-roster',
+      peers: { ...voicePeersRef.current },
+      active,
+    })
+  }, [sendHostMessage])
+
+  const answerIncomingCall = useCallback((call: MediaConnection) => {
+    const stream = localStreamRef.current
+    const remoteSeat = (
+      Object.entries(voicePeersRef.current) as Array<[RoomSeat, string | undefined]>
+    ).find(([, peerId]) => peerId === call.peer)?.[0]
+    if (!voiceEnabledRef.current || !stream || !remoteSeat) {
+      try {
+        call.close()
+      } catch {
+        // The caller may already be gone.
+      }
+      return
+    }
+    const existing = mediaCallsRef.current.get(call.peer)
+    if (existing && existing !== call) {
+      try {
+        existing.close()
+      } catch {
+        // Already closed.
+      }
+      mediaCallsRef.current.delete(call.peer)
+    }
+    try {
+      call.answer(stream)
+      attachMediaCall(call)
+    } catch {
+      try {
+        call.close()
+      } catch {
+        // Already closed.
+      }
+      setVoiceError('A VOICE CALL COULD NOT CONNECT. TRY AGAIN.')
+    }
+  }, [attachMediaCall])
+
+  const enableVoice = useCallback(async () => {
+    if (voiceEnabledRef.current) return
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setVoiceStatus('error')
+      setVoiceError('THIS BROWSER DOES NOT EXPOSE A MICROPHONE.')
+      return
+    }
+    const request = ++voiceRequestRef.current
+    setVoiceStatus('requesting')
+    setVoiceError('')
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      })
+      if (request !== voiceRequestRef.current || !roleRef.current) {
+        stream.getTracks().forEach((track) => track.stop())
+        return
+      }
+      localStreamRef.current = stream
+      voiceEnabledRef.current = true
+      setVoiceChatEnabled(true)
+      setVoiceStatus('on')
+      const seat = seatRef.current
+      voiceActiveRef.current = [...new Set([...voiceActiveRef.current, seat])]
+      setVoiceActive(voiceActiveRef.current)
+      if (roleRef.current === 'host') sendVoiceRoster()
+      else connRef.current?.send({ type: 'voice', active: true } satisfies ClientMessage)
+      syncVoiceCalls()
+    } catch (error) {
+      if (request !== voiceRequestRef.current) return
+      setVoiceStatus('error')
+      const name = error instanceof DOMException ? error.name : ''
+      setVoiceError(
+        name === 'NotAllowedError' || name === 'SecurityError'
+          ? 'MIC ACCESS WAS BLOCKED. ALLOW THE MIC IN YOUR BROWSER OR SYSTEM SETTINGS.'
+          : name === 'NotFoundError'
+            ? 'NO MICROPHONE WAS FOUND. CONNECT A PHONE MIC, HEADSET OR BLUETOOTH INPUT.'
+            : 'COULD NOT OPEN THE MICROPHONE. CHECK THE INPUT AND TRY AGAIN.',
+      )
+    }
+  }, [sendVoiceRoster, syncVoiceCalls])
+
+  const disableVoice = useCallback((notify = true) => {
+    const wasEnabled = voiceEnabledRef.current
+    voiceRequestRef.current += 1
+    voiceEnabledRef.current = false
+    setVoiceChatEnabled(false)
+    setVoiceStatus('off')
+    setVoiceError('')
+    for (const peerId of [...mediaCallsRef.current.keys()]) closeMediaCall(peerId)
+    clearRemoteAudio()
+    const stream = localStreamRef.current
+    localStreamRef.current = null
+    stream?.getTracks().forEach((track) => track.stop())
+    voiceActiveRef.current = voiceActiveRef.current.filter((seat) => seat !== seatRef.current)
+    setVoiceActive(voiceActiveRef.current)
+    if (notify && wasEnabled) {
+      if (roleRef.current === 'host') sendVoiceRoster()
+      else connRef.current?.send({ type: 'voice', active: false } satisfies ClientMessage)
+    }
+  }, [clearRemoteAudio, closeMediaCall, sendVoiceRoster])
+
+  const toggleVoiceChat = useCallback(() => {
+    if (voiceEnabledRef.current) disableVoice()
+    else void enableVoice()
+  }, [disableVoice, enableVoice])
+
+  const sendChat = useCallback((raw: string) => {
+    if (!chatEnabledRef.current) return
+    const text = cleanChatText(raw)
+    if (!text) return
+    if (roleRef.current === 'host') {
+      const seat = seatRef.current
+      const message: ChatMessage = {
+        id: makeChatId(),
+        seat,
+        name: seatsRef.current[seat]?.name ?? roomSeatName(seat),
+        text,
+        at: Date.now(),
+      }
+      pushChat(message)
+      sendHostMessage({ type: 'chat', message })
+      return
+    }
+    connRef.current?.send({ type: 'chat', text } satisfies ClientMessage)
+  }, [pushChat, sendHostMessage])
+
   const endForfeit = useCallback(
     (winner: OnlineRole, loser: OnlineRole, rawLoserName: string) => {
       if (phaseRef.current !== 'battle') return false
@@ -329,6 +630,11 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
   )
 
   const teardown = useCallback(() => {
+    disableVoice(false)
+    resetChat()
+    voicePeersRef.current = {}
+    voiceActiveRef.current = []
+    setVoiceActive([])
     for (const connection of Object.values(connsRef.current)) {
       try {
         connection?.close()
@@ -357,7 +663,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     profileRef.current = null
     roleRef.current = null
     codeRef.current = ''
-  }, [])
+  }, [disableVoice, resetChat])
 
   const handleHostMessage = useCallback((raw: unknown, fromSeat: RoomSeat) => {
     const message = raw as RoomMessage
@@ -397,8 +703,47 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
           rules: makeRulesState(),
           seat: fromSeat,
           seats: nextSeats,
+          chat: chatHistoryRef.current,
+          voicePeers: { ...voicePeersRef.current },
+          voiceActive: voiceActiveRef.current.filter((seat) => Boolean(seatsRef.current[seat])),
         }, fromSeat)
       }
+      return
+    }
+
+    if (message.type === 'chat') {
+      if (!('text' in message)) return
+      const text = cleanChatText(message.text)
+      if (!text) return
+      const now = Date.now()
+      const recent = (chatRateRef.current[fromSeat] ?? []).filter(
+        (time) => now - time < CHAT_RATE_WINDOW_MS,
+      )
+      if (recent.length >= CHAT_RATE_MAX) {
+        setStatus('CHAT RATE LIMIT · GIVE THE ROOM A SECOND.')
+        return
+      }
+      chatRateRef.current[fromSeat] = [...recent, now]
+      const chat: ChatMessage = {
+        id: makeChatId(),
+        seat: fromSeat,
+        name: seatsRef.current[fromSeat]?.name ?? roomSeatName(fromSeat),
+        text,
+        at: now,
+      }
+      pushChat(chat)
+      sendHostMessage({ type: 'chat', message: chat })
+      return
+    }
+
+    if (message.type === 'voice') {
+      const active = message.active === true
+        ? [...new Set([...voiceActiveRef.current, fromSeat])]
+        : voiceActiveRef.current.filter((seat) => seat !== fromSeat)
+      voiceActiveRef.current = active
+      setVoiceActive(active)
+      sendVoiceRoster()
+      syncVoiceCalls()
       return
     }
 
@@ -433,7 +778,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     if (message.type === 'leave') {
       connsRef.current[fromSeat]?.close()
     }
-  }, [commitSeats, festival, makeRulesState, sendHostMessage, sendRules, setRuleSeats])
+  }, [commitSeats, festival, makeRulesState, pushChat, sendHostMessage, sendRules, sendVoiceRoster, setRuleSeats, syncVoiceCalls])
 
   const handleGuestMessage = useCallback((raw: unknown) => {
     const message = raw as RoomMessage
@@ -457,6 +802,24 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
         setOpponentId(profile.playerId ?? null)
         setOpponentStreak(profile.festivalStreak ?? 0)
       }
+      const history = (Array.isArray(message.chat) ? message.chat : [])
+        .map(sanitizeChatMessage)
+        .filter((entry): entry is ChatMessage => Boolean(entry))
+        .slice(-CHAT_HISTORY_LIMIT)
+      chatHistoryRef.current = history
+      setChatMessages(history)
+      const voicePeers: Partial<Record<RoomSeat, string>> = {}
+      for (const seat of ROOM_SEATS) {
+        const peerId = message.voicePeers?.[seat]
+        if (typeof peerId === 'string' && peerId) voicePeers[seat] = peerId
+      }
+      voicePeersRef.current = voicePeers
+      const active = (Array.isArray(message.voiceActive) ? message.voiceActive : [])
+        .filter((seat): seat is RoomSeat =>
+          typeof seat === 'string' && ROOM_SEATS.includes(seat as RoomSeat),
+        )
+      voiceActiveRef.current = active
+      setVoiceActive(active)
       if (message.rules) applyRulesState(message.rules)
       else resetRules()
       enterPhase('lobby')
@@ -467,6 +830,30 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     if (message.type === 'room') {
       seatsRef.current = message.seats
       setSeats(message.seats)
+      return
+    }
+
+    if (message.type === 'chat') {
+      if (!('message' in message)) return
+      const chat = sanitizeChatMessage(message.message)
+      if (chat) pushChat(chat)
+      return
+    }
+
+    if (message.type === 'voice-roster') {
+      const peers: Partial<Record<RoomSeat, string>> = {}
+      for (const seat of ROOM_SEATS) {
+        const peerId = message.peers?.[seat]
+        if (typeof peerId === 'string' && peerId) peers[seat] = peerId
+      }
+      voicePeersRef.current = peers
+      const active = (Array.isArray(message.active) ? message.active : [])
+        .filter((seat): seat is RoomSeat =>
+          typeof seat === 'string' && ROOM_SEATS.includes(seat as RoomSeat),
+        )
+      voiceActiveRef.current = active
+      setVoiceActive(active)
+      syncVoiceCalls()
       return
     }
 
@@ -507,6 +894,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     }
 
     if (message.type === 'left') {
+      disableVoice(false)
       if (message.reason) {
         // The host refused the connection (full room); say so instead of
         // leaving the guest on a silent dial screen.
@@ -546,7 +934,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       setOpponentStreak(0)
       opponentRef.current = null
     }
-  }, [applyRulesState, commitActiveSeat, endForfeit, enterPhase, festival, resetRules])
+  }, [applyRulesState, commitActiveSeat, disableVoice, endForfeit, enterPhase, festival, pushChat, resetRules, syncVoiceCalls])
 
   const handleHostSeatGone = useCallback((seat: RoomSeat) => {
     const profile = seatsRef.current[seat]
@@ -583,13 +971,17 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       rulesAcceptedRef.current.filter((entry) => entry !== seat && entry in nextSeats),
       rulesReadyRef.current.filter((entry) => entry !== seat && entry in nextSeats),
     )
+    delete voicePeersRef.current[seat]
+    voiceActiveRef.current = voiceActiveRef.current.filter((entry) => entry !== seat)
+    setVoiceActive(voiceActiveRef.current)
+    sendVoiceRoster()
     if (!seatsRef.current.guest) {
       opponentRef.current = null
       setOpponentName('')
       setOpponentId(null)
       setOpponentStreak(0)
     }
-  }, [commitActiveSeat, commitSeats, sendHostMessage, setRuleSeats])
+  }, [commitActiveSeat, commitSeats, sendHostMessage, sendVoiceRoster, setRuleSeats])
 
   const createRoom = useCallback(
     (profile: PlayerProfile) => {
@@ -633,9 +1025,13 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       commitSeats({ host: self })
 
       nextPeer.on('open', () => {
+        voicePeersRef.current.host = nextPeer.id
         enterPhase('lobby')
         setStatus('ROOM OPEN · SHARE THE CODE')
+        sendVoiceRoster()
       })
+
+      nextPeer.on('call', answerIncomingCall)
 
       nextPeer.on('connection', (connection) => {
         const capacity = houseRulesRef.current.format === '2v2' ? 3 : 1
@@ -667,12 +1063,21 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
         }
         connsRef.current[guestSeat] = connection
         connRef.current = connection
-        connection.on('open', () => setStatus(`${roomSeatName(guestSeat)} CONNECTED`))
+        voicePeersRef.current[guestSeat] = connection.peer
+        connection.on('open', () => {
+          setStatus(`${roomSeatName(guestSeat)} CONNECTED`)
+          sendVoiceRoster()
+        })
         connection.on('data', (raw) => handleHostMessage(raw, guestSeat))
         connection.on('close', () => {
           if (connsRef.current[guestSeat] !== connection) return
           delete connsRef.current[guestSeat]
           if (connRef.current === connection) connRef.current = null
+          delete voicePeersRef.current[guestSeat]
+          voiceActiveRef.current = voiceActiveRef.current.filter((entry) => entry !== guestSeat)
+          setVoiceActive(voiceActiveRef.current)
+          closeMediaCall(connection.peer)
+          sendVoiceRoster()
           if (phaseRef.current === 'idle') return
           if (stateRef.current?.party && stateRef.current.phase !== 'over') {
             handleHostSeatGone(guestSeat)
@@ -696,9 +1101,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
           setError(`ROOM ERROR: ${type.replace(/-/g, ' ').toUpperCase()}`)
         }
         enterPhase('error')
-      })
-    },
-    [commitActiveSeat, commitSeats, endForfeit, enterPhase, festival, handleHostMessage, handleHostSeatGone, resetRules, setRuleSeats, teardown],
+      })  }, [answerIncomingCall, closeMediaCall, commitActiveSeat, commitSeats, endForfeit, enterPhase, festival, handleHostMessage, handleHostSeatGone, resetRules, sendVoiceRoster, setRuleSeats, teardown],
   )
 
   const joinRoom = useCallback(
@@ -746,6 +1149,8 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       setLocalSeat(null)
       commitActiveSeat(null)
 
+      nextPeer.on('call', answerIncomingCall)
+
       nextPeer.on('open', () => {
         const connection = nextPeer.connect(PEER_PREFIX + nextCode, { reliable: true })
         connRef.current = connection
@@ -756,6 +1161,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
         })
         connection.on('data', handleGuestMessage)
         connection.on('close', () => {
+          disableVoice(false)
           if (rejectedRef.current) return
           if (stateRef.current?.phase === 'over') return
           if (endForfeit('guest', 'host', opponentRef.current?.name ?? 'HOST')) return
@@ -774,9 +1180,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
           setError(`ROOM ERROR: ${type.replace(/-/g, ' ').toUpperCase()}`)
         }
         enterPhase('error')
-      })
-    },
-    [endForfeit, enterPhase, festival, handleGuestMessage, resetRules, teardown],
+      })  }, [answerIncomingCall, disableVoice, endForfeit, enterPhase, festival, handleGuestMessage, resetRules, teardown],
   )
 
   const startMatchInternal = useCallback(() => {
@@ -1102,6 +1506,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
 
   const leave = useCallback(() => {
     const leavingAsHost = roleRef.current === 'host'
+    disableVoice()
     phaseRef.current = 'idle'
     try {
       if (leavingAsHost) {
@@ -1126,7 +1531,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     setForfeit(null)
     commitActiveSeat(null)
     resetRules()
-  }, [commitActiveSeat, enterPhase, resetRules, sendHostMessage, teardown])
+  }, [commitActiveSeat, disableVoice, enterPhase, resetRules, sendHostMessage, teardown])
 
   useEffect(() => () => teardown(), [teardown])
 
@@ -1151,6 +1556,15 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     rulesAccepted,
     rulesReady,
     canStart,
+    chatMessages,
+    textChatEnabled,
+    voiceChatEnabled,
+    voiceStatus,
+    voiceError,
+    voiceActive,
+    sendChat,
+    toggleTextChat,
+    toggleVoiceChat,
     createRoom,
     joinRoom,
     startMatch,
