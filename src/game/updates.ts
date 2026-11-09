@@ -12,6 +12,33 @@ export interface UpdateLog {
 
 export const GAME_UPDATES: UpdateLog[] = [
   {
+    version: '1.4.9',
+    title: 'THE 2V2 HOUSE RULES UPDATE',
+    label: 'TAG TEAM · NOV 2026',
+    summary:
+      'Online private rooms now seat four players for 2v2 tag-team battles, with one shared Crowd meter per team and DJ\'s House Rules deciding the format and modifiers. Standard 1v1 is unchanged.',
+    sections: {
+      new: [
+        'TAG TEAM HEADLINERS seats the host and Guest 1 on Team A against Guest 2 and Guest 3 on Team B. Turns alternate A1 → B1 → A2 → B2, and only the active seat can act.',
+        'Each seat keeps its own 26-card deck, hand, Hype, stage, Crate, Backstage and Encore. Teammates do not share a hand, and the opposing team never sees it.',
+        'Each team shares one 144 Crowd meter, double the 1v1 72. 2v2 Crowd damage is multiplied by 1.5, so a team can be Crowded out before the round-12 curfew.',
+        'DJ\'s House Rules adds Standard, Custom and Shuffle presets and up to three compatible modifiers, with a ready gate before the first turn.',
+        'The private-room lobby now shows an artist wall, rejects a fifth player and lets an empty seat be reclaimed after a rejoin.',
+        'The result screen separates a Crowd-out, a curfew decision and a forfeit; a rematch restores both 144 Crowd meters.',
+      ],
+      fixed: [
+        '2v2 rooms keep each player\'s own hand and kit instead of sharing one team hand.',
+        'A counter window can be answered by the defending team, and END TURN is blocked while a counter is pending.',
+        'Leaving a 2v2 match now broadcasts the forfeit to every remaining client.',
+      ],
+      changed: [
+        '2v2 is casual-only in this build; ranked play remains 1v1.',
+        'Standard 1v1 keeps the 72 Crowd meter, the original turn flow and no tag-team party.',
+        'The 1.4.8 local AP and badge-equip changes remain included in this build.',
+      ],
+    },
+  },
+  {
     version: '1.4.8',
     title: 'THE LOCAL AP UPDATE',
     label: 'CAREER ECONOMY · NOV 2026',
