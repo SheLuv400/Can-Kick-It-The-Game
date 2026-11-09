@@ -35,6 +35,7 @@ import {
   type Venue,
 } from '../game/circuits'
 import { swapBattleState } from '../online/perspective'
+import { battleResultCopy } from '../game/result-copy'
 import { CREW_META, abilityText, getArtist } from '../game/roster'
 import { CATEGORY_LABEL, crateCard, RARITY_META } from '../game/crate'
 import { ELEMENT_META, moveById } from '../game/moves'
@@ -53,6 +54,11 @@ import { BATTLE_TRACK, audioEngine, useAudioSnapshot } from '../game/audio'
 import { announcerEngine, useAnnouncerSnapshot } from '../game/announcer'
 import { specialMoveForArtist } from '../game/moves'
 import { focusGamepadElement, onGamepadCommand } from '../input/gamepad'
+import {
+  houseModifierById,
+  houseRulesSummary,
+  houseRulesTitle,
+} from '../game/house-rules'
 
 export interface OnlineBattleControl {
   side: 'player' | 'rival'
@@ -61,6 +67,9 @@ export interface OnlineBattleControl {
   roomCode: string
   opponentName: string
   status: string
+  /** False when another teammate owns the active turn. */
+  canAct?: boolean
+  activeName?: string
 }
 
 export interface BattlePerformance {
@@ -76,6 +85,19 @@ export interface BattlePerformance {
   responseMs: number
   responseSamples: number
   cards: Record<string, CardPerformance>
+}
+
+const HOUSE_GLYPHS: Record<string, string> = {
+  'hype-surge': '▲',
+  'crate-frenzy': '▦',
+  'double-time-delivery': '⏱',
+  'big-stage': '◉',
+  'golden-hooks': '✦',
+  'sharp-pen-showcase': '✒',
+  'backstage-bounce': '↺',
+  'encore-spotlight': '♫',
+  'last-verse-standing': '☗',
+  'crate-lockdown': '▣',
 }
 
 const RESPONSE_ACTIONS = new Set<BattleAction['type']>([
@@ -166,11 +188,30 @@ export function Battle({
     [online, rawState],
   )
   const [started, setStarted] = useState(Boolean(online))
+  const canAct = online?.canAct !== false
+  const [houseIntro, setHouseIntro] = useState(Boolean(rawState.houseRules))
+  const [houseToast, setHouseToast] = useState<{
+    title: string
+    detail: string
+    nonce: number
+  } | null>(null)
+  const houseEventSeen = useRef(0)
   const responseStart = useRef(performance.now())
   const responseRecorded = useRef(false)
   const responseTotals = useRef({ ms: 0, samples: 0 })
   const dispatch = useCallback(
     (action: BattleAction) => {
+      // A defensive window belongs to the defending team even when the
+      // attacker still holds the turn; otherwise the prompt can never clear.
+      // Cinematics are shared presentation and any seat may skip them.
+      if (
+        online &&
+        !canAct &&
+        action.type !== 'COUNTER' &&
+        action.type !== 'DISMISS_CINEMATIC'
+      ) {
+        return
+      }
       if (
         started &&
         state.phase === 'player' &&
@@ -187,7 +228,7 @@ export function Battle({
       if (online) online.dispatch(action)
       else localDispatch(action)
     },
-    [online, localDispatch, started, state.phase],
+    [online, localDispatch, started, state.phase, canAct],
   )
   const [pendingCard, setPendingCard] = useState<string | null>(null)
   const [peekId, setPeekId] = useState<string | null>(null)
@@ -221,7 +262,7 @@ export function Battle({
   const nextReady = readyStage.find((card) => card.uid !== selectedStageUid) ?? null
   const nextReadyName = nextReady ? getArtist(nextReady.artistId).name : null
   const playerTurn =
-    started && state.phase === 'player' && !cinematic && !state.counterPrompt && !pauseOpen
+    started && canAct && state.phase === 'player' && !cinematic && !state.counterPrompt && !pauseOpen
   const rivalLabel = online ? state.rival.name : 'THE HEADLINER'
   const showCounter =
     Boolean(state.counterPrompt) &&
@@ -251,7 +292,10 @@ export function Battle({
   const playerUidKey = state.player.stage.map((card) => card.uid).join('|')
   const rivalUidKey = state.rival.stage.map((card) => card.uid).join('|')
 
-  const skipCinematic = useCallback(() => dispatch({ type: 'DISMISS_CINEMATIC' }), [])
+  const skipCinematic = useCallback(
+    () => dispatch({ type: 'DISMISS_CINEMATIC' }),
+    [dispatch],
+  )
 
   const selectNextReady = useCallback(() => {
     if (!playerTurn) return
@@ -329,6 +373,21 @@ export function Battle({
     audioEngine.playSfx('shuffle')
     announcerEngine.startMatch()
   }, [started])
+
+  useEffect(() => {
+    if (!houseIntro) return
+    const timer = window.setTimeout(() => setHouseIntro(false), 5200)
+    return () => window.clearTimeout(timer)
+  }, [houseIntro])
+
+  useEffect(() => {
+    const event = state.lastHouseRuleEvent
+    if (!event || event.nonce === houseEventSeen.current) return
+    houseEventSeen.current = event.nonce
+    setHouseToast({ title: event.title, detail: event.detail, nonce: event.nonce })
+    const timer = window.setTimeout(() => setHouseToast(null), 2800)
+    return () => window.clearTimeout(timer)
+  }, [state.lastHouseRuleEvent])
 
   useEffect(() => {
     announcerEngine.setPaused(pauseOpen || pauseSettingsOpen)
@@ -645,7 +704,7 @@ export function Battle({
   }
 
   const endTurn = () => {
-    if (!playerTurn) return
+    if (!playerTurn || state.counterPrompt) return
     audioEngine.playSfx('turn')
     setPendingCard(null)
     setSelectedStageUid(null)
@@ -755,8 +814,10 @@ export function Battle({
     return () => window.cancelAnimationFrame(frame)
   }, [started])
 
+  const crateLockdown = Boolean(state.houseRules?.modifiers.includes('crate-lockdown'))
   const canDraw =
     playerTurn &&
+    !crateLockdown &&
     state.player.specialHand.length < 6 &&
     state.player.crate.length > 0 &&
     state.player.hype >= CRATE_HYPE_COST &&
@@ -766,32 +827,33 @@ export function Battle({
       ? 'START THE SHOW'
       : state.phase !== 'player'
         ? 'NOT YOUR TURN'
-        : state.player.specialHand.length >= 6
-          ? 'SPECIAL HAND FULL — USE A CARD FIRST'
-          : state.player.crate.length === 0
-            ? 'THE CRATE IS EMPTY'
-            : state.player.hype < CRATE_HYPE_COST
-              ? `NEED ${CRATE_HYPE_COST} HYPE TO DRAW`
-              : `${CRATE_HYPE_COST} HYPE · DOES NOT END TURN`
+        : crateLockdown
+          ? 'CRATE LOCKDOWN — CRATE DRAWS DISABLED'
+          : state.player.specialHand.length >= 6
+            ? 'SPECIAL HAND FULL — USE A CARD FIRST'
+            : state.player.crate.length === 0
+              ? 'THE CRATE IS EMPTY'
+              : state.player.hype < CRATE_HYPE_COST
+                ? `NEED ${CRATE_HYPE_COST} HYPE TO DRAW`
+                : `${CRATE_HYPE_COST} HYPE · DOES NOT END TURN`
 
-  const winnerTitle =
-    state.winner === 'player'
-      ? 'SOLD OUT'
-      : state.winner === 'rival'
-        ? 'CROWD WALKED'
-        : 'CURFEW DEAD HEAT'
-  const winnerSub =
-    state.winner === 'player'
-      ? online
-        ? 'The room is yours. Your opponent walks.'
-        : 'The room is yours. The Headliner walks.'
-      : state.winner === 'rival'
-        ? online
-          ? `${rivalLabel} keeps the room. Run it back.`
-          : 'The Headliner keeps the room. Run it back.'
-        : 'Neither room blinked. The house lights win.'
+  const resultCopy = battleResultCopy({
+    phase: state.phase,
+    round: state.round,
+    winner: state.winner,
+    playerCrowd: state.player.crowd,
+    rivalCrowd: state.rival.crowd,
+    online: Boolean(online),
+    rivalLabel,
+    forfeit: Boolean(forfeitNotice),
+  })
 
   const lastLog = state.log[0]
+  const houseLabels = state.houseRules
+    ? state.houseRules.modifiers.length > 0
+      ? state.houseRules.modifiers.map((id) => houseModifierById(id).name)
+      : ['OFFICIAL RULES', 'NO MODIFIERS', 'STANDARD BATTLE']
+    : []
 
   const crateCandidates = useMemo(() => {
     const ids = [...state.player.deck, ...state.player.discard]
@@ -804,6 +866,43 @@ export function Battle({
       className={`battle battle--${settings.theme}${state.circuit ? ` battle--circuit-${state.circuit}` : ''}${state.festival ? ' battle--festival' : ''}`}
       style={{ '--venue-accent': state.venue.accent } as CSSProperties}
     >
+      {houseIntro && state.houseRules && (
+        <div
+          className="house-intro"
+          role="dialog"
+          aria-modal="true"
+          aria-label="House rules introduction"
+          onClick={() => setHouseIntro(false)}
+        >
+          <div className="house-intro__card" onClick={(event) => event.stopPropagation()}>
+            <span className="house-intro__kicker">DJ&apos;S HOUSE RULES · {state.houseRules.format.toUpperCase()}</span>
+            <h2>{houseRulesTitle(state.houseRules)}</h2>
+            <div className="house-intro__turntable" aria-hidden="true">
+              <div className="house-intro__labels">
+                {houseLabels.slice(0, 3).map((label) => (
+                  <span key={label}>{label}</span>
+                ))}
+              </div>
+            </div>
+            <p className="house-intro__summary">{houseRulesSummary(state.houseRules)}</p>
+            <button
+              type="button"
+              className="btn btn--primary btn--sm house-intro__dismiss"
+              onClick={() => setHouseIntro(false)}
+            >
+              LET&apos;S GET IT
+            </button>
+          </div>
+        </div>
+      )}
+
+      {houseToast && (
+        <div className="house-toast" key={houseToast.nonce} role="status" aria-live="polite">
+          <strong>{houseToast.title}</strong>
+          <span>{houseToast.detail}</span>
+        </div>
+      )}
+
       <div className="battle__bg" aria-hidden="true">
         {settings.theme === 'a' && (
           <>
@@ -900,6 +999,14 @@ export function Battle({
             <i /> VS {online.opponentName || 'OPPONENT'} · ROOM {online.roomCode}
           </span>
         )}
+        {state.party && (
+          <span className="battle__party-badge">
+            2V2 · {state.party.seats.filter((seat) => seat.team === 'player').map((seat) => seat.name).join(' + ')}
+            {' '}VS{' '}
+            {state.party.seats.filter((seat) => seat.team === 'rival').map((seat) => seat.name).join(' + ')}
+            {online?.activeName ? ` · ${online.activeName}'S TURN` : ''}
+          </span>
+        )}
         {started && state.phase !== 'over' && (
           <button
             className="tool-btn"
@@ -954,6 +1061,22 @@ export function Battle({
           difficulty={online ? `ONLINE · VS ${online.opponentName || 'OPPONENT'}` : `${difficultyLabel(state.difficulty)} · ${state.venue.name}`}
         />
       </div>
+
+      {state.houseRules && (
+        <div className="house-hud" aria-label="Active house rules">
+          <span className="house-hud__label">DJ&apos;S HOUSE RULES</span>
+          {state.houseRules.modifiers.length === 0 ? (
+            <span className="house-hud__chip"><i aria-hidden="true">◈</i> OFFICIAL RULES</span>
+          ) : (
+            state.houseRules.modifiers.map((id) => (
+              <span className="house-hud__chip" key={id}>
+                <i aria-hidden="true">{HOUSE_GLYPHS[id]}</i>
+                {houseModifierById(id).shortName}
+              </span>
+            ))
+          )}
+        </div>
+      )}
 
       {state.festival && (
         <div className="festival-rule-line" role="note">
@@ -1277,7 +1400,11 @@ export function Battle({
                   : 'ATTACKS ARE FREE · BIG HITS CLOSE THE TURN'}
               </span>
             </div>
-            <button className="btn btn--end" onClick={endTurn} disabled={!playerTurn}>
+            <button
+              className="btn btn--end"
+              onClick={endTurn}
+              disabled={!playerTurn || Boolean(state.counterPrompt)}
+            >
               END TURN
               <i>SPACE</i>
             </button>
@@ -1683,17 +1810,17 @@ export function Battle({
       {state.phase === 'over' && (
         <div className="result">
           <div className="result__panel">
-            <span className="kicker">THE HOUSE LIGHTS · FINAL CROWD</span>
+            <span className="kicker">{resultCopy.kicker}</span>
             {forfeitNotice && (
               <p className="result__forfeit" role="status">
                 {forfeitNotice}
               </p>
             )}
-            <p className={`result__verdict ${state.winner === 'player' ? 'is-win' : state.winner === 'rival' ? 'is-loss' : ''}`}>
-              {state.winner === 'player' ? 'YOU OWN THE ROOM' : state.winner === 'rival' ? (online ? `${rivalLabel} TAKES IT` : 'THE HEADLINER TAKES IT') : 'THE ROOM IS SPLIT'}
+            <p className={`result__verdict ${resultCopy.tone === 'win' ? 'is-win' : resultCopy.tone === 'loss' ? 'is-loss' : ''}`}>
+              {resultCopy.verdict}
             </p>
-            <h2>{winnerTitle}</h2>
-            <p className="result__sub">{winnerSub}</p>
+            <h2>{resultCopy.title}</h2>
+            <p className="result__sub">{resultCopy.sub}</p>
             <div className="result__crowds">
               <div>
                 <span>YOUR CROWD</span>

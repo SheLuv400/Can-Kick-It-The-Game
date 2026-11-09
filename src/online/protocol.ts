@@ -1,4 +1,5 @@
 import type { BattleAction, BattleState } from '../game/battle'
+import type { HouseRulesConfig } from '../game/house-rules'
 import type { ArtistProgress, OnlineMode } from '../game/types'
 
 export interface PlayerProfile {
@@ -25,18 +26,61 @@ export interface PlayerProfile {
  * `action.side` is always the guest's side; the host forces it so a malicious
  * client cannot play the host's cards.
  */
+export type RoomSeat = 'host' | 'guest' | 'guest-2' | 'guest-3'
+
+export const ROOM_SEATS: RoomSeat[] = ['host', 'guest', 'guest-2', 'guest-3']
+export const TEAM_A_SEATS: RoomSeat[] = ['host', 'guest']
+export const TEAM_B_SEATS: RoomSeat[] = ['guest-2', 'guest-3']
+
+export function roomTeam(seat: RoomSeat): 'player' | 'rival' {
+  return TEAM_A_SEATS.includes(seat) ? 'player' : 'rival'
+}
+
+/**
+ * The battle side a seat drives. In 2v2 host+guest share Team A; in 1v1 the
+ * single guest is always the rival, even though it is seat "guest".
+ */
+export function seatSide(seat: RoomSeat, teamMode: boolean): 'player' | 'rival' {
+  if (teamMode) return roomTeam(seat)
+  return seat === 'host' ? 'player' : 'rival'
+}
+
+export function roomSeatName(seat: RoomSeat): string {
+  if (seat === 'host') return 'HOST'
+  if (seat === 'guest') return 'GUEST 1'
+  if (seat === 'guest-2') return 'GUEST 2'
+  return 'GUEST 3'
+}
+
+export interface RoomRulesState {
+  config: HouseRulesConfig
+  revision: number
+  accepted: RoomSeat[]
+  ready: RoomSeat[]
+}
+
 export type ClientMessage =
   | { type: 'hello'; profile: PlayerProfile }
   | { type: 'action'; action: BattleAction }
+  | { type: 'rules-ready'; revision: number; seat: RoomSeat; ready: boolean }
   | { type: 'rematch' }
   | { type: 'leave' }
 
+/** Why a match ended without a Crowd-out. */
+export interface RoomForfeit {
+  winner: 'host' | 'guest'
+  loser: 'host' | 'guest'
+  loserName: string
+}
+
 /** Host -> guest. The host owns the only authoritative battle state. */
 export type HostMessage =
-  | { type: 'welcome'; profile: PlayerProfile; code: string }
+  | { type: 'welcome'; profile: PlayerProfile; code: string; rules: RoomRulesState; seat: RoomSeat; seats: Partial<Record<RoomSeat, PlayerProfile>> }
+  | { type: 'rules'; rules: RoomRulesState }
+  | { type: 'room'; seats: Partial<Record<RoomSeat, PlayerProfile>> }
   | { type: 'start'; state: BattleState }
-  | { type: 'state'; state: BattleState }
-  | { type: 'left' }
+  | { type: 'state'; state: BattleState; forfeit?: RoomForfeit }
+  | { type: 'left'; reason?: string }
 
 export type RoomMessage = ClientMessage | HostMessage
 

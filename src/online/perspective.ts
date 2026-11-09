@@ -44,6 +44,25 @@ export function swapBattleState(state: BattleState): BattleState {
       ? { ...state.lastDefeat, side: flip(state.lastDefeat.side) }
       : null,
     lastMove: state.lastMove ? { ...state.lastMove, side: flip(state.lastMove.side) } : null,
+    lastHouseRuleEvent: state.lastHouseRuleEvent
+      ? {
+          ...state.lastHouseRuleEvent,
+          side: state.lastHouseRuleEvent.side ? flip(state.lastHouseRuleEvent.side) : undefined,
+        }
+      : null,
+    party: state.party
+      ? {
+          ...state.party,
+          seats: state.party.seats.map((seat) => ({
+            ...seat,
+            team: seat.team === 'player' ? 'rival' : 'player',
+          })),
+          controllers: {
+            player: state.party.controllers.rival,
+            rival: state.party.controllers.player,
+          },
+        }
+      : undefined,
     announcerCues: state.announcerCues.map((cue) =>
       cue.side ? { ...cue, side: flip(cue.side) } : cue,
     ),

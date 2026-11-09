@@ -33,6 +33,11 @@ import {
   type ObjectiveKind,
   type Venue,
 } from './circuits'
+import {
+  houseRulesValidationError,
+  type HouseModifierId,
+  type HouseRulesConfig,
+} from './house-rules'
 
 export interface StatusState {
   kind: StatusKind
@@ -242,6 +247,51 @@ export interface AnnouncerCueSignal {
   side?: AnnouncerSide
 }
 
+export interface HouseRuleEvent {
+  id: number
+  modifierId: HouseModifierId
+  title: string
+  detail: string
+  side?: 'player' | 'rival'
+  nonce: number
+}
+
+export type BattleTeam = 'player' | 'rival'
+
+export interface BattlePartySeat {
+  seat: string
+  name: string
+  team: BattleTeam
+}
+
+/** Metadata for the host-authoritative four-player tag-team room. */
+export interface BattleParty {
+  format: '2v2'
+  seats: BattlePartySeat[]
+  order: string[]
+  activeSeat: string | null
+  controllers: Record<BattleTeam, string>
+  /**
+   * Every seat's own deck, hand, Hype, stage, Crate, Backstage and Encore state.
+   * Only the two seats currently on stage live in `player`/`rival`; the others
+   * wait here untouched. Host-only: never sent to clients.
+   */
+  sides?: Record<string, SideState>
+  /** Index into `order` for the seat taking the current turn. */
+  turnIndex?: number
+}
+
+export interface HouseRuleRuntime {
+  /** Monotonic turn counter, incremented by beginTurnFor. */
+  turn: number
+  goldenHooksTurn: number
+  sharpPenTurn: number
+  crateFrenzyUsed: { player: boolean; rival: boolean }
+  backstageBounceUsed: { player: boolean; rival: boolean }
+  encoreSpotlightUsed: { player: boolean; rival: boolean }
+  lastVerseNotified: boolean
+}
+
 export interface BattleState {
   phase: 'player' | 'rival' | 'over'
   round: number
@@ -274,6 +324,12 @@ export interface BattleState {
   onlineMode?: OnlineMode
   /** The official festival rules, shared by both sides. */
   festival?: FestivalBattleRule
+  /** The locked DJ's House Rules configuration for this room. */
+  houseRules?: HouseRulesConfig
+  /** Four-player tag-team room metadata; absent for standard 1v1. */
+  party?: BattleParty
+  houseRuleRuntime?: HouseRuleRuntime
+  lastHouseRuleEvent?: HouseRuleEvent | null
   /** Cards the CPU uses when no rival progress map is supplied. */
   rivalLevel: number
 }
@@ -302,6 +358,7 @@ export interface BattleConfig {
   festival?: FestivalBattleRule
   online?: boolean
   onlineMode?: OnlineMode
+  houseRules?: HouseRulesConfig
 }
 
 export const HYPE_CAP = 24
@@ -309,6 +366,8 @@ export const STAGE_SLOTS = 5
 export const DECK_SLOTS = 26
 export const HAND_SIZE = 5
 export const CURFEW_ROUND = 12
+/** Two attackers per side share one Crowd; team pressure keeps 2v2 decisive. */
+export const TEAM_CROWD_PRESSURE = 1.5
 export const MAX_ATTACKS_PER_TURN = 3
 export const CRATE_HYPE_COST = 2
 
@@ -436,6 +495,92 @@ function isCasualOnline(state: BattleState): boolean {
   return state.online === true && state.onlineMode === 'casual'
 }
 
+function hasHouseModifier(state: BattleState | undefined, id: HouseModifierId): boolean {
+  return Boolean(state?.houseRules?.modifiers.includes(id))
+}
+
+function pushHouseRuleEvent(
+  state: BattleState,
+  modifierId: HouseModifierId,
+  title: string,
+  detail: string,
+  side?: 'player' | 'rival',
+) {
+  state.lastHouseRuleEvent = {
+    id: state.idSeq++,
+    modifierId,
+    title,
+    detail,
+    side,
+    nonce: state.idSeq++,
+  }
+}
+
+/** LAST VERSE STANDING applies to the final two full Curfew rounds. */
+function houseRuleCrowdAmount(state: BattleState, amount: number): number {
+  if (amount <= 0 || !hasHouseModifier(state, 'last-verse-standing')) return amount
+  if (state.round < CURFEW_ROUND - 1) return amount
+  const runtime = state.houseRuleRuntime
+  if (runtime && !runtime.lastVerseNotified) {
+    runtime.lastVerseNotified = true
+    pushHouseRuleEvent(
+      state,
+      'last-verse-standing',
+      'LAST VERSE STANDING',
+      'Final rounds · direct Crowd damage +10%.',
+    )
+  }
+  return Math.max(1, Math.round(amount * 1.1))
+}
+
+function houseRuleHealCard(
+  state: BattleState,
+  side: 'player' | 'rival',
+  target: StageCard,
+  base: number,
+): { restored: number; amount: number } {
+  const runtime = state.houseRuleRuntime
+  const golden = hasHouseModifier(state, 'golden-hooks') && runtime && runtime.goldenHooksTurn !== runtime.turn
+  const amount = golden ? Math.max(1, Math.ceil(base * 1.15)) : base
+  const before = target.hp
+  target.hp = Math.min(target.maxHp, target.hp + amount)
+  const restored = target.hp - before
+  if (golden && runtime && restored > 0) {
+    runtime.goldenHooksTurn = runtime.turn
+    pushHouseRuleEvent(
+      state,
+      'golden-hooks',
+      'GOLDEN HOOKS BONUS!',
+      `+${Math.max(0, amount - base)} bonus healing.`,
+      side,
+    )
+  }
+  return { restored, amount }
+}
+
+function applyStartOfTurnHouseRules(state: BattleState, side: 'player' | 'rival') {
+  const runtime = state.houseRuleRuntime
+  if (!state.houseRules || !runtime) return
+  const actor = sideOf(state, side)
+  if (hasHouseModifier(state, 'hype-surge')) {
+    const before = actor.hype
+    actor.hype = Math.min(HYPE_CAP, actor.hype + 1)
+    if (actor.hype > before) {
+      pushHouseRuleEvent(
+        state,
+        'hype-surge',
+        'HYPE SURGE ACTIVATED!',
+        `+${actor.hype - before} Hype at the start of the turn.`,
+        side,
+      )
+    }
+  }
+  if (hasHouseModifier(state, 'crate-frenzy') && !runtime.crateFrenzyUsed[side]) {
+    runtime.crateFrenzyUsed[side] = true
+    drawCrate(state, side, { free: true })
+  }
+}
+
 function makeSide(
   name: string,
   deck: string[],
@@ -501,6 +646,11 @@ export function createBattle(config: BattleConfig): BattleState {
   const venue = config.venue ?? MIDNIGHT_GARDEN
   const modifiers: CircuitModifiers = { ...DEFAULT_CIRCUIT_MODIFIERS, ...config.modifiers }
   const stageSlots = Math.max(3, Math.min(5, config.stageSlots ?? venue.stageSlots))
+  const houseRules =
+    config.houseRules && !houseRulesValidationError(config.houseRules)
+      ? config.houseRules
+      : undefined
+  const crowdMultiplier = houseRules?.modifiers.includes('big-stage') ? 1.25 : 1
   if (config.online && (config.deck.some(isPersonalArtistId) || (config.rivalDeck ?? []).some(isPersonalArtistId))) {
     throw new Error('Personal Artist Cards are local-only and cannot enter an online battle.')
   }
@@ -514,14 +664,14 @@ export function createBattle(config: BattleConfig): BattleState {
   const player = makeSide(
     config.playerName ?? 'YOU',
     playerDeck,
-    config.playerCrowd ?? 72,
+    Math.round((config.playerCrowd ?? 72) * crowdMultiplier),
     config.lineup,
     counters,
   )
   const rival = makeSide(
     config.rivalName ?? 'THE HEADLINER',
     rivalDeck,
-    config.rivalCrowd ?? meta.crowd,
+    Math.round((config.rivalCrowd ?? meta.crowd) * crowdMultiplier),
     config.rivalLineup,
     counters,
   )
@@ -561,9 +711,23 @@ export function createBattle(config: BattleConfig): BattleState {
     online: Boolean(config.online),
     onlineMode,
     festival: config.festival,
+    houseRules,
+    houseRuleRuntime: houseRules
+      ? {
+          turn: 1,
+          goldenHooksTurn: 0,
+          sharpPenTurn: 0,
+          crateFrenzyUsed: { player: false, rival: false },
+          backstageBounceUsed: { player: false, rival: false },
+          encoreSpotlightUsed: { player: false, rival: false },
+          lastVerseNotified: false,
+        }
+      : undefined,
+    lastHouseRuleEvent: null,
     rivalLevel,
   }
   pushLog(state, `THE OPENING ACTS ARE LIVE AT ${venue.name}. FILL THE STAGE.`, 'gold')
+  if (houseRules) applyStartOfTurnHouseRules(state, 'player')
   return state
 }
 
@@ -634,8 +798,8 @@ function drawTo(side: SideState, target: number) {
   if (missing > 0) drawCards(side, missing)
 }
 
-function clone(state: BattleState): BattleState {
-  const cloneSide = (side: SideState): SideState => ({
+export function cloneSideState(side: SideState): SideState {
+  return {
     ...side,
     hand: [...side.hand],
     deck: [...side.deck],
@@ -655,18 +819,50 @@ function clone(state: BattleState): BattleState {
         { ...performance },
       ]),
     ),
-  })
+  }
+}
+
+function clone(state: BattleState): BattleState {
   return {
     ...state,
-    player: cloneSide(state.player),
-    rival: cloneSide(state.rival),
+    player: cloneSideState(state.player),
+    rival: cloneSideState(state.rival),
     log: [...state.log],
     cinematics: [...state.cinematics],
     announcerCues: [...state.announcerCues],
     counterPrompt: state.counterPrompt ? { ...state.counterPrompt } : null,
     objectives: state.objectives.map((objective) => ({ ...objective })),
     lastObjective: state.lastObjective ? { ...state.lastObjective } : null,
+    houseRuleRuntime: state.houseRuleRuntime
+      ? {
+          ...state.houseRuleRuntime,
+          crateFrenzyUsed: { ...state.houseRuleRuntime.crateFrenzyUsed },
+          backstageBounceUsed: { ...state.houseRuleRuntime.backstageBounceUsed },
+          encoreSpotlightUsed: { ...state.houseRuleRuntime.encoreSpotlightUsed },
+        }
+      : undefined,
+    lastHouseRuleEvent: state.lastHouseRuleEvent ? { ...state.lastHouseRuleEvent } : null,
+    party: state.party
+      ? {
+          ...state.party,
+          seats: state.party.seats.map((seat) => ({ ...seat })),
+          order: [...state.party.order],
+          controllers: { ...state.party.controllers },
+          sides: state.party.sides
+            ? Object.fromEntries(
+                Object.entries(state.party.sides).map(([seat, side]) => [
+                  seat,
+                  cloneSideState(side),
+                ]),
+              )
+            : undefined,
+        }
+      : undefined,
   }
+}
+
+export function cloneBattleState(state: BattleState): BattleState {
+  return clone(state)
 }
 
 function syncObjectives(state: BattleState): BattleState {
@@ -870,6 +1066,10 @@ function canUseSpecial(card: CrateHandCard, round: number): boolean {
 
 function applyCrowdDamage(state: BattleState, side: 'player' | 'rival', amount: number): number {
   if (amount <= 0) return 0
+  if (state.houseRules?.format === '2v2') {
+    amount = Math.max(1, Math.round(amount * TEAM_CROWD_PRESSURE))
+  }
+  amount = houseRuleCrowdAmount(state, amount)
   const defender = sideOf(state, side)
   const absorbed = Math.min(defender.shield, amount)
   defender.shield -= absorbed
@@ -944,6 +1144,28 @@ interface AttackResult {
   defeated: boolean
 }
 
+function houseRuleDirectDamage(
+  state: BattleState,
+  side: 'player' | 'rival',
+  amount: number,
+  opts: AttackOptions,
+): number {
+  if (amount <= 0 || !opts.attackerUid || opts.announce === false) return amount
+  const runtime = state.houseRuleRuntime
+  if (!hasHouseModifier(state, 'sharp-pen-showcase') || !runtime) return amount
+  if (runtime.sharpPenTurn === runtime.turn) return amount
+  runtime.sharpPenTurn = runtime.turn
+  const boosted = Math.max(1, Math.round(amount * 1.1))
+  pushHouseRuleEvent(
+    state,
+    'sharp-pen-showcase',
+    'SHARP PEN SHOWCASE!',
+    `First direct Artist hit this turn: +${Math.max(1, boosted - amount)} damage.`,
+    side,
+  )
+  return boosted
+}
+
 function festivalAttackHypeSurcharge(state: BattleState, artistId: string): number {
   if (state.festival?.modifier !== 'subwoofer-bass') return 0
   return getArtist(artistId).crew === 'STATIC KINGS' ? 1 : 0
@@ -1014,7 +1236,8 @@ function resolveAttack(state: BattleState, attackerSide: 'player' | 'rival', raw
     (defender.stage.length > 0 ? defender.stage[0] : null)
 
   if (!target) {
-    const crowdHit = raw + (opts.crowdSplash ?? 0) + state.modifiers.crowdDamage
+    let crowdHit = raw + (opts.crowdSplash ?? 0) + state.modifiers.crowdDamage
+    crowdHit = houseRuleDirectDamage(state, attackerSide, crowdHit, opts)
     if (state.festival) {
       const artist = getArtist(opts.artistId)
       if (state.festival.modifier === 'blacktop-first-hiphop' && artist.genre === 'HIP-HOP') {
@@ -1072,6 +1295,7 @@ function resolveAttack(state: BattleState, attackerSide: 'player' | 'rival', raw
   let damage = raw <= 0 ? 0 : Math.max(1, Math.round(raw - defense))
   const fortify = target.statuses.find((status) => status.kind === 'fortify')
   if (fortify) damage = Math.max(0, damage - fortify.value)
+  damage = houseRuleDirectDamage(state, attackerSide, damage, opts)
 
   if (damage > 0 && artist.battle.passive.kind === 'guard' && target.guardRound !== state.round) {
     damage = Math.max(0, damage - 1)
@@ -1399,13 +1623,12 @@ function applyMoveEffects(
     if (effect.damage !== undefined) continue
     if (effect.heal !== undefined) {
       const healTarget = move.target === 'ally' || move.target === 'self' ? target ?? card : card
-      const healAmount = festivalHealAmount(state, effect.heal + (tiers.medic ?? 0))
-      const beforeHeal = healTarget.hp
-      healTarget.hp = Math.min(healTarget.maxHp, healTarget.hp + healAmount)
-      const restored = healTarget.hp - beforeHeal
+      const baseHeal = festivalHealAmount(state, effect.heal + (tiers.medic ?? 0))
+      const { restored } = houseRuleHealCard(state, side, healTarget, baseHeal)
       healing += restored
       if (restored > 0) performanceFor(actor, card.artistId).healing += restored
-      pushLog(state, `${getArtist(healTarget.artistId).name} RESTORES ${healAmount} HP.`, side === 'player' ? 'good' : 'bad')
+      const shownHeal = hasHouseModifier(state, 'golden-hooks') ? restored : baseHeal
+      pushLog(state, `${getArtist(healTarget.artistId).name} RESTORES ${shownHeal} HP.`, side === 'player' ? 'good' : 'bad')
     }
     if (effect.shield !== undefined) {
       const shieldTarget = move.target === 'ally' || move.target === 'self' ? target ?? card : card
@@ -1595,6 +1818,7 @@ function useMoveFor(
 
 function beginTurnFor(state: BattleState, side: 'player' | 'rival') {
   state.phase = side
+  if (state.houseRuleRuntime) state.houseRuleRuntime.turn += 1
   tickStatuses(state, side)
   if (checkWinner(state)) return
   const actor = sideOf(state, side)
@@ -1611,6 +1835,7 @@ function beginTurnFor(state: BattleState, side: 'player' | 'rival') {
   if (side === 'player') state.counterPrompt = null
   drawTo(actor, HAND_SIZE)
   state.rivalActions = 0
+  applyStartOfTurnHouseRules(state, side)
   pushLog(
     state,
     side === 'player'
@@ -1676,7 +1901,42 @@ function resolveEra(state: BattleState) {
   }
 }
 
+/**
+ * Tag the next seat in the 2v2 order onto the stage.
+ *
+ * A turn always alternates teams, so only every second turn changes the seat
+ * for a given team. The teammate leaving the stage is snapshotted with every
+ * one of their own cards, Hype, stage, Crate, Backstage and Encore charge; the
+ * tagged-in seat returns exactly as they left it. Only the Crowd meter is
+ * shared, so it is carried across the swap.
+ */
+function advancePartyTurn(state: BattleState, endedSide: 'player' | 'rival') {
+  const party = state.party
+  if (!party?.sides || party.order.length === 0) return
+  const nextSide: 'player' | 'rival' = endedSide === 'player' ? 'rival' : 'player'
+  const nextIndex = ((party.turnIndex ?? 0) + 1) % party.order.length
+  party.turnIndex = nextIndex
+  const nextSeat = party.order[nextIndex]
+  if (!nextSeat) return
+  const nextTeam = party.seats.find((seat) => seat.seat === nextSeat)?.team
+  if (nextTeam !== nextSide) return
+  const currentSeat = party.controllers[nextSide]
+  if (!currentSeat || currentSeat === nextSeat) return
+  const outgoing = nextSide === 'player' ? state.player : state.rival
+  party.sides[currentSeat] = cloneSideState(outgoing)
+  const saved = party.sides[nextSeat]
+  if (!saved) return
+  const incoming = cloneSideState(saved)
+  incoming.crowd = outgoing.crowd
+  incoming.maxCrowd = outgoing.maxCrowd
+  incoming.name = party.seats.find((seat) => seat.seat === nextSeat)?.name ?? incoming.name
+  if (nextSide === 'player') state.player = incoming
+  else state.rival = incoming
+  party.controllers[nextSide] = nextSeat
+}
+
 function endTurnFor(state: BattleState, side: 'player' | 'rival') {
+  advancePartyTurn(state, side)
   if (side === 'player') {
     beginTurnFor(state, 'rival')
     return
@@ -1844,7 +2104,7 @@ function rivalEncore(state: BattleState, uid: string) {
     state.era,
   )
   if (artist.battle.passive.kind === 'encore') {
-    card.hp = Math.min(card.maxHp, card.hp + 2)
+    houseRuleHealCard(state, 'rival', card, 2)
   }
   pushCinematic(state, {
     kind: 'rival-encore',
@@ -1961,23 +2221,30 @@ function resolveCounter(
   checkWinner(state)
 }
 
-function drawCrate(state: BattleState, side: 'player' | 'rival') {
+function drawCrate(
+  state: BattleState,
+  side: 'player' | 'rival',
+  options: { free?: boolean } = {},
+): boolean {
   const actor = sideOf(state, side)
-  if (state.phase !== side || actor.specialHand.length >= CRATE_HAND_LIMIT) return
-  if (actor.crate.length === 0 || actor.hype < CRATE_HYPE_COST) return
+  if (hasHouseModifier(state, 'crate-lockdown')) return false
+  if (state.phase !== side || actor.specialHand.length >= CRATE_HAND_LIMIT) return false
+  if (actor.crate.length === 0) return false
+  if (!options.free && actor.hype < CRATE_HYPE_COST) return false
   const drawn = drawWeightedCrate(actor.crate)
-  if (!drawn.cardId) return
-  actor.hype -= CRATE_HYPE_COST
+  if (!drawn.cardId) return false
+  if (!options.free) actor.hype -= CRATE_HYPE_COST
   actor.crate = drawn.crate
   const def = crateCard(drawn.cardId)
+  const costLabel = options.free ? 'BONUS DRAW' : `${CRATE_HYPE_COST} HYPE`
   const existing = actor.specialHand.find((card) => card.cardId === drawn.cardId)
   if (existing && canStackCrate(def)) {
     existing.stacks = Math.min(3, (existing.stacks ?? 1) + 1)
     actor.crateDraws += 1
     state.lastCrateDraw = { side, card: existing, stacked: true }
     pushAnnouncer(state, isRareCrate(def.rarity) ? 'crate_rare' : 'crate', side)
-    pushLog(state, `CRATE — ${def.name} STACKS ×${existing.stacks} · ${CRATE_HYPE_COST} HYPE.`, 'gold')
-    return
+    pushLog(state, `CRATE — ${def.name} STACKS ×${existing.stacks} · ${costLabel}.`, 'gold')
+    return true
   }
   const card: CrateHandCard = {
     uid: `crate-${state.idSeq++}`,
@@ -1989,7 +2256,8 @@ function drawCrate(state: BattleState, side: 'player' | 'rival') {
   actor.crateDraws += 1
   state.lastCrateDraw = { side, card }
   pushAnnouncer(state, isRareCrate(def.rarity) ? 'crate_rare' : 'crate', side)
-  pushLog(state, `CRATE — ${def.name} (${def.rarity}) DRAWN · ${CRATE_HYPE_COST} HYPE.`, 'gold')
+  pushLog(state, `CRATE — ${def.name} (${def.rarity}) DRAWN · ${costLabel}.`, 'gold')
+  return true
 }
 
 function reviveFromBackstage(
@@ -2039,6 +2307,23 @@ function reviveFromBackstage(
     entranceUsed: true,
   })
   actor.revives += 1
+  if (
+    hasHouseModifier(state, 'backstage-bounce') &&
+    state.houseRuleRuntime &&
+    !state.houseRuleRuntime.backstageBounceUsed[side]
+  ) {
+    state.houseRuleRuntime.backstageBounceUsed[side] = true
+    const beforeBounce = actor.hype
+    actor.hype = Math.min(HYPE_CAP, actor.hype + 2)
+    pushHouseRuleEvent(
+      state,
+      'backstage-bounce',
+      'BACKSTAGE BOUNCE!',
+      `First revival of the match: +${actor.hype - beforeBounce} Hype.`,
+      side,
+    )
+    pushLog(state, `BACKSTAGE BOUNCE — FIRST REVIVAL +${actor.hype - beforeBounce} HYPE.`, 'gold')
+  }
   if (festivalRevival) {
     actor.festivalRevivalHypeUsed = true
     actor.hype = Math.min(HYPE_CAP, actor.hype + 1)
@@ -2147,12 +2432,12 @@ function useSpecialCard(
   if (def.category === 'heal') {
     if (!target) return
     const amount = festivalHealAmount(state, (def.heal ?? 0) * stacks)
-    const beforeHeal = target.hp
-    target.hp = Math.min(target.maxHp, target.hp + amount)
+    const { restored } = houseRuleHealCard(state, side, target, amount)
     actor.specialHand = actor.specialHand.filter((card) => card.uid !== uid)
     actor.specialDiscard.push(handCard.cardId)
-    if (target.hp - beforeHeal >= SIGNIFICANT_HEAL) pushAnnouncer(state, 'healing', 'player')
-    pushLog(state, `${def.name} — ${getArtist(target.artistId).name} RESTORES ${amount} HP.`, 'good')
+    if (restored >= SIGNIFICANT_HEAL) pushAnnouncer(state, 'healing', 'player')
+    const shownHeal = hasHouseModifier(state, 'golden-hooks') ? restored : amount
+    pushLog(state, `${def.name} — ${getArtist(target.artistId).name} RESTORES ${shownHeal} HP.`, 'good')
     return
   }
   if (def.category === 'ability') {
@@ -2161,9 +2446,9 @@ function useSpecialCard(
       target.nextAttackBonus += (def.power ?? 0) * stacks
       target.shield += (def.shield ?? 0) * stacks
       if (def.heal) {
-        const beforeHeal = target.hp
-        target.hp = Math.min(target.maxHp, target.hp + def.heal * stacks)
-        if (target.hp - beforeHeal >= SIGNIFICANT_HEAL) pushAnnouncer(state, 'healing', 'player')
+        const baseHeal = festivalHealAmount(state, def.heal * stacks)
+        const { restored } = houseRuleHealCard(state, side, target, baseHeal)
+        if (restored >= SIGNIFICANT_HEAL) pushAnnouncer(state, 'healing', 'player')
       }
     }
     if (def.hype) actor.hype = Math.min(HYPE_CAP, actor.hype + def.hype * stacks)
@@ -2278,9 +2563,8 @@ function applyCrateElement(
   if (element === 'WATER') {
     const ally = actor.stage[0]
     if (ally) {
-      const beforeHeal = ally.hp
-      ally.hp = Math.min(ally.maxHp, ally.hp + festivalHealAmount(state, 3))
-      if (ally.hp - beforeHeal >= SIGNIFICANT_HEAL) pushAnnouncer(state, 'healing', side)
+      const { restored } = houseRuleHealCard(state, side, ally, festivalHealAmount(state, 3))
+      if (restored >= SIGNIFICANT_HEAL) pushAnnouncer(state, 'healing', side)
     }
   }
   if (element === 'LIGHT') {
@@ -2336,7 +2620,7 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
     }
     case 'DRAW_CRATE': {
       if (state.phase !== side || state.counterPrompt || state.cinematics.length > 0) return state
-      drawCrate(next, side)
+      if (!drawCrate(next, side) && hasHouseModifier(next, 'crate-lockdown')) return state
       return syncObjectives(next)
     }
     case 'USE_SPECIAL': {
@@ -2404,21 +2688,38 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
       const encoreCard = actor.stage.find((entry) => entry.uid === action.uid)
       if (encoreCard) gainSpecialCharge(encoreCard)
       if (artist.battle.passive.kind === 'encore') {
-        card.hp = Math.min(card.maxHp, card.hp + 2)
+        houseRuleHealCard(next, side, card, 2)
       }
       const stageWithout = actor.stage.filter((entry) => entry.uid !== action.uid)
       const hit = computePlayDamage(stageWithout, card.artistId, true, state.era)
+      let encoreDamage = hit.total
+      const houseRuntime = next.houseRuleRuntime
+      if (
+        hasHouseModifier(next, 'encore-spotlight') &&
+        houseRuntime &&
+        !houseRuntime.encoreSpotlightUsed[side]
+      ) {
+        houseRuntime.encoreSpotlightUsed[side] = true
+        encoreDamage = Math.max(1, Math.round(encoreDamage * 1.1))
+        pushHouseRuleEvent(
+          next,
+          'encore-spotlight',
+          'ENCORE SPOTLIGHT!',
+          `First Encore of the match: +${Math.max(1, encoreDamage - hit.total)} damage.`,
+          side,
+        )
+      }
       pushCinematic(next, {
         kind: side === 'player' ? 'encore' : 'rival-encore',
         title: 'ENCORE',
         subtitle: artist.encore.name,
         detail: artist.encore.line,
-        value: hit.total,
+        value: encoreDamage,
         artistIds: [artist.id],
       })
       pushLog(next, `ENCORE TRANSFORMATION — ${artist.encore.name}`, 'gold')
       pushAnnouncer(next, 'encore', side)
-      resolveAttack(next, side, hit.total, {
+      resolveAttack(next, side, encoreDamage, {
         targetUid: action.targetUid,
         artistId: card.artistId,
         source: artist.encore.name,
@@ -2431,7 +2732,7 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
       }
       applyEffects(next, side, card.artistId, true)
       checkWinner(next)
-      if (hit.total >= 8 && next.phase === side && !next.winner) {
+      if (encoreDamage >= 8 && next.phase === side && !next.winner) {
         pushLog(next, 'THE ENCORE CLOSES YOUR TURN.', 'gold')
         endTurnFor(next, side)
       }
@@ -2487,6 +2788,9 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
     }
     case 'END_TURN': {
       if (state.phase !== side) return state
+      // A defensive window belongs to the turn it interrupted: never let the
+      // attacker skip past it, or the defender's prompt strands the match.
+      if (state.counterPrompt) return state
       pushLog(
         next,
         side === 'player'

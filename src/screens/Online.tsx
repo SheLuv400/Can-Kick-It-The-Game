@@ -1,16 +1,18 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import type { BattleState } from '../game/battle'
 import type { OnlineMode, Settings } from '../game/types'
 import { useAccount } from '../account/AccountProvider'
 import { useSocial, type FriendPresence } from '../account/SocialProvider'
 import { normalizeFriendCode } from '../account/account'
 import { inverseResult, recordOnlineMatch } from '../online/leaderboard'
-import { normalizeRoomCode, sideLabel, type PlayerProfile } from '../online/protocol'
+import { normalizeRoomCode, roomSeatName, roomTeam, seatSide, sideLabel, type PlayerProfile, type RoomSeat } from '../online/protocol'
 import { usePeerRoom } from '../online/usePeerRoom'
 import { getArtist } from '../game/roster'
+import { portraitUrl } from '../game/portraits'
 import { careerTitleForId } from '../game/career'
 import { Battle, type BattlePerformance } from './Battle'
 import { PlayerCardModal } from '../components/PlayerCardModal'
+import { HouseRulesPanel } from '../components/HouseRules'
 import { Portrait } from '../components/Portrait'
 import {
   festivalById,
@@ -61,6 +63,18 @@ interface OnlineProps {
 }
 
 type LobbyMode = 'choose' | 'join'
+
+/** Card art used as the private-room backdrop. Missing files are skipped. */
+const ROOM_ARTISTS = [
+  'taj-omen',
+  'amara-afterglow',
+  'tangarine-lux',
+  'krown-vandal',
+  'cipher-jones',
+  'nikki-noize',
+  'macko-deville',
+  'bishop-brake',
+]
 
 const MODE_COPY: Record<OnlineMode, { title: string; tag: string; blurb: string }> = {
   casual: {
@@ -157,7 +171,10 @@ export function Online({
     const finished = session.state
     if (!finished || finished.phase !== 'over' || recordedState.current === finished) return
     recordedState.current = finished
-    const localSide = session.role === 'host' ? 'player' : 'rival'
+    const localSide = seatSide(
+      session.localSeat ?? (session.role === 'host' ? 'host' : 'guest'),
+      session.houseRules.format === '2v2',
+    )
     const selfName = localSide === 'player' ? finished.player.name : finished.rival.name
     const opponentName = localSide === 'player' ? finished.rival.name : finished.player.name
     const result =
@@ -166,14 +183,15 @@ export function Online({
         : finished.winner === localSide
           ? 'win'
           : 'loss'
-    if (session.mode === 'ranked') {
+    const officialRules = session.houseRules.preset === 'standard' && session.houseRules.format !== '2v2'
+    if (officialRules && session.mode === 'ranked') {
       recordOnlineMatch(
         { name: selfName, result },
         { name: opponentName, result: inverseResult(result) },
       )
     }
-    recordLocalResult(result)
-  }, [session.state, session.role, session.mode, onUpdate, settings.wins, settings.losses])
+    if (officialRules) recordLocalResult(result)
+  }, [session.state, session.role, session.mode, session.houseRules.preset, onUpdate, settings.wins, settings.losses])
 
   useEffect(() => {
     if (session.phase === 'idle' || session.phase === 'error') {
@@ -212,9 +230,15 @@ export function Online({
   const recordSelfForfeit = () => {
     const active = session.state
     if (session.phase !== 'battle' || !active || active.phase === 'over') return
-    const localSide = session.role === 'host' ? 'player' : 'rival'
+    if (session.houseRules.format === '2v2') return
+    // 1v1 only past this guard: the guest drives the rival side.
+    const localSide = seatSide(
+      session.localSeat ?? (session.role === 'host' ? 'host' : 'guest'),
+      false,
+    )
     const selfName = localSide === 'player' ? active.player.name : active.rival.name
     const opponentName = localSide === 'player' ? active.rival.name : active.player.name
+    if (session.houseRules.preset !== 'standard') return
     if (session.mode === 'ranked') {
       recordOnlineMatch(
         { name: selfName, result: 'loss' },
@@ -282,11 +306,20 @@ export function Online({
     if (sent) window.setTimeout(() => setInvitedCode(''), 2200)
   }
 
+  const localSeat: RoomSeat = session.localSeat ?? (session.role === 'host' ? 'host' : 'guest')
+  const teamMode = session.houseRules.format === '2v2'
+  const localSide = seatSide(localSeat, teamMode)
+  const forfeitWon = Boolean(session.state && session.forfeit && session.state.winner === localSide)
   const forfeitNotice = session.forfeit
-    ? session.forfeit.winner === session.role
-      ? `${session.forfeit.loserName} LEFT THE MATCH · FORFEIT WIN`
-      : 'YOU LEFT THE MATCH · FORFEIT LOSS'
+    ? `${session.forfeit.loserName} LEFT THE MATCH · ${forfeitWon ? 'FORFEIT WIN' : 'FORFEIT LOSS'}`
     : undefined
+  // In 2v2 the opponent is the other team, not the first guest who joined.
+  const opposingName = session.state?.party
+    ? session.state.party.seats
+        .filter((seat) => seat.team === (localSide === 'player' ? 'rival' : 'player'))
+        .map((seat) => seat.name)
+        .join(' + ')
+    : session.opponentName
 
   if (session.phase === 'battle' && session.state) {
     return (
@@ -294,19 +327,24 @@ export function Online({
         key={session.matchId}
         settings={settings}
         online={{
-          side: session.role === 'host' ? 'player' : 'rival',
+          side: localSide,
           state: session.state,
           dispatch: session.dispatch,
           roomCode: session.code,
-          opponentName: session.opponentName,
+          opponentName: opposingName,
           status: session.status,
+          canAct: !session.state.party || session.activeSeat === localSeat,
+          activeName:
+            session.state.party?.seats.find((seat) => seat.seat === session.activeSeat)?.name ??
+            'YOUR TEAMMATE',
         }}
         onExit={backToMenu}
         onRematch={session.requestRematch}
         onDeck={openMixtape}
         onResult={(winner, plays, _objectives, performance) => {
-          onBadgeResult(winner, plays, performance)
-          recordMatch({
+          const officialRules = session.houseRules.preset === 'standard' && session.houseRules.format !== '2v2'
+          if (officialRules) onBadgeResult(winner, plays, performance)
+          if (officialRules) recordMatch({
             result: winner === 'player' ? 'win' : winner === 'rival' ? 'loss' : 'draw',
             mode: session.mode,
             plays,
@@ -343,6 +381,11 @@ export function Online({
   const inRoom =
     session.phase === 'hosting' || session.phase === 'joining' || session.phase === 'lobby'
   const isHost = session.role === 'host'
+  const seatOrder: RoomSeat[] = teamMode
+    ? ['host', 'guest', 'guest-2', 'guest-3']
+    : ['host', 'guest']
+  const officialRules = session.houseRules.preset === 'standard'
+  const roomCanStart = session.canStart && festivalDeckOk && (!festival || festivalLive)
   if (!account) {
     return (
       <main className="online">
@@ -474,6 +517,20 @@ export function Online({
 
         {session.phase !== 'error' && inRoom && (
           <section className="online-panel online-panel--room">
+            <div className="online-room__art" aria-hidden="true">
+              {ROOM_ARTISTS.map((id, index) => {
+                const src = portraitUrl(id)
+                return src ? (
+                  <img
+                    key={id}
+                    src={src}
+                    alt=""
+                    draggable={false}
+                    style={{ '--i': index } as CSSProperties}
+                  />
+                ) : null
+              })}
+            </div>
             <div className="online-panel__head">
               <div>                  <span className="online-panel__kicker">
                   {isHost ? (festival ? 'YOUR FESTIVAL ROOM' : 'YOUR PRIVATE ROOM') : 'CONNECTING TO A ROOM'}
@@ -512,48 +569,83 @@ export function Online({
                 </div>
               )}
 
-              <div className="online-room__players">
-                <div className="online-player is-you">
-                  <span className="online-player__avatar">
-                    {selfAvatar ? (
-                      <Portrait artist={selfAvatar} crop="avatar" />
-                    ) : (
-                      account.username.slice(0, 2).toUpperCase()
-                    )}
-                  </span>
-                  <div>
-                    <b>{account.username.toUpperCase()}</b>
-                    <i>YOU · {session.mode === 'casual' ? 'BASE DECK' : `${settings.deck.length} TRACKS`}</i>
-                  </div>
-                  <span className="online-player__state">READY</span>
-                </div>
-                <div className={`online-player ${session.opponentName ? 'is-ready' : ''}`}>
-                  <span className="online-player__avatar">
-                    {session.opponentName ? session.opponentName.slice(0, 2) : '??'}
-                  </span>
-                  <div>
-                    <b>{session.opponentName || 'WAITING FOR A FRIEND'}</b>
-                    <i>{session.opponentName ? 'IN THE ROOM' : 'SHARE THE CODE OR INVITE'}</i>
-                  </div>
-                  <span className="online-player__state">
-                    {session.opponentName ? 'READY' : 'OPEN SLOT'}
-                  </span>
-                </div>
+              <div className={`online-room__players ${teamMode ? 'is-teams' : ''}`}>
+                {seatOrder.map((seat) => {
+                  const profile = session.seats[seat]
+                  const isYou = seat === localSeat
+                  const seatReady = session.rulesReady.includes(seat)
+                  const seatAccepted = session.rulesAccepted.includes(seat)
+                  const teamTag = teamMode
+                    ? roomTeam(seat) === 'player'
+                      ? 'TEAM A'
+                      : 'TEAM B'
+                    : isYou
+                      ? 'YOU'
+                      : 'OPPONENT'
+                  return (
+                    <div
+                      key={seat}
+                      className={`online-player ${isYou ? 'is-you' : ''} ${profile ? 'is-ready' : ''}`}
+                    >
+                      <span className="online-player__avatar">
+                        {isYou && selfAvatar ? (
+                          <Portrait artist={selfAvatar} crop="avatar" />
+                        ) : (
+                          (profile?.name ?? roomSeatName(seat)).slice(0, 2).toUpperCase()
+                        )}
+                      </span>
+                      <div>
+                        <b>{profile?.name ?? `${roomSeatName(seat)} SLOT`}</b>
+                        <i>
+                          {teamTag} · {profile ? (seat === localSeat ? 'YOU' : 'IN THE ROOM') : 'OPEN SLOT'}
+                        </i>
+                      </div>
+                      <span className="online-player__state">
+                        {!profile
+                          ? 'OPEN SLOT'
+                          : seatReady
+                            ? 'READY'
+                            : seatAccepted
+                              ? 'ACCEPTED'
+                              : 'NOT READY'}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
             </div>
 
+            <HouseRulesPanel
+              rules={session.houseRules}
+              isHost={isHost}
+              seat={localSeat}
+              accepted={session.rulesAccepted}
+              ready={session.rulesReady}
+              seatNames={{
+                host: session.seats.host?.name,
+                guest: session.seats.guest?.name,
+                'guest-2': session.seats['guest-2']?.name,
+                'guest-3': session.seats['guest-3']?.name,
+              }}
+              canStart={roomCanStart}
+              festivalLocked={Boolean(festival)}
+              onPreset={session.setRulePreset}
+              onFormat={session.setBattleFormat}
+              onChaos={session.setShuffleChaos}
+              onToggle={session.toggleHouseModifier}
+              onRandomize={session.randomizeHouseRules}
+              onReady={session.markRulesReady}
+              onStart={session.startMatch}
+            />
+
             <div className="online-panel__actions">
               {isHost ? (
-                <button
-                  className="btn btn--primary btn--xl"
-                  onClick={session.startMatch}
-                  disabled={!session.opponentName || !festivalDeckOk || (festival ? !festivalLive : false)}
-                >
-                  {festival ? 'START FESTIVAL SHOW' : 'START THE SHOW'}
-                </button>
+                <span className="online-panel__fine">
+                  {officialRules ? 'OFFICIAL RULES · STANDARD PRIVATE-ROOM REWARDS.' : 'CASUAL HOUSE RULES · RANKED PROGRESSION AND ACHIEVEMENT REWARDS ARE DISABLED.'}
+                </span>
               ) : (
                 <span className="online-waiting">
-                  <i /> WAITING FOR THE HOST TO START
+                  <i /> {session.rulesReady.includes(localSeat) ? 'WAITING FOR THE HOST TO START' : 'ACCEPT THE RULES, THEN READY UP'}
                 </span>
               )}
               <button className="link-btn" onClick={leaveRoom}>LEAVE ROOM</button>
