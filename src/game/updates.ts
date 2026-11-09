@@ -12,6 +12,50 @@ export interface UpdateLog {
 
 export const GAME_UPDATES: UpdateLog[] = [
   {
+    version: '1.4.8',
+    title: 'THE LOCAL AP UPDATE',
+    label: 'CAREER ECONOMY · NOV 2026',
+    summary:
+      'Local CPU wins now pay AP, giving career players a repeatable way to finish their OVR and element unlocks. The AP ceiling rises to 315 so the full career build fits without wasting rewards.',
+    sections: {
+      new: [
+        'Local CPU wins now award 1 AP each, up to 5 AP per career save per day. Losses and draws pay no AP.',
+        'The Career Hub local CPU button and the post-show results screen now show the AP reward, and the development and settings notes explain the daily cap.',
+        'The AP ceiling is now 315: 245 AP for the full 50–99 OVR climb plus 70 AP for all seven non-starter element unlocks.',
+      ],
+      fixed: [
+        'A career that had earned 245 AP could not afford both max OVR and every element; local wins now supply the remaining AP.',
+        'Local AP has its own daily counter and is not reduced by the 160 XP local-show cap.',
+      ],
+      changed: [
+        'First clears still pay 5 AP and chapter bosses still pay 10 AP. Local CPU wins are the repeatable source.',
+        'The 1.4.7 badge equip fix remains included in this build.',
+      ],
+    },
+  },
+  {
+    version: '1.4.7',
+    title: 'THE BADGE EQUIP UPDATE',
+    label: 'CAREER BADGES · NOV 2026',
+    summary:
+      'Career badges now equip the moment you tap them. The badge menu shows an explicit equip state, a live slot count and a clear reason whenever a slot is locked or full, so unlocked badges never look like they are doing nothing.',
+    sections: {
+      new: [
+        'Career BADGES now saves the moment you tap an unlocked badge; the old SAVE BADGES step is gone.',
+        'Every badge card shows TAP TO EQUIP or EQUIPPED · TAP TO REMOVE, and the menu shows how many slots are in use.',
+        'The Collection badge menu is now labelled EQUIP BADGES and uses the same tap-to-equip instructions and confirmation notices.',
+      ],
+      fixed: [
+        'Tapping an unlocked career badge used to change only a local draft, so it looked like nothing happened unless you found SAVE BADGES at the bottom of the page.',
+        'A badge tap with no open slot or a full set no longer fails silently; the menu explains the requirement instead.',
+      ],
+      changed: [
+        'REMOVE ALL and DONE · BACK TO HUB replace the old save footer. Equip changes are written to the active career save immediately.',
+        'The career badge guide calls out that the first slot opens at level 10, then at levels 20, 30, 40 and 55.',
+      ],
+    },
+  },
+  {
     version: '1.4.6',
     title: 'THE MULTI-CAREER UPDATE',
     label: 'SAVE SLOTS · XP PACING · NOV 2026',

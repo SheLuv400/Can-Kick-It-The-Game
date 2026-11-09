@@ -287,6 +287,11 @@
 .career-move-slot > span, .career-badge-slot > span { display: block; color: #887b6a; font-size: 7px; letter-spacing: 0.09em; }
 .career-move-slot > b, .career-badge-slot > b { display: block; margin-top: 8px; font-family: var(--font-display); font-size: 14px; }
 .career-move-slot > i { color: #5f574c; font-size: 8px; font-style: normal; }
+.career-badge-guide { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 12px; padding: 12px 14px; border: 1px solid rgba(244, 200, 78, 0.28); background: linear-gradient(90deg, rgba(244, 200, 78, 0.07), rgba(12, 9, 14, 0.7)); }
+.career-badge-guide > div > span { display: block; }
+.career-badge-guide > div > b { display: block; margin-top: 3px; color: var(--career-gold); font-family: var(--font-display); font-size: 18px; font-weight: 400; letter-spacing: 0.03em; }
+.career-badge-guide > p { max-width: 430px; margin: 0; color: #9e9180; font-size: 9px; line-height: 1.45; }
+.career-badge-slot > i { display: block; margin-top: 5px; color: #6f6352; font-size: 7px; font-style: normal; letter-spacing: 0.05em; }
 .career-move-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
 .career-move, .career-badge-card { display: flex; flex-direction: column; align-items: flex-start; padding: 13px; border: 1px solid rgba(244, 234, 214, 0.11); background: rgba(12, 9, 14, 0.85); color: var(--career-cream); text-align: left; }
 .career-move:hover, .career-badge-card:hover { border-color: rgba(244, 200, 78, 0.5); }
@@ -301,6 +306,8 @@
 .career-move > strong { margin-top: 7px; color: #6b5f51; font-size: 7px; letter-spacing: 0.06em; }
 .career-badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
 .career-badge-card > i { color: #776b5c; font-size: 7px; font-style: normal; }
+.career-badge-card > strong.career-badge-card__cta { margin-top: 7px; color: var(--career-gold); font-family: var(--font-display); font-size: 11px; font-weight: 400; letter-spacing: 0.08em; line-height: 1.2; }
+.career-badge-card.is-on > strong.career-badge-card__cta { color: var(--career-neon); }
 .career-badge-card > em { margin-top: 7px; color: var(--career-gold); }
 .career-badge-card { border-left: 3px solid var(--tier-color, rgba(244, 200, 78, 0.2)); }
 .career-badge-card > span { color: var(--tier-color, var(--career-orange)); }
@@ -401,6 +408,7 @@
   .career-creator-stage { min-height: 420px; }
   .career-moves__slots { grid-template-columns: 1fr; }
   .career-badge-slots { grid-template-columns: 1fr 1fr 1fr; }
+  .career-badge-guide { align-items: flex-start; flex-direction: column; gap: 7px; }
   .career-mission { grid-template-columns: 1fr; }
   .career-mission > .btn { grid-column: 1; grid-row: auto; }
 }

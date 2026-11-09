@@ -30,6 +30,8 @@ import {
   CAREER_AP_FIRST_CLEAR,
   CAREER_AP_PER_LEVEL,
   CAREER_ATTRIBUTES,
+  CAREER_LOCAL_AP_DAILY_CAP,
+  CAREER_LOCAL_AP_PER_WIN,
   CAREER_BACKUP_KEY,
   CAREER_BADGE_SLOT_RANK,
   CAREER_CREW_BY_GENRE,
@@ -106,6 +108,8 @@ export {
   CAREER_AP_FIRST_CLEAR,
   CAREER_AP_PER_LEVEL,
   CAREER_ATTRIBUTES,
+  CAREER_LOCAL_AP_DAILY_CAP,
+  CAREER_LOCAL_AP_PER_WIN,
   CAREER_BACKUP_KEY,
   CAREER_BADGE_SLOT_RANK,
   CAREER_CREW_BY_GENRE,
@@ -224,6 +228,9 @@ export interface CareerState {
   lastRewards: string[]
   localXpDay: string
   localXpToday: number
+  /** Day key and AP earned from local CPU wins, used to enforce the daily cap. */
+  localApDay: string
+  localApToday: number
 }
 
 export interface CareerObjectiveResult extends CareerMissionObjective {
@@ -686,6 +693,8 @@ export function newCareerDraft(): CareerState {
     lastRewards: [],
     localXpDay: '',
     localXpToday: 0,
+    localApDay: '',
+    localApToday: 0,
   }
 }
 
@@ -1746,6 +1755,15 @@ export function awardLocalCareerXp(
   const today = new Date().toISOString().slice(0, 10)
   const usedToday = state.localXpDay === today ? state.localXpToday : 0
   const dailyCap = 160
+  const apUsedToday = state.localApDay === today ? state.localApToday : 0
+  const apRoom = Math.max(0, CAREER_MAX_AP - state.apEarned)
+  const apAward = won
+    ? Math.min(
+        CAREER_LOCAL_AP_PER_WIN,
+        apRoom,
+        Math.max(0, CAREER_LOCAL_AP_DAILY_CAP - apUsedToday),
+      )
+    : 0
   const requested = won ? 40 : 12
   const summaryBefore = careerXpSummary(state)
   const personalUses = performance.cards?.[state.artistId]?.uses ?? 0
@@ -1756,14 +1774,21 @@ export function awardLocalCareerXp(
   const synced = syncCareer({
     ...state,
     xp: state.xp + applied,
+    apEarned: state.apEarned + apAward,
     localXpDay: today,
     localXpToday: usedToday + baseApplied,
+    localApDay: today,
+    localApToday: apUsedToday + apAward,
   })
   const withBadges = awardCareerBadges(synced, won, performance)
   const summaryAfter = careerXpSummary(withBadges)
   const rewards = applied > 0
     ? [`${applied} ARTIST XP · LOCAL SHOW`]
     : ['DAILY LOCAL XP CAP REACHED']
+  if (apAward > 0) rewards.push(`${apAward} AP · LOCAL SHOW`)
+  else if (won && apUsedToday >= CAREER_LOCAL_AP_DAILY_CAP) {
+    rewards.push(`LOCAL AP CAP REACHED · ${CAREER_LOCAL_AP_DAILY_CAP}/${CAREER_LOCAL_AP_DAILY_CAP} TODAY`)
+  }
   if (xpAward.bonus > 0) rewards.push(`PRESTIGE BONUS · +${xpAward.bonus} XP`)
   return {
     career: withBadges,
@@ -1964,6 +1989,8 @@ function normalizeCareer(raw: unknown): CareerState {
       : [],
     localXpDay: typeof source.localXpDay === 'string' ? source.localXpDay : '',
     localXpToday: Math.max(0, numberOr(source.localXpToday, 0)),
+    localApDay: typeof source.localApDay === 'string' ? source.localApDay : '',
+    localApToday: clamp(Math.round(numberOr(source.localApToday, 0)), 0, CAREER_LOCAL_AP_DAILY_CAP),
   }
   const deck = careerDeckLegal(state.deck, state.artistId) ? state.deck : buildCareerDeck(state, starter)
   const lineup = deck.includes(state.artistId) && state.lineup.includes(state.artistId)

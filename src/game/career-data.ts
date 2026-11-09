@@ -16,9 +16,13 @@ export const CAREER_MAX_PRESTIGE = 10
 export const CAREER_PRESTIGE_XP_BONUS = 0.2
 export const CAREER_STARTING_AP = 0
 export const CAREER_AP_PER_LEVEL = 5
-export const CAREER_MAX_AP = 245
+/** Enough AP to max OVR (245) and unlock every non-starter element (70). */
+export const CAREER_MAX_AP = 315
 export const CAREER_AP_FIRST_CLEAR = 5
 export const CAREER_AP_CHAPTER_CLEAR = 10
+/** Repeatable AP from local CPU wins, capped per day. */
+export const CAREER_LOCAL_AP_PER_WIN = 1
+export const CAREER_LOCAL_AP_DAILY_CAP = 5
 export const CAREER_MOVE_SLOTS = 3
 export const CAREER_STORAGE_KEY = 'ciki.career.v1'
 export const CAREER_BACKUP_KEY = 'ciki.career.v1.backup'

@@ -7,6 +7,7 @@ import { CareerCreator } from '../components/CareerCreator'
 import { CareerPresetArt } from '../components/CareerPresetArt'
 import { CareerPresetPicker } from '../components/CareerPresetPicker'
 import { careerPreset, type CareerPresetId } from '../game/career-presets'
+import { CAREER_BADGE_SLOT_RANK } from '../game/career-data'
 import {
   BADGE_BY_ID,
   BADGE_CATALOG,
@@ -21,6 +22,9 @@ import {
   CAREER_DUAL_ELEMENT_OVR,
   CAREER_ELEMENT_UNLOCK_COST,
   CAREER_CREWS,
+  CAREER_LOCAL_AP_DAILY_CAP,
+  CAREER_LOCAL_AP_PER_WIN,
+  CAREER_MAX_AP,
   CAREER_MAX_LEVEL,
   CAREER_MAX_OVR,
   CAREER_MAX_PRESTIGE,
@@ -563,7 +567,7 @@ export function Career({
             <div className="career-landing__panel">
               <span>NEXT UP</span>
               <b>{nextMission?.title ?? 'CAMPAIGN COMPLETE'}</b>
-              <p>{nextMission ? `${nextMission.venue.name} · ${nextMission.opponentName}` : 'Every chapter cleared. Keep playing for local XP and replay rewards.'}</p>
+              <p>{nextMission ? `${nextMission.venue.name} · ${nextMission.opponentName}` : 'Every chapter cleared. Keep playing for local XP, AP and replay rewards.'}</p>
               {nextMission && <button className="btn btn--primary btn--sm" onClick={() => onStartMission(nextMission)}>PLAY MISSION →</button>}
             </div>
             <div className="career-landing__panel">
@@ -647,9 +651,10 @@ export function Career({
             </div>
           </section>
           <div className="career-hub__local">
-            <button className="btn btn--ghost" onClick={onStartLocal}>PLAY LOCAL CPU BATTLE · CAREER CARD ON</button>
+            <button className="btn btn--ghost" onClick={onStartLocal}>PLAY LOCAL CPU BATTLE · +{CAREER_LOCAL_AP_PER_WIN} AP/WIN</button>
             <button className="btn btn--ghost" onClick={() => go('settings')}>CAREER SETTINGS</button>
           </div>
+          <p className="career-note">Local CPU wins pay {CAREER_LOCAL_AP_PER_WIN} AP each, up to {CAREER_LOCAL_AP_DAILY_CAP} AP per day. Career missions still pay AP on first clears and chapter bosses.</p>
         </div>
         {notice && <div className="toast">{notice}</div>}
       </main>
@@ -911,7 +916,7 @@ export function Career({
               <button className="btn btn--primary" onClick={apply} disabled={!projected?.ap}>APPLY UPGRADES</button>
             </div>
           </section>
-          <p className="career-note">AP comes from career progress, not level-ups: first clears award {CAREER_AP_PER_LEVEL} AP and chapter bosses award another 10 AP. Spend that pool freely in one attribute or split it across the set. Every 5 AP spent adds +1 OVR; OVR starts at {CAREER_MIN_OVR}, caps at {CAREER_MAX_OVR}, and never resets when you Prestige.</p>
+          <p className="career-note">AP comes from career progress, not level-ups: first clears award {CAREER_AP_PER_LEVEL} AP, chapter bosses award another 10 AP, and local CPU wins award {CAREER_LOCAL_AP_PER_WIN} AP up to {CAREER_LOCAL_AP_DAILY_CAP} per day. The {CAREER_MAX_AP} AP ceiling covers max OVR and every element unlock. Spend it in one attribute or split it across the set; every 5 AP spent adds +1 OVR. OVR starts at {CAREER_MIN_OVR}, caps at {CAREER_MAX_OVR}, and never resets when you Prestige.</p>
           <section className="career-dev__equipped">
             <div>
               <span>EQUIPPED MOVES</span>
@@ -987,19 +992,47 @@ export function Career({
 
   if (view === 'badges') {
     const slots = careerBadgeSlots(career.level)
+    const showBadgeNotice = (message: string) => {
+      setNotice(message)
+      window.setTimeout(() => setNotice(''), 3200)
+    }
     const toggle = (id: BadgeId) => {
       const record = career.badges[id]
-      if (!record || record.tier === 'locked') return
-      setBadgeDraft((current) => current.includes(id) ? current.filter((badge) => badge !== id) : current.length < slots ? [...current, id] : current)
+      if (!record || record.tier === 'locked') {
+        showBadgeNotice('THAT BADGE IS STILL LOCKED · EARN ITS MATCHING XP FIRST')
+        return
+      }
+      if (slots === 0) {
+        showBadgeNotice(`NO BADGE SLOTS YET · YOUR FIRST SLOT OPENS AT LEVEL ${CAREER_BADGE_SLOT_RANK[0]}`)
+        return
+      }
+      const equipped = badgeDraft.includes(id)
+      if (!equipped && badgeDraft.length >= slots) {
+        showBadgeNotice(`ALL ${slots} BADGE SLOTS ARE FULL · REMOVE ONE BEFORE EQUIPPING ANOTHER`)
+        return
+      }
+      const nextDraft = equipped ? badgeDraft.filter((badge) => badge !== id) : [...badgeDraft, id]
+      const next = equipCareerBadges(career, nextDraft)
+      setBadgeDraft(next.equippedBadges)
+      saveCareer(next, equipped ? 'BADGE REMOVED' : 'BADGE EQUIPPED')
     }
     return (
       <main className="subscreen career">
         {topBar('BADGES', `${careerBadgeCount(career)} / ${BADGE_CATALOG.length} UNLOCKED · ${slots} SLOTS AT LEVEL ${career.level}`)}
         <div className="career-badges">
+          <div className="career-badge-guide">
+            <div>
+              <span className="kicker">{slots === 0 ? 'BADGE SLOTS LOCKED' : 'EQUIP BADGES'}</span>
+              <b>{slots === 0 ? `FIRST SLOT OPENS AT LEVEL ${CAREER_BADGE_SLOT_RANK[0]}` : `TAP AN UNLOCKED BADGE TO EQUIP · ${badgeDraft.length} OF ${slots} SLOTS USED`}</b>
+            </div>
+            <p>{slots === 0
+              ? 'Keep clearing career missions to level up. Unlocked badges wait here until your first slot opens.'
+              : `Changes save instantly. Tap an equipped badge to remove it. Slots open at levels ${CAREER_BADGE_SLOT_RANK.join(', ')}.`}</p>
+          </div>
           <div className="career-badge-slots">
             {Array.from({ length: slots }).map((_, index) => {
               const badge = badgeDraft[index] ? BADGE_BY_ID.get(badgeDraft[index]) : undefined
-              return <div className={`career-badge-slot ${badge ? 'is-filled' : ''}`} key={index}><span>SLOT 0{index + 1}</span><b>{badge ? badge.name : 'OPEN'}</b></div>
+              return <div className={`career-badge-slot ${badge ? 'is-filled' : ''}`} key={index}><span>SLOT 0{index + 1}</span><b>{badge ? badge.name : 'OPEN'}</b>{!badge && <i>TAP A BADGE BELOW</i>}</div>
             })}
           </div>
           <div className="career-badge-grid">
@@ -1024,18 +1057,39 @@ export function Career({
                   <p>{badge.requirement}</p>
                   <small>{badge.activation} · {badge.limit}</small>
                   <em>{badge.effect(badgeTierPower(tier) || 1)}</em>
+                  <strong className="career-badge-card__cta">
+                    {owned
+                      ? on
+                        ? 'EQUIPPED · TAP TO REMOVE'
+                        : slots === 0
+                          ? `SLOT OPENS AT LEVEL ${CAREER_BADGE_SLOT_RANK[0]}`
+                          : badgeDraft.length >= slots
+                            ? 'SLOTS FULL · REMOVE ONE FIRST'
+                            : 'TAP TO EQUIP'
+                      : 'LOCKED'}
+                  </strong>
                   <i>{owned
-                    ? on ? 'EQUIPPED' : record?.tier === 'diamond' ? 'DIAMOND · MAXED' : record ? `${badgeXpToNext(record).toLocaleString('en-US')} XP TO NEXT TIER` : 'UNLOCKED'
+                    ? record?.tier === 'diamond' ? 'DIAMOND · MAXED' : record ? `${badgeXpToNext(record).toLocaleString('en-US')} XP TO NEXT TIER` : 'UNLOCKED'
                     : `UNLOCK · ${badge.unlock}`}</i>
                 </button>
               )
             })}
           </div>
           <div className="career-step-actions">
-            <button className="btn btn--ghost" onClick={() => setBadgeDraft([])}>CLEAR</button>
-            <button className="btn btn--primary" onClick={() => { const next = equipCareerBadges(career, badgeDraft); saveCareer(next, 'BADGES SAVED'); setBadgeDraft(next.equippedBadges) }}>SAVE BADGES</button>
+            <button
+              className="btn btn--ghost"
+              onClick={() => {
+                const next = equipCareerBadges(career, [])
+                setBadgeDraft([])
+                saveCareer(next, 'ALL BADGES REMOVED')
+              }}
+              disabled={!badgeDraft.length}
+            >
+              REMOVE ALL
+            </button>
+            <button className="btn btn--primary" onClick={() => setView('hub')}>DONE · BACK TO HUB</button>
           </div>
-          <p className="career-note">Career badges are the same ten programs, tiers and battle effects used in every mode. Story clears unlock a Plastic copy, career battles add tier XP, and levels 10, 20, 30, 40 and 55 open five equip slots. Prestige relocks non-permanent badges and resets their tier progress; Permanent Unlocks survive but return at Plastic. Badges never grant extra attacks or bypass Hype.</p>
+          <p className="career-note">Tap an unlocked badge above to equip it; changes save instantly. Career badges are the same ten programs, tiers and battle effects used in every mode. Story clears unlock a Plastic copy, career battles add tier XP, and levels 10, 20, 30, 40 and 55 open five equip slots. Prestige relocks non-permanent badges and resets their tier progress; Permanent Unlocks survive but return at Plastic. Badges never grant extra attacks or bypass Hype.</p>
         </div>
         {notice && <div className="toast">{notice}</div>}
       </main>
@@ -1439,7 +1493,7 @@ export function Career({
               </button>
             ))}
           </div>
-          <p className="career-note">Starting AP: {CAREER_STARTING_AP}. AP comes from first clears (+{CAREER_AP_PER_LEVEL}) and chapter bosses (+10), not from level-ups. Spend it in one attribute or split it across several. Prestige resets only the level, move set and badge set; OVR, AP and attributes stay, along with Legacy titles and permanent unlocks.</p>
+          <p className="career-note">Starting AP: {CAREER_STARTING_AP}. AP comes from first clears (+{CAREER_AP_PER_LEVEL}), chapter bosses (+10), and local CPU wins (+{CAREER_LOCAL_AP_PER_WIN}, up to {CAREER_LOCAL_AP_DAILY_CAP} per day). Spend it in one attribute or split it across several. Prestige resets only the level, move set and badge set; OVR, AP and attributes stay, along with Legacy titles and permanent unlocks.</p>
         </section>
         <section className="career-panel">
           <span className="kicker">LOCAL-ONLY NOTICE</span>

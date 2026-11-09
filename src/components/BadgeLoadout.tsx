@@ -58,16 +58,16 @@ export function BadgeLoadout({ artist, progress, onChange, onClose }: BadgeLoado
       return
     }
     if (equipped.includes(badge.id)) {
-      setNotice('')
       onChange(equipped.filter((id) => id !== badge.id))
+      setNotice(`${badge.name} REMOVED · ${equipped.length - 1}/${BADGE_MAX_EQUIPPED} SLOTS USED`)
       return
     }
     if (equipped.length >= BADGE_MAX_EQUIPPED) {
       setNotice('FIVE BADGES IS THE LIMIT · TAKE ONE OFF BEFORE EQUIPPING ANOTHER.')
       return
     }
-    setNotice('')
     onChange([...equipped, badge.id])
+    setNotice(`${badge.name} EQUIPPED · ${equipped.length + 1}/${BADGE_MAX_EQUIPPED} SLOTS USED`)
   }
 
   return (
@@ -165,7 +165,7 @@ export function BadgeLoadout({ artist, progress, onChange, onClose }: BadgeLoado
         <section className="badge-catalog" aria-label="Badge catalog">
           <div className="badge-section-head">
             <span>THE TEN</span>
-            <i>MATCH THE ACTION · EARN THE REP · EQUIP FIVE</i>
+            <i>TAP AN UNLOCKED BADGE TO EQUIP · TAP AN EQUIPPED BADGE TO REMOVE</i>
           </div>
           <div className="badge-grid">
             {BADGE_CATALOG.map((badge) => {
@@ -219,7 +219,7 @@ export function BadgeLoadout({ artist, progress, onChange, onClose }: BadgeLoado
                     ))}
                   </span>
                   <span className="badge-card__cta">
-                    {isEquipped ? 'EQUIPPED · CLICK TO REMOVE' : tier === 'locked' ? `${badge.requirement.toUpperCase()} TO UNLOCK` : 'CLICK TO EQUIP'}
+                    {isEquipped ? 'EQUIPPED · TAP TO REMOVE' : tier === 'locked' ? `${badge.requirement.toUpperCase()} TO UNLOCK` : 'TAP TO EQUIP'}
                   </span>
                   {next === 'diamond' && tier === 'platinum' && (
                     <span className="badge-card__max">DIAMOND IN SIGHT</span>

@@ -402,7 +402,7 @@ export function Collection({ progress, onLoadoutChange, onBadgeLoadoutChange, fe
                 <div className="showcase__badges-head">
                   <span className="kicker">BADGE PROGRAM · {artistBadges.length}/5 EQUIPPED</span>
                   <button className="btn btn--ghost btn--sm" onClick={() => setBadgeOpen(true)}>
-                    OPEN BADGE LAB · {unlockedBadges}/10
+                    EQUIP BADGES · {unlockedBadges}/10
                   </button>
                 </div>
                 <div className="showcase__badge-row">
@@ -429,13 +429,13 @@ export function Collection({ progress, onLoadoutChange, onBadgeLoadoutChange, fe
                     })
                   ) : (
                     <p className="showcase__badge-empty">
-                      NO BADGES EQUIPPED · OPEN THE BADGE LAB AND BUILD A FIVE.
+                      NO BADGES EQUIPPED · OPEN EQUIP BADGES AND BUILD A FIVE.
                     </p>
                   )}
                 </div>
                 <p className="showcase__badge-note">
-                  Ten programs per artist. Each tier is ground separately with matching actions;
-                  equip five that fit the set.
+                  Tap a badge in Equip Badges to add it to your five. Each tier is ground separately
+                  with matching actions.
                 </p>
               </div>
 
