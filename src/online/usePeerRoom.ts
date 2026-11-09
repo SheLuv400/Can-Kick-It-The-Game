@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Peer, type DataConnection, type MediaConnection } from 'peerjs'
 import {
+  advanceTripleTurn,
   battleReducer,
   cloneBattleState,
   cloneSideState,
@@ -38,6 +39,7 @@ import {
   normalizeRoomCode,
   ROOM_CODE_LENGTH,
   ROOM_SEATS,
+  TRIPLE_ORDER,
   sideLabel,
   roomSeatName,
   roomTeam,
@@ -141,6 +143,27 @@ function sanitizeChatMessage(value: unknown): ChatMessage | null {
   }
 }
 
+/** Swap the active player's chosen Triple Threat target before their first action. */
+function applyTripleTarget(current: BattleState, targetSeat: RoomSeat): BattleState | null {
+  const party = current.party
+  if (!party || party.format !== 'triple-threat' || !party.sides) return null
+  if (!party.order.includes(targetSeat) || targetSeat === party.activeSeat) return null
+  if (party.targetLocked || current.counterPrompt) return null
+  if (party.eliminated?.includes(targetSeat)) return null
+  const side = party.sides[targetSeat]
+  if (!side || side.crowd <= 0) return null
+  const next = cloneBattleState(current)
+  const nextParty = next.party!
+  const previous = nextParty.targetSeat
+  if (previous && nextParty.sides?.[previous]) {
+    nextParty.sides[previous] = cloneSideState(next.rival)
+  }
+  next.rival = cloneSideState(side)
+  next.rival.name = nextParty.seats.find((seat) => seat.seat === targetSeat)?.name ?? next.rival.name
+  nextParty.targetSeat = targetSeat
+  return next
+}
+
 export interface PeerRoom {
   phase: OnlinePhase
   role: OnlineRole | null
@@ -169,6 +192,7 @@ export interface PeerRoom {
   voiceError: string
   voiceActive: RoomSeat[]
   sendChat: (text: string) => void
+  selectTripleTarget: (seat: RoomSeat) => void
   toggleTextChat: () => void
   toggleVoiceChat: () => void
   createRoom: (profile: PlayerProfile) => void
@@ -262,6 +286,31 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
   const projectState = useCallback((state: BattleState, seat: RoomSeat): BattleState => {
     if (!state.party) return state
     const copy = cloneBattleState(state)
+    if (copy.party?.format === 'triple-threat') {
+      // Every client sees the active player's stage, the target's stage and the
+      // waiting seat. Hands stay with their owners; only the active seat gets
+      // its own hand over the wire.
+      if (copy.party.activeSeat !== seat) {
+        copy.player.hand = []
+        copy.player.deck = []
+        copy.player.specialHand = []
+      }
+      copy.rival.hand = []
+      copy.rival.deck = []
+      copy.rival.specialHand = []
+      if (copy.party.sides) {
+        for (const side of Object.values(copy.party.sides)) {
+          side.hand = []
+          side.deck = []
+          side.specialHand = []
+          side.backstage = []
+        }
+      }
+      if (copy.party.winnerSeat) {
+        copy.winner = copy.party.winnerSeat === seat ? 'player' : 'rival'
+      }
+      return copy
+    }
     const hidden = roomTeam(seat) === 'player' ? copy.rival : copy.player
     hidden.hand = []
     hidden.deck = []
@@ -747,6 +796,18 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       return
     }
 
+    if (message.type === 'target') {
+      const current = stateRef.current
+      if (!current?.party || current.party.format !== 'triple-threat') return
+      if (current.party.activeSeat !== fromSeat) return
+      const next = applyTripleTarget(current, message.seat)
+      if (!next) return
+      stateRef.current = next
+      setState(projectState(next, seatRef.current))
+      sendHostMessage({ type: 'state', state: next })
+      return
+    }
+
     if (message.type === 'rules-ready') {
       if (Number(message.revision) !== rulesRevisionRef.current) {
         sendRules()
@@ -778,7 +839,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     if (message.type === 'leave') {
       connsRef.current[fromSeat]?.close()
     }
-  }, [commitSeats, festival, makeRulesState, pushChat, sendHostMessage, sendRules, sendVoiceRoster, setRuleSeats, syncVoiceCalls])
+  }, [commitSeats, festival, makeRulesState, projectState, pushChat, sendHostMessage, sendRules, sendVoiceRoster, setRuleSeats, syncVoiceCalls])
 
   const handleGuestMessage = useCallback((raw: unknown) => {
     const message = raw as RoomMessage
@@ -1034,14 +1095,17 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       nextPeer.on('call', answerIncomingCall)
 
       nextPeer.on('connection', (connection) => {
-        const capacity = houseRulesRef.current.format === '2v2' ? 3 : 1
+        const format = houseRulesRef.current.format
+        const capacity = format === '2v2' ? 3 : format === 'triple-threat' ? 2 : 1
         const guestSeat = (['guest', 'guest-2', 'guest-3'] as RoomSeat[]).find(
           (seat) => !connsRef.current[seat],
         )
         if (!guestSeat || Object.keys(connsRef.current).length >= capacity) {
-          const reason = houseRulesRef.current.format === '2v2'
+          const reason = format === '2v2'
             ? 'ROOM FULL · FOUR SEATS TAKEN'
-            : 'ROOM IS SET TO 1V1 · CHANGE TO 2V2 FOR MORE PLAYERS'
+            : format === 'triple-threat'
+              ? 'ROOM FULL · THREE MICS TAKEN'
+              : 'ROOM IS SET TO 1V1 · CHANGE TO 2V2 OR TRIPLE THREAT FOR MORE PLAYERS'
           setStatus(reason)
           const reject = () => {
             try {
@@ -1189,18 +1253,25 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     const rules = houseRulesRef.current
     const format = battleFormatById(rules.format)
     const teamMode = format.id === '2v2'
-    const requiredSeats: RoomSeat[] = teamMode ? TEAM_ORDER : ['host', 'guest']
+    const tripleMode = format.id === 'triple-threat'
+    const requiredSeats: RoomSeat[] = teamMode ? TEAM_ORDER : tripleMode ? TRIPLE_ORDER : ['host', 'guest']
     const roster = requiredSeats
       .map((seat) => seatsRef.current[seat])
       .filter((profile): profile is PlayerProfile => Boolean(profile))
     if (roster.length !== requiredSeats.length) {
-      setStatus(teamMode ? '2V2 NEEDS ALL FOUR SEATS FILLED' : 'WAITING FOR AN OPPONENT TO JOIN')
+      setStatus(
+        teamMode
+          ? '2V2 NEEDS ALL FOUR SEATS FILLED'
+          : tripleMode
+            ? 'TRIPLE THREAT NEEDS ALL THREE MICS FILLED'
+            : 'WAITING FOR AN OPPONENT TO JOIN',
+      )
       return
     }
     const [first, second, third, fourth] = roster
     if (!self) return
-    if (teamMode && self.mode !== 'casual') {
-      setStatus('2V2 TAG TEAM IS A CASUAL FORMAT IN THIS BUILD')
+    if ((teamMode || tripleMode) && self.mode !== 'casual') {
+      setStatus(teamMode ? '2V2 TAG TEAM IS A CASUAL FORMAT IN THIS BUILD' : 'TRIPLE THREAT IS A CASUAL FORMAT IN THIS BUILD')
       return
     }
     if (roster.some((profile) => profile.mode !== self.mode)) {
@@ -1238,13 +1309,16 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       setStatus('CUSTOM HOUSE RULES ARE CASUAL PRIVATE ROOMS ONLY')
       return
     }
-    if (
-      requiredSeats.some((seat) => !rulesAcceptedRef.current.includes(seat)) ||
+    if (requiredSeats.some((seat) => !rulesAcceptedRef.current.includes(seat)) ||
       requiredSeats.some((seat) => !rulesReadyRef.current.includes(seat))
     ) {
-      setStatus(teamMode
-        ? 'ALL FOUR PLAYERS MUST ACCEPT THE RULES AND READY UP'
-        : 'BOTH PLAYERS MUST ACCEPT THE RULES AND READY UP')
+      setStatus(
+        teamMode
+          ? 'ALL FOUR PLAYERS MUST ACCEPT THE RULES AND READY UP'
+          : tripleMode
+            ? 'ALL THREE MICS MUST ACCEPT THE RULES AND READY UP'
+            : 'BOTH PLAYERS MUST ACCEPT THE RULES AND READY UP',
+      )
       return
     }
 
@@ -1269,7 +1343,49 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       houseRules: rules,
     })
 
-    if (teamMode) {
+    if (tripleMode) {
+      // Three complete stage kits. The active mic lives in player, the chosen
+      // target in rival, and the waiting mic is parked in party.sides.
+      const thirdBattle = createBattle({
+        deck: third.deck,
+        lineup: third.lineup,
+        progress: third.progress,
+        difficulty: 'HEADLINER',
+        playerName: third.name,
+        playerCrowd: 72,
+        online: true,
+        onlineMode: 'casual',
+        houseRules: rules,
+      })
+      const sides: Record<string, SideState> = {
+        host: cloneSideState(next.player),
+        guest: cloneSideState(next.rival),
+        'guest-2': cloneSideState(thirdBattle.player),
+      }
+      for (const side of Object.values(sides)) side.counters = 0
+      next.player.counters = 0
+      next.rival.counters = 0
+      next.party = {
+        format: 'triple-threat',
+        seats: TRIPLE_ORDER.map((seat) => ({
+          seat,
+          name: seatsRef.current[seat]?.name ?? roomSeatName(seat),
+          team: seat === 'host' ? 'player' : 'rival',
+        })),
+        order: [...TRIPLE_ORDER],
+        activeSeat: 'host',
+        targetSeat: 'guest',
+        controllers: { player: 'host', rival: 'guest' },
+        sides,
+        turnIndex: 0,
+        turnEnded: false,
+        targetLocked: false,
+        eliminated: [],
+        winnerSeat: null,
+      }
+      next.winnerSeat = null
+      commitActiveSeat('host')
+    } else if (teamMode) {
       // Every seat brings its own complete stage kit. The two on stage live in
       // player/rival; the waiting seats sit in party.sides until they tag in.
       const sides: Record<string, SideState> = {
@@ -1311,13 +1427,13 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       commitActiveSeat(null)
     }
     stateRef.current = next
-    setState(next)
+    setState(projectState(next, seatRef.current))
     setForfeit(null)
     enterPhase('battle')
-    setStatus(teamMode ? 'LIVE · 2V2 TAG TEAM' : 'LIVE · P2P')
+    setStatus(teamMode ? 'LIVE · 2V2 TAG TEAM' : tripleMode ? 'LIVE · TRIPLE THREAT' : 'LIVE · P2P')
     setMatchId((id) => id + 1)
     sendHostMessage({ type: 'start', state: next })
-  }, [commitActiveSeat, enterPhase, festival, sendHostMessage])
+  }, [commitActiveSeat, enterPhase, festival, projectState, sendHostMessage])
 
   useEffect(() => {
     startRef.current = startMatchInternal
@@ -1332,12 +1448,15 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       setStatus(definition.unavailableReason ?? 'THAT BATTLE FORMAT IS NOT AVAILABLE')
       return
     }
-    if (format === '2v2' && profileRef.current?.mode !== 'casual') {
-      setStatus('2V2 TAG TEAM IS CASUAL ONLY · SWITCH THE ROOM TO CASUAL FIRST')
+    if ((format === '2v2' || format === 'triple-threat') && profileRef.current?.mode !== 'casual') {
+      setStatus(format === '2v2'
+        ? '2V2 TAG TEAM IS CASUAL ONLY · SWITCH THE ROOM TO CASUAL FIRST'
+        : 'TRIPLE THREAT IS CASUAL ONLY · SWITCH THE ROOM TO CASUAL FIRST')
       return
     }
-    if (format !== '2v2' && Object.keys(connsRef.current).length > 1) {
-      setStatus('MOVE THE EXTRA GUESTS OUT BEFORE SWITCHING BACK TO 1V1')
+    const maxGuests = format === '2v2' ? 3 : format === 'triple-threat' ? 2 : 1
+    if (Object.keys(connsRef.current).length > maxGuests) {
+      setStatus('MOVE THE EXTRA GUESTS OUT BEFORE CHANGING TO THAT FORMAT')
       return
     }
     commitRules({ ...houseRulesRef.current, format })
@@ -1425,15 +1544,21 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     setStatus(ready ? 'RULES ACCEPTED · WAITING FOR THE HOST' : 'READY STATUS CLEARED')
   }, [sendRules, setRuleSeats])
 
+  const requiredSeats: RoomSeat[] = houseRules.format === '2v2'
+    ? TEAM_ORDER
+    : houseRules.format === 'triple-threat'
+      ? TRIPLE_ORDER
+      : ['host', 'guest']
   const canStart = Boolean(
     role === 'host' &&
     (houseRules.preset === 'standard' || mode === 'casual') &&
     battleFormatById(houseRules.format).enabled &&
     houseRulesValidationError(houseRules) === null &&
-    (houseRules.format === '2v2'
-      ? mode === 'casual' && TEAM_ORDER.every((seat) => Boolean(seats[seat]))
-      : Boolean(seats.host && seats.guest)) &&
-    (houseRules.format === '2v2' ? TEAM_ORDER : (['host', 'guest'] as RoomSeat[])).every(
+    (houseRules.format === '2v2' || houseRules.format === 'triple-threat'
+      ? mode === 'casual'
+      : true) &&
+    requiredSeats.every((seat) => Boolean(seats[seat])) &&
+    requiredSeats.every(
       (seat) => rulesAccepted.includes(seat) && rulesReady.includes(seat),
     )
   )
@@ -1441,15 +1566,26 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
   const hostDispatch = useCallback((seat: RoomSeat, action: BattleAction) => {
     const current = stateRef.current
     if (!current || current.phase === 'over') return
-    if (current.party) {
+    const triple = current.party?.format === 'triple-threat'
+    let counterDefense = false
+    if (triple) {
+      const party = current.party!
+      counterDefense =
+        action.type === 'COUNTER' &&
+        Boolean(current.counterPrompt) &&
+        party.targetSeat === seat
+      const cinematicSkip = action.type === 'DISMISS_CINEMATIC'
+      if (!counterDefense && !cinematicSkip) {
+        if (party.activeSeat !== seat || current.phase !== 'player') return
+      }
+    } else if (current.party) {
       // A defensive window is the defending team's action, even though the
       // attacker still holds the turn. Without this, no seat can answer it
       // and the whole match stalls on the prompt.
-      const counterDefense =
+      counterDefense =
         action.type === 'COUNTER' &&
         Boolean(current.counterPrompt) &&
         current.counterPrompt?.defender === roomTeam(seat)
-      // Skipping a shared cinematic is presentation, not a turn action.
       const cinematicSkip = action.type === 'DISMISS_CINEMATIC'
       if (!counterDefense && !cinematicSkip) {
         // Only the seat holding the turn may act; teammates cannot move cards.
@@ -1458,10 +1594,27 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       }
     }
     const prepared = current.party ? cloneBattleState(current) : current
-    const side = current.party ? roomTeam(seat) : seat === 'host' ? 'player' : 'rival'
+    const side = triple
+      ? counterDefense
+        ? 'rival'
+        : 'player'
+      : current.party
+        ? roomTeam(seat)
+        : seat === 'host'
+          ? 'player'
+          : 'rival'
     const next = battleReducer(prepared, { ...action, side })
     if (next === prepared) return
-    if (next.party) {
+    if (triple && next.party) {
+      if (!counterDefense && action.type !== 'DISMISS_CINEMATIC' && action.type !== 'COUNTER') {
+        next.party.targetLocked = true
+      }
+      const shouldAdvance =
+        !next.counterPrompt &&
+        (next.party.turnEnded || next.player.crowd <= 0 || next.rival.crowd <= 0)
+      if (shouldAdvance) advanceTripleTurn(next, seat)
+      commitActiveSeat((next.party.activeSeat as RoomSeat | null) ?? null)
+    } else if (next.party) {
       if (next.phase === 'over') {
         next.party.activeSeat = null
         commitActiveSeat(null)
@@ -1473,9 +1626,9 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       }
     }
     stateRef.current = next
-    setState(next)
+    setState(projectState(next, seatRef.current))
     sendHostMessage({ type: 'state', state: next })
-  }, [commitActiveSeat, sendHostMessage])
+  }, [commitActiveSeat, projectState, sendHostMessage])
 
   useEffect(() => {
     dispatchRef.current = hostDispatch
@@ -1487,13 +1640,33 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       return
     }
     if (roleRef.current === 'guest') {
+      const triple = stateRef.current?.party?.format === 'triple-threat'
       const intent: ClientMessage = {
         type: 'action',
-        action: { ...action, side: 'rival' },
+        action: {
+          ...action,
+          side: triple ? (action.type === 'COUNTER' ? 'rival' : 'player') : 'rival',
+        },
       }
       connRef.current?.send(intent)
     }
   }, [hostDispatch])
+
+  const selectTripleTarget = useCallback((targetSeat: RoomSeat) => {
+    if (roleRef.current === 'guest') {
+      connRef.current?.send({ type: 'target', seat: targetSeat } satisfies ClientMessage)
+      return
+    }
+    if (roleRef.current !== 'host') return
+    const current = stateRef.current
+    if (!current?.party || current.party.format !== 'triple-threat') return
+    if (current.party.activeSeat !== 'host') return
+    const next = applyTripleTarget(current, targetSeat)
+    if (!next) return
+    stateRef.current = next
+    setState(projectState(next, seatRef.current))
+    sendHostMessage({ type: 'state', state: next })
+  }, [projectState, sendHostMessage])
 
   const requestRematch = useCallback(() => {
     if (roleRef.current === 'host') {
@@ -1563,6 +1736,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     voiceError,
     voiceActive,
     sendChat,
+    selectTripleTarget,
     toggleTextChat,
     toggleVoiceChat,
     createRoom,

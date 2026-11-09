@@ -22,10 +22,12 @@ import {
   featureDamage,
   rivalCrowdFor,
   type BattleAction,
+  type BattlePartySeat,
   type BattleState,
   type CardPerformance,
   type CrateHandCard,
   type LastMove,
+  type SideState,
 } from '../game/battle'
 import {
   CIRCUITS,
@@ -62,6 +64,17 @@ import {
   houseRulesTitle,
 } from '../game/house-rules'
 
+export interface TripleThreatControl {
+  seats: BattlePartySeat[]
+  sides: Record<string, SideState>
+  activeSeat: string | null
+  targetSeat: string | null
+  localSeat: string
+  eliminated: string[]
+  targetLocked: boolean
+  onTarget: (seat: string) => void
+}
+
 export interface OnlineBattleControl {
   side: 'player' | 'rival'
   state: BattleState
@@ -73,6 +86,7 @@ export interface OnlineBattleControl {
   canAct?: boolean
   activeName?: string
   chat?: RoomChatControl
+  triple?: TripleThreatControl
 }
 
 export interface BattlePerformance {
@@ -189,6 +203,21 @@ export function Battle({
   const state = useMemo(
     () => (online && online.side === 'rival' ? swapBattleState(rawState) : rawState),
     [online, rawState],
+  )
+  const triple = online?.triple
+  const tripleSideFor = (seat: BattlePartySeat): SideState | null => {
+    if (!triple) return null
+    if (seat.seat === triple.activeSeat) return state.player
+    if (seat.seat === triple.targetSeat) return state.rival
+    return triple.sides[seat.seat] ?? null
+  }
+  const canPickTripleTarget = Boolean(
+    triple &&
+      triple.activeSeat === triple.localSeat &&
+      !triple.targetLocked &&
+      state.phase === 'player' &&
+      !state.counterPrompt &&
+      online?.canAct !== false,
   )
   const [started, setStarted] = useState(Boolean(online))
   const canAct = online?.canAct !== false
@@ -1020,10 +1049,14 @@ export function Battle({
         )}
         {state.party && (
           <span className="battle__party-badge">
-            2V2 · {state.party.seats.filter((seat) => seat.team === 'player').map((seat) => seat.name).join(' + ')}
-            {' '}VS{' '}
-            {state.party.seats.filter((seat) => seat.team === 'rival').map((seat) => seat.name).join(' + ')}
-            {online?.activeName ? ` · ${online.activeName}'S TURN` : ''}
+            {state.party.format === 'triple-threat'
+              ? <>TRIPLE THREAT · {state.party.seats.find((seat) => seat.seat === state.party?.activeSeat)?.name ?? 'OPEN MIC'}'S TURN</>
+              : <>
+                  2V2 · {state.party.seats.filter((seat) => seat.team === 'player').map((seat) => seat.name).join(' + ')}
+                  {' '}VS{' '}
+                  {state.party.seats.filter((seat) => seat.team === 'rival').map((seat) => seat.name).join(' + ')}
+                </>}
+            {online?.activeName && state.party.format === '2v2' ? ` · ${online.activeName}'S TURN` : ''}
           </span>
         )}
         {started && state.phase !== 'over' && (
@@ -1088,6 +1121,42 @@ export function Battle({
           difficulty={online ? `ONLINE · VS ${online.opponentName || 'OPPONENT'}` : `${difficultyLabel(state.difficulty)} · ${state.venue.name}`}
         />
       </div>
+
+      {triple && (
+        <section className="triple-mics" aria-label="Triple Threat mics">
+          <div className="triple-mics__head">
+            <span>TRIPLE THREAT · THREE MICS, ONE CROWN</span>
+            <b>{triple.seats.find((seat) => seat.seat === triple.activeSeat)?.name ?? 'OPEN MIC'} ON THE MIC</b>
+            <em>{canPickTripleTarget ? 'TAP A RIVAL TO CHANGE TARGET' : 'TARGET LOCKED FOR THIS TURN'}</em>
+          </div>
+          <div className="triple-mics__grid">
+            {triple.seats.map((seat) => {
+              const side = tripleSideFor(seat)
+              const isActive = seat.seat === triple.activeSeat
+              const isTarget = seat.seat === triple.targetSeat
+              const isLocal = seat.seat === triple.localSeat
+              const isEliminated = triple.eliminated.includes(seat.seat) || (side?.crowd ?? 0) <= 0
+              const pickable = canPickTripleTarget && !isLocal && !isActive && !isEliminated && !isTarget
+              const pressure = side ? Math.max(0, Math.min(100, (side.crowd / Math.max(1, side.maxCrowd)) * 100)) : 0
+              return (
+                <button
+                  key={seat.seat}
+                  type="button"
+                  className={`triple-mic ${isActive ? 'is-active' : ''} ${isTarget ? 'is-target' : ''} ${isLocal ? 'is-you' : ''} ${isEliminated ? 'is-out' : ''}`}
+                  onClick={() => pickable && triple.onTarget(seat.seat)}
+                  disabled={!pickable}
+                  aria-label={`${seat.name}${isTarget ? ' target' : ''}${isActive ? ' on the mic' : ''}`}
+                >
+                  <span>{isEliminated ? 'BOOED OFF' : isActive ? 'ON MIC' : isTarget ? 'TARGET' : isLocal ? 'YOU' : 'WAITING'}</span>
+                  <b>{seat.name}</b>
+                  <div className="triple-mic__crowd"><i style={{ width: `${pressure}%` }} /></div>
+                  <em>{side?.crowd ?? 0} CROWD · {side?.stage.length ?? 0} ON STAGE</em>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {state.houseRules && (
         <div className="house-hud" aria-label="Active house rules">

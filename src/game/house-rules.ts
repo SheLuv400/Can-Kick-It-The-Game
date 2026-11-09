@@ -92,8 +92,7 @@ export const BATTLE_FORMATS: BattleFormatDefinition[] = [
     subtitle: 'Three artists. No allies.',
     players: 3,
     teams: 3,
-    enabled: false,
-    unavailableReason: 'Locked until the battle engine supports three-sided free-for-alls.',
+    enabled: true,
   },
   {
     id: 'fatal-4',

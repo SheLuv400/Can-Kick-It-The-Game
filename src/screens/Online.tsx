@@ -5,7 +5,7 @@ import { useAccount } from '../account/AccountProvider'
 import { useSocial, type FriendPresence } from '../account/SocialProvider'
 import { normalizeFriendCode } from '../account/account'
 import { inverseResult, recordOnlineMatch } from '../online/leaderboard'
-import { normalizeRoomCode, roomSeatName, roomTeam, seatSide, sideLabel, type PlayerProfile, type RoomChatControl, type RoomSeat } from '../online/protocol'
+import { normalizeRoomCode, roomSeatName, roomTeam, seatSide, sideLabel, TRIPLE_SEATS, type PlayerProfile, type RoomChatControl, type RoomSeat } from '../online/protocol'
 import { usePeerRoom } from '../online/usePeerRoom'
 import { getArtist } from '../game/roster'
 import { portraitUrl } from '../game/portraits'
@@ -309,17 +309,24 @@ export function Online({
 
   const localSeat: RoomSeat = session.localSeat ?? (session.role === 'host' ? 'host' : 'guest')
   const teamMode = session.houseRules.format === '2v2'
-  const localSide = seatSide(localSeat, teamMode)
+  const tripleMode = session.houseRules.format === 'triple-threat'
+  const localSide = tripleMode ? 'player' : seatSide(localSeat, teamMode)
   const forfeitWon = Boolean(session.state && session.forfeit && session.state.winner === localSide)
   const forfeitNotice = session.forfeit
     ? `${session.forfeit.loserName} LEFT THE MATCH · ${forfeitWon ? 'FORFEIT WIN' : 'FORFEIT LOSS'}`
     : undefined
   // In 2v2 the opponent is the other team, not the first guest who joined.
+  // In Triple Threat every other mic is a rival.
   const opposingName = session.state?.party
-    ? session.state.party.seats
-        .filter((seat) => seat.team === (localSide === 'player' ? 'rival' : 'player'))
-        .map((seat) => seat.name)
-        .join(' + ')
+    ? session.state.party.format === 'triple-threat'
+      ? session.state.party.seats
+          .filter((seat) => seat.seat !== localSeat)
+          .map((seat) => seat.name)
+          .join(' · ')
+      : session.state.party.seats
+          .filter((seat) => seat.team === (localSide === 'player' ? 'rival' : 'player'))
+          .map((seat) => seat.name)
+          .join(' + ')
     : session.opponentName
   const chatControl: RoomChatControl = {
     messages: session.chatMessages,
@@ -347,11 +354,25 @@ export function Online({
           roomCode: session.code,
           opponentName: opposingName,
           status: session.status,
-          canAct: !session.state.party || session.activeSeat === localSeat,
+          canAct: tripleMode
+            ? session.state.party?.activeSeat === localSeat
+            : !session.state.party || session.activeSeat === localSeat,
           activeName:
             session.state.party?.seats.find((seat) => seat.seat === session.activeSeat)?.name ??
             'YOUR TEAMMATE',
           chat: chatControl,
+          triple: tripleMode && session.state.party
+            ? {
+                seats: session.state.party.seats,
+                sides: session.state.party.sides ?? {},
+                activeSeat: session.state.party.activeSeat,
+                targetSeat: session.state.party.targetSeat ?? null,
+                localSeat,
+                eliminated: session.state.party.eliminated ?? [],
+                targetLocked: Boolean(session.state.party.targetLocked),
+                onTarget: (seat) => session.selectTripleTarget(seat as RoomSeat),
+              }
+            : undefined,
         }}
         onExit={backToMenu}
         onRematch={session.requestRematch}
@@ -398,7 +419,9 @@ export function Online({
   const isHost = session.role === 'host'
   const seatOrder: RoomSeat[] = teamMode
     ? ['host', 'guest', 'guest-2', 'guest-3']
-    : ['host', 'guest']
+    : tripleMode
+      ? TRIPLE_SEATS
+      : ['host', 'guest']
   const officialRules = session.houseRules.preset === 'standard'
   const roomCanStart = session.canStart && festivalDeckOk && (!festival || festivalLive)
   if (!account) {

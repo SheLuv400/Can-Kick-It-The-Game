@@ -264,21 +264,32 @@ export interface BattlePartySeat {
   team: BattleTeam
 }
 
-/** Metadata for the host-authoritative four-player tag-team room. */
+/** Metadata for the host-authoritative multi-player rooms. */
 export interface BattleParty {
-  format: '2v2'
+  format: '2v2' | 'triple-threat'
   seats: BattlePartySeat[]
   order: string[]
   activeSeat: string | null
+  /** Triple Threat: the rival the active player is currently facing. */
+  targetSeat?: string | null
   controllers: Record<BattleTeam, string>
   /**
    * Every seat's own deck, hand, Hype, stage, Crate, Backstage and Encore state.
-   * Only the two seats currently on stage live in `player`/`rival`; the others
-   * wait here untouched. Host-only: never sent to clients.
+   * In 2v2 only the two seats currently on stage live in `player`/`rival`.
+   * In Triple Threat the active player is `player`, their chosen target is
+   * `rival`, and the third seat waits here untouched. Host-only.
    */
   sides?: Record<string, SideState>
   /** Index into `order` for the seat taking the current turn. */
   turnIndex?: number
+  /** Set by the engine when a Triple Threat turn should rotate. */
+  turnEnded?: boolean
+  /** Target changes are locked after the first action of a turn. */
+  targetLocked?: boolean
+  /** Triple Threat seats that have been booed off stage. */
+  eliminated?: string[]
+  /** Triple Threat winner, projected per client. */
+  winnerSeat?: string | null
 }
 
 export interface HouseRuleRuntime {
@@ -302,6 +313,8 @@ export interface BattleState {
   cinematics: Cinematic[]
   counterPrompt: CounterPrompt | null
   winner: 'player' | 'rival' | 'draw' | null
+  /** Triple Threat winner in canonical seat order. */
+  winnerSeat?: string | null
   difficulty: Difficulty
   rivalActions: number
   tick: number
@@ -1436,6 +1449,8 @@ function applyEffects(
 }
 
 function checkWinner(state: BattleState): boolean {
+  // Triple Threat has three sides and is settled by advanceTripleTurn.
+  if (state.party?.format === 'triple-threat') return false
   if (state.rival.crowd <= 0) {
     state.winner = 'player'
     state.phase = 'over'
@@ -1936,6 +1951,10 @@ function advancePartyTurn(state: BattleState, endedSide: 'player' | 'rival') {
 }
 
 function endTurnFor(state: BattleState, side: 'player' | 'rival') {
+  if (state.party?.format === 'triple-threat') {
+    state.party.turnEnded = true
+    return
+  }
   advancePartyTurn(state, side)
   if (side === 'player') {
     beginTurnFor(state, 'rival')
@@ -1950,6 +1969,121 @@ function endTurnFor(state: BattleState, side: 'player' | 'rival') {
 
 function endRivalTurn(state: BattleState) {
   endTurnFor(state, 'rival')
+}
+
+/**
+ * Rotate a three-mic free-for-all after a turn, a knockout or a target switch.
+ *
+ * The active seat lives in `state.player`, the chosen target in `state.rival`;
+ * the waiting seat is parked in `party.sides`. The next living seat takes the
+ * mic, and the next living rival becomes its target. A full cycle advances the
+ * round, resolves Era changes and enforces the Curfew.
+ */
+export function advanceTripleTurn(state: BattleState, endedSeat: string): void {
+  const party = state.party
+  if (!party || party.format !== 'triple-threat' || !party.sides) return
+  const activeSeat = party.activeSeat ?? endedSeat
+  const targetSeat = party.targetSeat
+  if (activeSeat) party.sides[activeSeat] = cloneSideState(state.player)
+  if (targetSeat) party.sides[targetSeat] = cloneSideState(state.rival)
+  party.turnEnded = false
+  party.targetLocked = false
+  state.counterPrompt = null
+
+  const eliminated = new Set(party.eliminated ?? [])
+  for (const seat of party.order) {
+    const side = party.sides[seat]
+    if (!side || side.crowd <= 0) eliminated.add(seat)
+  }
+  party.eliminated = [...eliminated]
+  const alive = party.order.filter(
+    (seat) => !eliminated.has(seat) && (party.sides?.[seat]?.crowd ?? 0) > 0,
+  )
+
+  if (alive.length <= 1) {
+    const winnerSeat = alive[0] ?? null
+    party.winnerSeat = winnerSeat
+    party.activeSeat = null
+    party.targetSeat = null
+    state.winnerSeat = winnerSeat
+    state.winner = winnerSeat ? (winnerSeat === 'host' ? 'player' : 'rival') : 'draw'
+    state.phase = 'over'
+    pushLog(
+      state,
+      winnerSeat
+        ? `${party.seats.find((seat) => seat.seat === winnerSeat)?.name ?? 'THE LAST MIC'} TAKES THE CROWN.`
+        : 'THE CROWD IS GONE. THE ROOM GOES DARK.',
+      'gold',
+    )
+    return
+  }
+
+  const currentIndex = Math.max(0, party.order.indexOf(activeSeat))
+  let nextIndex = currentIndex
+  for (let step = 1; step <= party.order.length; step += 1) {
+    const candidate = (currentIndex + step) % party.order.length
+    if (!eliminated.has(party.order[candidate])) {
+      nextIndex = candidate
+      break
+    }
+  }
+  const nextSeat = party.order[nextIndex]
+  if (!nextSeat) return
+
+  if (nextIndex <= currentIndex) {
+    state.round += 1
+    resolveEra(state)
+    if (state.round > CURFEW_ROUND) {
+      const ranked = alive
+        .map((seat) => ({ seat, crowd: party.sides?.[seat]?.crowd ?? 0 }))
+        .sort((a, b) => b.crowd - a.crowd)
+      const top = ranked[0]
+      const tied = ranked.length > 1 && ranked[1]?.crowd === top?.crowd
+      const winnerSeat = tied ? null : top?.seat ?? null
+      party.winnerSeat = winnerSeat
+      party.activeSeat = null
+      party.targetSeat = null
+      state.winnerSeat = winnerSeat
+      state.winner = winnerSeat ? (winnerSeat === 'host' ? 'player' : 'rival') : 'draw'
+      state.phase = 'over'
+      pushLog(state, 'CURFEW. THE HOUSE LIGHTS COME UP ON THREE MICS.', 'gold')
+      return
+    }
+  }
+
+  let nextTarget: string | null = null
+  for (let step = 1; step < party.order.length; step += 1) {
+    const candidate = party.order[(nextIndex + step) % party.order.length]
+    if (candidate !== nextSeat && !eliminated.has(candidate)) {
+      nextTarget = candidate
+      break
+    }
+  }
+  if (!nextTarget) nextTarget = alive.find((seat) => seat !== nextSeat) ?? null
+  if (!nextTarget) return
+
+  const activeSide = party.sides[nextSeat]
+  const targetSide = party.sides[nextTarget]
+  if (!activeSide || !targetSide) return
+  party.turnIndex = nextIndex
+  party.activeSeat = nextSeat
+  party.targetSeat = nextTarget
+  state.player = cloneSideState(activeSide)
+  state.rival = cloneSideState(targetSide)
+  state.player.name = party.seats.find((seat) => seat.seat === nextSeat)?.name ?? state.player.name
+  state.rival.name = party.seats.find((seat) => seat.seat === nextTarget)?.name ?? state.rival.name
+  state.phase = 'player'
+  state.rivalActions = 0
+  state.winner = null
+  state.winnerSeat = null
+  beginTurnFor(state, 'player')
+  party.sides[nextSeat] = cloneSideState(state.player)
+  party.sides[nextTarget] = cloneSideState(state.rival)
+  pushLog(
+    state,
+    `TRIPLE THREAT · ${state.player.name.toUpperCase()} ON THE MIC · TARGET ${state.rival.name.toUpperCase()}`,
+    'gold',
+  )
 }
 
 function bestAffordable(side: SideState, era: 1 | 2 | 3): string | null {

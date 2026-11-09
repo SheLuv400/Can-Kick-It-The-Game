@@ -2,19 +2,19 @@
 
 A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your badges, take the stage, own the room.
 
-**Version 1.5.0 — The Live Line Update**
+**Version 1.6.0 — The Triple Threat Update**
 
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Live mobile/PWA:** 1.5.0 is deployed at the game URL above, with manifest version 1.5.0. The production site serves the 1.5.0 payload.
-- **Latest public release:** [GitHub release v1.5.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.5.0) — THE LIVE LINE UPDATE, with the Windows build and release notes. The 1.5.0 web build and Windows archive ship together.
+- **Live mobile/PWA:** 1.6.0 is deployed at the game URL above, with manifest version 1.6.0. The production site serves the 1.6.0 payload.
+- **Latest public release:** [GitHub release v1.6.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.6.0) — THE TRIPLE THREAT UPDATE, with the Windows build and release notes. The 1.6.0 web build and Windows archive ship together.
 - **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickItLauncher-1.0.1-win32-x64.zip) — 152.0 MiB
   - Extract and run `CanIKickItLauncher.exe`. It installs the game, checks GitHub Releases for updates, and launches it from one place.
   - SHA-256: `066d7a2c8357c229a631dda1a263951c476e09e3279d83b10a224206bd17201b`
-- **Windows game build (manual):** [Download CanIKickIt-1.5.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.5.0/CanIKickIt-1.5.0-win32-x64.zip) — 166.6 MiB
-  - SHA-256: `2afdd7f91535948e0a14248d4ff1925b5f270ee0b44228fcc73d8f171887f012`
-  - The 1.5.0 archive is attached to the public v1.5.0 release. It passed ZIP integrity checks, and the embedded `app.asar` reports 1.5.0.
+- **Windows game build (manual):** [Download CanIKickIt-1.6.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.6.0/CanIKickIt-1.6.0-win32-x64.zip) — 166.6 MiB
+  - SHA-256: `585755e9617000fdc07302093e754c3bc4aff55f1f3be7d1bd338c080dc54751`
+  - The 1.6.0 archive is attached to the public v1.6.0 release. It passed ZIP integrity checks, and the embedded `app.asar` reports 1.6.0.
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
@@ -30,6 +30,19 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Blocked updates:** if Windows says the game folder is blocked, fully quit `CanIKickIt.exe` in Task Manager, then retry. Launcher 1.0.1 checks for a running game before updating and retries transient folder locks; if the folder is still protected, choose a folder such as `C:\Games\CanIKickItTheGame` in **Settings → Choose Folder**.
 - **Launcher updates:** the launcher itself is version 1.0.1 and is updated separately. Game updates are handled inside it.
 - **Unsigned build:** Windows SmartScreen may warn on first launch. Choose **More info → Run anyway** if you trust the download.
+
+## What’s new in 1.6.0
+
+### THE TRIPLE THREAT UPDATE
+
+- **Three mics, one crown.** Online VS private rooms now support **TRIPLE THREAT**, a three-player casual format for the host and two guests. Each seat brings a complete 26-card deck, its own 72 Crowd meter and its own stage.
+- **Rotating turns.** The host starts, then Guest 1, then Guest 2, then back to the host. Only the active mic can act; the other two seats wait in the three-mic strip until their turn.
+- **Pick your rival.** The active player chooses one of the other two crowds as the target. The target can be switched until the first action of the turn, then it locks for the rest of that turn.
+- **Last crowd standing.** A crowd that reaches zero is booed off stage. The last living crowd wins; if the round-12 curfew arrives first, the highest remaining crowd takes the crown and a tie is a draw.
+- **Read the room.** The in-battle strip shows every seat, its live crowd, its stage count and who is on the mic, targeting or waiting.
+- **Hands stay private.** Only the active player receives its hand over the wire; waiting and target hands stay in the host's authoritative state. A guest cannot act or retarget during another seat's turn.
+- **Casual only.** Triple Threat is casual-only in this build; ranked play remains 1v1. Standard 1v1 and 2v2 are unchanged.
+- **Release status.** The 1.6.0 mobile/PWA payload is live at the game URL above with manifest 1.6.0. The 1.6.0 Windows archive is attached to the public v1.6.0 release.
 
 ## What’s new in 1.5.0
 

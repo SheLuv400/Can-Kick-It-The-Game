@@ -12,6 +12,30 @@ export interface UpdateLog {
 
 export const GAME_UPDATES: UpdateLog[] = [
   {
+    version: '1.6.0',
+    title: 'THE TRIPLE THREAT UPDATE',
+    label: 'THREE MICS · NOV 2026',
+    summary:
+      'Private rooms can now put three players on one stage in Triple Threat. Each mic brings its own crowd, deck and stage, and only one can leave with the crown.',
+    sections: {
+      new: [
+        'TRIPLE THREAT is a three-player casual format in Online VS. The host and two guests each bring a complete 26-card kit, a 72 Crowd meter and their own stage.',
+        'Turns rotate host → Guest 1 → Guest 2 → host. Only the active mic can act, and the other two seats wait in the three-mic strip until their turn.',
+        'The active player chooses one of the other two crowds as the target. The target can be switched until the first action of the turn, then it locks for the rest of that turn.',
+        'A crowd that reaches zero is booed off stage. The last living crowd wins; if the round-12 curfew arrives first, the highest remaining crowd takes the crown and a tie is a draw.',
+        'The in-battle three-mic strip shows every seat, its live crowd, its stage count and who is on the mic, targeting or waiting.',
+      ],
+      fixed: [
+        'Triple Threat clients only receive the active player\'s hand. Waiting and target hands stay on the host\'s authoritative state.',
+        'A guest cannot act or retarget during another seat\'s turn, and a target change after the first action is rejected by the host.',
+      ],
+      changed: [
+        'Triple Threat is casual-only in this build; ranked play remains 1v1.',
+        'The 1.5.0 room text chat, opt-in voice chat and the 1.4.9 2v2 format remain included in this build.',
+      ],
+    },
+  },
+  {
     version: '1.5.0',
     title: 'THE LIVE LINE UPDATE',
     label: 'ROOM CHAT · NOV 2026',

@@ -31,6 +31,8 @@ export type RoomSeat = 'host' | 'guest' | 'guest-2' | 'guest-3'
 export const ROOM_SEATS: RoomSeat[] = ['host', 'guest', 'guest-2', 'guest-3']
 export const TEAM_A_SEATS: RoomSeat[] = ['host', 'guest']
 export const TEAM_B_SEATS: RoomSeat[] = ['guest-2', 'guest-3']
+export const TRIPLE_SEATS: RoomSeat[] = ['host', 'guest', 'guest-2']
+export const TRIPLE_ORDER: RoomSeat[] = ['host', 'guest', 'guest-2']
 
 export function roomTeam(seat: RoomSeat): 'player' | 'rival' {
   return TEAM_A_SEATS.includes(seat) ? 'player' : 'rival'
@@ -94,6 +96,7 @@ export type ClientMessage =
   | { type: 'rules-ready'; revision: number; seat: RoomSeat; ready: boolean }
   | { type: 'chat'; text: string }
   | { type: 'voice'; active: boolean }
+  | { type: 'target'; seat: RoomSeat }
   | { type: 'rematch' }
   | { type: 'leave' }
 
