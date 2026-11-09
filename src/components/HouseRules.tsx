@@ -16,7 +16,18 @@ import {
   type HouseRulesConfig,
   type ShuffleChaos,
 } from '../game/house-rules'
-import type { RoomSeat } from '../online/protocol'
+import { roomSeatName, roomTeam, type RoomSeat, type RoomTeam } from '../online/protocol'
+import mode1v1Art from '../assets/mode-previews/1v1.webp'
+import mode2v2Art from '../assets/mode-previews/2v2.webp'
+import modeTripleArt from '../assets/mode-previews/triple-threat.webp'
+import modeFatal4Art from '../assets/mode-previews/fatal-4.webp'
+
+const FORMAT_ART: Record<BattleFormatId, string> = {
+  '1v1': mode1v1Art,
+  '2v2': mode2v2Art,
+  'triple-threat': modeTripleArt,
+  'fatal-4': modeFatal4Art,
+}
 
 const MODIFIER_GLYPHS: Record<HouseModifierId, string> = {
   'hype-surge': '▲',
@@ -32,84 +43,34 @@ const MODIFIER_GLYPHS: Record<HouseModifierId, string> = {
 }
 
 function FormatRoomPreview({ format }: { format: BattleFormatDefinition }) {
-  const seats = Array.from({ length: format.players }, (_, index) => index)
-  const isTeams = format.id === '2v2'
-  const isFatal = format.id === 'fatal-4'
-  const isTriple = format.id === 'triple-threat'
-  const seatLabel = (index: number) =>
-    index === 0
-      ? 'HOST'
-      : format.id === 'triple-threat'
-        ? `GUEST ${index}`
-        : format.id === 'fatal-4'
-          ? `GUEST ${index}`
-          : index === 1
-            ? 'GUEST'
-            : `OPEN SLOT ${index - 1}`
-
   return (
     <div className={`format-stage format-stage--${format.id} ${format.enabled ? 'is-live' : 'is-locked'}`}>
-      <div className="format-stage__top">
-        <span className="format-stage__eyebrow">ROOM PREVIEW · {format.shortName}</span>
-        <b>{format.name}</b>
-        <i>{format.subtitle}</i>
-      </div>
-
-      <div className={`format-stage__room ${isTeams ? 'is-teams' : isTriple ? 'is-triple' : isFatal ? 'is-fatal' : 'is-solo'}`}>
-        {isTeams ? (
-          <>
-            <div className="format-team format-team--you">
-              <span className="format-team__tag">YOUR SIDE</span>
-              <div className="format-team__seats">
-                {seats.slice(0, 2).map((index) => (
-                  <span key={index} className={`format-pod ${index === 0 ? 'is-host' : 'is-open'}`}>
-                    <i aria-hidden="true">{index === 0 ? '★' : '＋'}</i>
-                    <b>{seatLabel(index)}</b>
-                    <em>{index === 0 ? 'YOU' : 'TAG PARTNER'}</em>
-                  </span>
-                ))}
-              </div>
-              <div className="format-crowd"><span />SHARED CROWD · YOUR TEAM</div>
-            </div>
-            <div className="format-stage__versus">VS</div>
-            <div className="format-team format-team--rival">
-              <span className="format-team__tag">THE OTHER SIDE</span>
-              <div className="format-team__seats">
-                {seats.slice(2, 4).map((index) => (
-                  <span key={index} className={`format-pod ${index === 2 ? 'is-guest' : 'is-open'}`}>
-                    <i aria-hidden="true">{index === 2 ? '◈' : '＋'}</i>
-                    <b>{index === 2 ? 'GUEST' : seatLabel(index)}</b>
-                    <em>{index === 2 ? 'CHALLENGER' : 'TAG PARTNER'}</em>
-                  </span>
-                ))}
-              </div>
-              <div className="format-crowd format-crowd--rival"><span />SHARED CROWD · THEIR TEAM</div>
-            </div>
-          </>
-        ) : (
-          <div className="format-stage__pods">
-            {seats.map((index) => (
-              <span
-                key={index}
-                className={`format-pod ${index === 0 ? 'is-host' : index === 1 ? 'is-guest' : 'is-open'}`}
-              >
-                <i aria-hidden="true">{index === 0 ? '★' : index === 1 ? '◈' : '＋'}</i>
-                <b>{seatLabel(index)}</b>
-                <em>{index === 0 ? 'YOUR MIC' : index === 1 ? 'CHALLENGER' : 'OPEN MIC'}</em>
-              </span>
-            ))}
-            <div className="format-stage__center">
-              <span>{isTriple ? 'THREE MICS' : isFatal ? 'FOUR CORNERS' : 'MAIN EVENT'}</span>
-              <b>{format.enabled ? 'LIVE ROOM' : 'ENGINE LOCKED'}</b>
-              <div className="format-crowd"><span /></div>
-            </div>
-          </div>
-        )}
+      <div className="format-stage__screen">
+        <img
+          className="format-stage__image"
+          src={FORMAT_ART[format.id]}
+          alt={`Live gameplay from a ${format.name} match`}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+        />
+        <span className="format-stage__scrim" aria-hidden="true" />
+        <span className={`format-stage__badge ${format.enabled ? 'is-live' : ''}`}>
+          <i /> {format.enabled ? 'LIVE GAMEPLAY' : 'PREVIEW LOCKED'}
+        </span>
+        <span className="format-stage__count">
+          {format.players === 2 ? '1V1' : `${format.players} PLAYERS`}
+        </span>
+        <div className="format-stage__caption">
+          <span>ROOM PREVIEW · {format.shortName}</span>
+          <b>{format.name}</b>
+          <i>{format.subtitle}</i>
+        </div>
       </div>
 
       <div className="format-stage__foot">
         <span>{format.players} PLAYER ROOM</span>
-        <span>{format.teams === 2 ? 'TEAM CROWD' : 'ONE CROWN'}</span>
+        <span>{format.teams === 2 ? 'TAG-TEAM CROWD' : 'ONE CROWN'}</span>
         <em>{format.enabled ? 'PLAYABLE IN THIS BUILD' : 'UI PREVIEW · LIVE PLAY LOCKED'}</em>
       </div>
       {!format.enabled && <p className="format-stage__reason">{format.unavailableReason}</p>}
@@ -123,6 +84,7 @@ interface HouseRulesPanelProps {
   seat: RoomSeat
   accepted: RoomSeat[]
   ready: RoomSeat[]
+  seatTeams?: Partial<Record<RoomSeat, RoomTeam>>
   seatNames?: Partial<Record<RoomSeat, string>>
   canStart: boolean
   festivalLocked?: boolean
@@ -141,6 +103,7 @@ export function HouseRulesPanel({
   seat,
   accepted,
   ready,
+  seatTeams = {},
   seatNames = {},
   canStart,
   festivalLocked = false,
@@ -164,10 +127,8 @@ export function HouseRulesPanel({
   const seatLabelFor = (entry: RoomSeat) => {
     if (entry === seat) return 'YOU'
     if (rules.format === '2v2') {
-      if (entry === 'host') return 'TEAM A · HOST'
-      if (entry === 'guest') return 'TEAM A · PARTNER'
-      if (entry === 'guest-2') return 'TEAM B · HOST'
-      return 'TEAM B · PARTNER'
+      const team = roomTeam(entry, seatTeams) === 'player' ? 'TEAM A' : 'TEAM B'
+      return `${team} · ${entry === 'host' ? 'HOST' : 'PARTNER'}`
     }
     if (rules.format === 'triple-threat') {
       if (entry === 'host') return 'HOST'
@@ -332,7 +293,11 @@ export function HouseRulesPanel({
             const seatAccepted = accepted.includes(entry)
             return (
               <span key={entry} className={seatReady ? 'is-ready' : ''}>
-                <i /> {seatNames[entry] ?? seatLabelFor(entry)} · {seatReady ? 'READY' : seatAccepted ? 'ACCEPTED' : 'WAITING'}
+                <i />{' '}
+                {rules.format === '2v2'
+                  ? `${roomTeam(entry, seatTeams) === 'player' ? 'TEAM A' : 'TEAM B'} · ${seatNames[entry] ?? roomSeatName(entry)}`
+                  : seatNames[entry] ?? seatLabelFor(entry)}{' '}
+                · {seatReady ? 'READY' : seatAccepted ? 'ACCEPTED' : 'WAITING'}
               </span>
             )
           })}

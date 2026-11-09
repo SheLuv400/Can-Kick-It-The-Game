@@ -2,19 +2,19 @@
 
 A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your badges, take the stage, own the room.
 
-**Version 1.7.0 — The Fatal Four Update**
+**Version 1.8.0 — The Stage Read Update**
 
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Live mobile/PWA:** 1.7.0 is deployed at the game URL above, with manifest version 1.7.0. The production site serves the 1.7.0 payload.
-- **Latest public release:** [GitHub release v1.7.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.7.0) — THE FATAL FOUR UPDATE, with the Windows build and release notes. The 1.7.0 web build and Windows archive ship together.
+- **Live mobile/PWA:** 1.8.0 is deployed at the game URL above, with manifest version 1.8.0. The production site serves the 1.8.0 payload.
+- **Latest public release:** [GitHub release v1.8.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.8.0) — THE STAGE READ UPDATE, with the Windows build and release notes. The 1.8.0 web build and Windows archive ship together.
 - **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickItLauncher-1.0.1-win32-x64.zip) — 152.0 MiB
   - Extract and run `CanIKickItLauncher.exe`. It installs the game, checks GitHub Releases for updates, and launches it from one place.
   - SHA-256: `066d7a2c8357c229a631dda1a263951c476e09e3279d83b10a224206bd17201b`
-- **Windows game build (manual):** [Download CanIKickIt-1.7.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.7.0/CanIKickIt-1.7.0-win32-x64.zip) — 166.6 MiB
-  - SHA-256: `eea8e201328301d0a2c9869046c859e3d48adabec007f7dfdca5c10d4e8e5d47`
-  - The 1.7.0 archive is attached to the public v1.7.0 release. It passed ZIP integrity checks, and the embedded `app.asar` reports 1.7.0.
+- **Windows game build (manual):** [Download CanIKickIt-1.8.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.8.0/CanIKickIt-1.8.0-win32-x64.zip) — 166.3 MiB
+  - SHA-256: `b44ba33d2baf85f532390b150b4bc9336a0c299b726cfd0964eaebb698c55b80`
+  - The 1.8.0 archive is attached to the public v1.8.0 release. It passed ZIP integrity checks, and the embedded `app.asar` reports 1.8.0.
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
@@ -31,6 +31,21 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Launcher updates:** the launcher itself is version 1.0.1 and is updated separately. Game updates are handled inside it.
 - **Unsigned build:** Windows SmartScreen may warn on first launch. Choose **More info → Run anyway** if you trust the download.
 
+## What’s new in 1.8.0
+
+### THE STAGE READ UPDATE
+
+- **ASK DJ KICKIT.** Single-player battles now have a two-spin advisor. Ask for the best recommendation, grade a legal move before you commit, or get a short game plan for the room.
+- **Three ways to read the stage.** **WHAT SHOULD I DO?** ranks legal actions. **WAS THAT THE MOVE?** grades the selected move. **READ THE ROOM** gives a short plan for the current board.
+- **Advice from the real board.** Every read uses the live battle state: legal actions, Hype, attack allowance, damage, shields, healing, Crowd pressure, statuses, objectives, Encore and Feature options, knockout chances and the curfew.
+- **No hidden information.** The advisor never sees either hand in a way a player could not, never recommends an illegal action and clearly says when the board has no safe line.
+- **Two gold vinyl charges.** Opening or closing the panel is free. Only a completed read spends one charge, and the advisor never plays the move for you.
+- **Single-player only.** ASK DJ KICKIT is hidden in Online VS and every online festival format; online advisor charges stay at zero.
+- **Graphics & Display.** New presets — **Auto, Low, Medium, High** and **Ultra** — control frame limit, render scale, UI scale, card image quality, card materials, holo foil, concert lighting, shadows, bloom, particles and background motion.
+- **Control the room.** Audio visualizers, card tilt, reduced motion, flash effects, VHS effects and a live FPS readout can be tuned independently. Auto quality samples measured frames instead of guessing from the device name.
+- **Phone fit.** The battle HUD, advisor panel and settings sheet fit a 390px phone without horizontal overflow, with target and card highlights that stay readable at that width.
+- **Release status.** The 1.8.0 mobile/PWA payload is live at the game URL above with manifest 1.8.0. The 1.8.0 Windows archive is attached to the public v1.8.0 release.
+
 ## What’s new in 1.7.0
 
 ### THE FATAL FOUR UPDATE
@@ -43,7 +58,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Clean exits.** A player who leaves a free-for-all match is marked **LEFT** and knocked out of that corner. The remaining corners keep playing instead of turning the room into a team forfeit.
 - **Result and rematch.** The result screen lists all four final crowds, and **RUN IT BACK** restores every corner to 72 Crowd.
 - **Casual only.** Fatal 4 is casual-only in this build; ranked play remains 1v1. Triple Threat, 2v2, room chat/voice and standard 1v1 remain included.
-- **Release status.** The 1.7.0 mobile/PWA payload is live at the game URL above with manifest 1.7.0. The 1.7.0 Windows archive is attached to the public v1.7.0 release.
+- **Release status.** The 1.7.0 mobile/PWA payload has been replaced by 1.8.0. The 1.7.0 Windows archive remains on its release page.
 
 ## What’s new in 1.6.0
 
@@ -56,7 +71,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Read the room.** The in-battle strip shows every seat, its live crowd, its stage count and who is on the mic, targeting or waiting.
 - **Hands stay private.** Only the active player receives its hand over the wire; waiting and target hands stay in the host's authoritative state. A guest cannot act or retarget during another seat's turn.
 - **Casual only.** Triple Threat is casual-only in this build; ranked play remains 1v1. Standard 1v1 and 2v2 are unchanged.
-- **Release status.** The 1.6.0 mobile/PWA payload has been replaced by 1.7.0. The 1.6.0 Windows archive remains on its release page.
+- **Release status.** The 1.6.0 mobile/PWA payload has been replaced by 1.8.0. The 1.6.0 Windows archive remains on its release page.
 
 ## What’s new in 1.5.0
 

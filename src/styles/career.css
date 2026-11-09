@@ -380,7 +380,8 @@
 /* The main menu owns its own responsive mode grid; keep the eighth career door
    inside that layout instead of overriding every breakpoint globally. */
 @media (min-width: 1181px) {
-  .menu--arena .arena-modes { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  /* The festival door spans two cells: seven single doors + two = nine. */
+  .menu--arena .arena-modes { grid-template-columns: repeat(9, minmax(0, 1fr)); }
 }
 .arena-mode--career { border-color: rgba(255, 106, 61, 0.5); }
 

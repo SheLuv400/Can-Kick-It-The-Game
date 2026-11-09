@@ -8,6 +8,7 @@ import {
   type CSSProperties,
 } from 'react'
 import {
+  ADVISOR_MAX_CHARGES,
   availableCrews,
   battleReducer,
   backstageRecallCost,
@@ -50,10 +51,13 @@ import { HudStrip } from '../components/Hud'
 import { CinematicOverlay } from '../components/Cinematic'
 import { RulesModal } from '../components/RulesModal'
 import { SettingsModal } from '../components/SettingsModal'
+import { useGraphics } from '../graphics/GraphicsContext'
 import { VolumeSlider } from '../components/VolumeSlider'
 import { Portrait } from '../components/Portrait'
 import { CrateDock, MoveDock, StageUnit } from '../components/Combat'
+import { AskDjKickit } from '../components/AskDjKickit'
 import { RoomChat } from '../components/RoomChat'
+import type { AdvisorResponse } from '../game/advisor'
 import { BATTLE_TRACK, audioEngine, useAudioSnapshot } from '../game/audio'
 import { announcerEngine, useAnnouncerSnapshot } from '../game/announcer'
 import { specialMoveForArtist } from '../game/moves'
@@ -178,6 +182,7 @@ export function Battle({
   careerMission = null,
   careerDifficulty,
 }: BattleProps) {
+  const graphics = useGraphics()
   const [localState, localDispatch] = useReducer(
     battleReducer,
     { settings, circuit, venue, festivalRun, careerMission, careerDifficulty },
@@ -276,6 +281,14 @@ export function Battle({
   const [targetUid, setTargetUid] = useState<string | null>(null)
   const [allyTargetUid, setAllyTargetUid] = useState<string | null>(null)
   const [selectedStageUid, setSelectedStageUid] = useState<string | null>(null)
+  const [advisorOpen, setAdvisorOpen] = useState(false)
+  const [advisorHighlight, setAdvisorHighlight] = useState<{
+    cardUid?: string
+    targetUid?: string
+    allyUid?: string
+    crew?: Crew
+    handArtistId?: string
+  } | null>(null)
   const [specialOpen, setSpecialOpen] = useState<CrateHandCard | null>(null)
   const [backstageOpen, setBackstageOpen] = useState(false)
   const [crateReveal, setCrateReveal] = useState<CrateHandCard | null>(null)
@@ -299,6 +312,32 @@ export function Battle({
   const nextReadyName = nextReady ? getArtist(nextReady.artistId).name : null
   const playerTurn =
     started && canAct && state.phase === 'player' && !cinematic && !state.counterPrompt && !pauseOpen
+  const advisorEligible = !online
+  const openAdvisor = useCallback(() => {
+    if (!advisorEligible || !playerTurn || state.advisorCharges <= 0) return
+    setAdvisorOpen(true)
+    setAdvisorHighlight(null)
+    setPendingCard(null)
+    setSpecialOpen(null)
+    setBackstageOpen(false)
+    setLogOpen(false)
+    audioEngine.playSfx('click')
+  }, [advisorEligible, playerTurn, state.advisorCharges])
+  const applyAdvisor = useCallback((response: AdvisorResponse) => {
+    const action = response.action
+    if (action) {
+      setAdvisorHighlight({
+        cardUid: action.cardUid,
+        targetUid: action.targetSide === 'enemy' ? action.targetUid : undefined,
+        allyUid: action.targetSide === 'ally' ? action.allyTargetUid ?? action.cardUid : undefined,
+        crew: action.kind === 'feature' ? action.crew : undefined,
+        handArtistId: action.kind === 'play' ? action.artistId : undefined,
+      })
+      if (action.targetSide === 'enemy' && action.targetUid) setTargetUid(action.targetUid)
+      if (action.targetSide === 'ally' && action.allyTargetUid) setAllyTargetUid(action.allyTargetUid)
+    }
+    if (response.voiceEvent) announcerEngine.triggerEvent(response.voiceEvent, 'player')
+  }, [])
   const rivalLabel = online ? state.rival.name : 'THE HEADLINER'
   const showCounter =
     Boolean(state.counterPrompt) &&
@@ -605,6 +644,7 @@ export function Battle({
         return
       }
       if (chatOpen) return
+      if (advisorOpen) return
       if (
         event.key.toLowerCase() === 'n' &&
         playerTurn &&
@@ -652,6 +692,7 @@ export function Battle({
     rulesOpen,
     exitOpen,
     chatOpen,
+    advisorOpen,
     selectedStageUid,
     selectNextReady,
     started,
@@ -661,6 +702,7 @@ export function Battle({
 
   const handleCard = (artistId: string) => {
     if (!playerTurn) return
+    setAdvisorHighlight(null)
     const artist = getArtist(artistId)
     if (state.player.hype < artist.cost) return
     audioEngine.playSfx('card')
@@ -678,6 +720,7 @@ export function Battle({
 
   const swapIn = (uid: string) => {
     if (!pendingCard) return
+    setAdvisorHighlight(null)
     audioEngine.playSfx('card')
     notePlay(pendingCard)
     dispatch({
@@ -694,12 +737,14 @@ export function Battle({
       swapIn(uid)
       return
     }
+    setAdvisorHighlight(null)
     setSelectedStageUid(uid)
     setAllyTargetUid(uid)
   }
 
   const playEncore = (uid: string) => {
     if (!playerTurn || state.player.encoreCharges < 1) return
+    setAdvisorHighlight(null)
     audioEngine.playSfx('encore')
     const staged = state.player.stage.find((card) => card.uid === uid)
     if (staged) notePlay(staged.artistId)
@@ -708,18 +753,21 @@ export function Battle({
 
   const bench = (uid: string) => {
     if (!playerTurn) return
+    setAdvisorHighlight(null)
     dispatch({ type: 'BENCH', uid })
     if (selectedStageUid === uid) setSelectedStageUid(null)
   }
 
   const playFeature = (crew: Crew) => {
     if (!playerTurn || state.player.featureUsed) return
+    setAdvisorHighlight(null)
     audioEngine.playSfx('feature')
     dispatch({ type: 'FEATURE', crew, targetUid: targetUid ?? undefined })
   }
 
   const playMove = (move: Move) => {
     if (!selectedStage || !playerTurn) return
+    setAdvisorHighlight(null)
     notePlay(selectedStage.artistId)
     dispatch({
       type: 'USE_MOVE',
@@ -742,6 +790,7 @@ export function Battle({
   const drawCrate = () => {
     if (!playerTurn || state.player.specialHand.length >= 6) return
     if (state.player.hype < CRATE_HYPE_COST) return
+    setAdvisorHighlight(null)
     setSelectedStageUid(null)
     setPendingCard(null)
     dispatch({ type: 'DRAW_CRATE' })
@@ -756,6 +805,7 @@ export function Battle({
 
   const endTurn = () => {
     if (!playerTurn || state.counterPrompt) return
+    setAdvisorHighlight(null)
     audioEngine.playSfx('turn')
     setPendingCard(null)
     setSelectedStageUid(null)
@@ -764,6 +814,7 @@ export function Battle({
 
   useEffect(() => {
     return onGamepadCommand((command) => {
+      if (advisorOpen) return
       if (command === 'pause') {
         if (
           !started ||
@@ -824,6 +875,7 @@ export function Battle({
     specialOpen,
     backstageOpen,
     logOpen,
+    advisorOpen,
     pauseOpen,
     playerTurn,
     pendingCard,
@@ -1131,6 +1183,14 @@ export function Battle({
                 state.player.hand[0] ??
                 settings.deck[0],
             ),
+            advisor: advisorEligible
+              ? {
+                  charges: state.advisorCharges,
+                  max: ADVISOR_MAX_CHARGES,
+                  onAsk: openAdvisor,
+                  disabled: !playerTurn || advisorOpen,
+                }
+              : undefined,
           }}
           rival={{
             ...state.rival,
@@ -1147,6 +1207,23 @@ export function Battle({
           difficulty={online ? `ONLINE · VS ${online.opponentName || 'OPPONENT'}` : `${difficultyLabel(state.difficulty)} · ${state.venue.name}`}
         />
       </div>
+
+      {advisorEligible && advisorOpen && (
+        <>
+          <div
+            className="dj-backdrop"
+            onClick={() => setAdvisorOpen(false)}
+            aria-hidden="true"
+          />
+          <AskDjKickit
+            state={state}
+            charges={state.advisorCharges}
+            onSpend={() => dispatch({ type: 'SPEND_ADVISOR' })}
+            onClose={() => setAdvisorOpen(false)}
+            onAdvice={applyAdvisor}
+          />
+        </>
+      )}
 
       {triple && (
         <section className={`triple-mics ${isFatal ? 'is-fatal' : ''}`} aria-label={`${isFatal ? 'Fatal 4' : 'Triple Threat'} mics`}>
@@ -1261,6 +1338,7 @@ export function Battle({
                   era={state.era}
                   targetable={playerTurn}
                   targeted={targetUid === card.uid}
+                  advisedTarget={advisorHighlight?.targetUid === card.uid}
                   crewCount={
                     state.rival.stage.filter(
                       (mate) => getArtist(mate.artistId).crew === artist.crew,
@@ -1328,6 +1406,10 @@ export function Battle({
                   card={card}
                   era={state.era}
                   selected={selectedStageUid === card.uid}
+                  advised={
+                    advisorHighlight?.cardUid === card.uid ||
+                    (Boolean(advisorHighlight?.crew) && artist.crew === advisorHighlight?.crew)
+                  }
                   showTurnState
                   className={pendingCard ? 'is-swap-target' : ''}
                   crewCount={
@@ -1461,7 +1543,9 @@ export function Battle({
                 const affordable = state.player.hype >= artist.cost
                 return (
                   <div
-                    className="hand__slot"
+                    className={`hand__slot ${
+                      advisorHighlight?.handArtistId === artistId ? 'is-advised' : ''
+                    }`}
                     key={`${artistId}-${index}`}
                     style={
                       {
@@ -2173,6 +2257,7 @@ export function Battle({
       {pauseSettingsOpen && (
         <SettingsModal
           settings={settings}
+          graphics={graphics}
           onUpdate={onUpdate}
           onClose={() => setPauseSettingsOpen(false)}
           desktopWindowModeLocked

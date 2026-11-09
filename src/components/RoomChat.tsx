@@ -29,6 +29,8 @@ export function RoomChat({ control, compact = false, onClose }: RoomChatProps) {
     messages,
     seats,
     localSeat,
+    seatTeams = {},
+    teamMode: teamModeSetting,
     textEnabled,
     voiceEnabled,
     voiceStatus,
@@ -40,7 +42,7 @@ export function RoomChat({ control, compact = false, onClose }: RoomChatProps) {
   } = control
   const [draft, setDraft] = useState('')
   const logRef = useRef<HTMLDivElement>(null)
-  const teamMode = Boolean(seats['guest-2'] || seats['guest-3'])
+  const teamMode = teamModeSetting ?? Boolean(seats['guest-2'] || seats['guest-3'])
 
   useEffect(() => {
     const log = logRef.current
@@ -122,7 +124,7 @@ export function RoomChat({ control, compact = false, onClose }: RoomChatProps) {
             )}
             {messages.map((message) => {
               const you = message.seat === localSeat
-              const side = teamMode ? roomTeam(message.seat) : null
+              const side = teamMode ? roomTeam(message.seat, seatTeams) : null
               return (
                 <article
                   key={message.id}

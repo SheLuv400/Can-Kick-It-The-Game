@@ -29,6 +29,7 @@ export interface PlayerProfile {
 export type RoomSeat = 'host' | 'guest' | 'guest-2' | 'guest-3'
 
 export const ROOM_SEATS: RoomSeat[] = ['host', 'guest', 'guest-2', 'guest-3']
+export const GUEST_SEATS: RoomSeat[] = ['guest', 'guest-2', 'guest-3']
 export const TEAM_A_SEATS: RoomSeat[] = ['host', 'guest']
 export const TEAM_B_SEATS: RoomSeat[] = ['guest-2', 'guest-3']
 export const TRIPLE_SEATS: RoomSeat[] = ['host', 'guest', 'guest-2']
@@ -36,16 +37,35 @@ export const TRIPLE_ORDER: RoomSeat[] = ['host', 'guest', 'guest-2']
 export const FATAL_SEATS: RoomSeat[] = ['host', 'guest', 'guest-2', 'guest-3']
 export const FATAL_ORDER: RoomSeat[] = ['host', 'guest', 'guest-2', 'guest-3']
 
-export function roomTeam(seat: RoomSeat): 'player' | 'rival' {
-  return TEAM_A_SEATS.includes(seat) ? 'player' : 'rival'
+export type RoomTeam = 'player' | 'rival'
+export type RoomSeatTeams = Record<RoomSeat, RoomTeam>
+
+/** The default 2v2 lineup before the host picks a partner. */
+export const DEFAULT_SEAT_TEAMS: RoomSeatTeams = {
+  host: 'player',
+  guest: 'player',
+  'guest-2': 'rival',
+  'guest-3': 'rival',
+}
+
+export function roomTeam(
+  seat: RoomSeat,
+  teams?: Partial<Record<RoomSeat, RoomTeam>>,
+): RoomTeam {
+  return teams?.[seat] ?? (TEAM_A_SEATS.includes(seat) ? 'player' : 'rival')
 }
 
 /**
- * The battle side a seat drives. In 2v2 host+guest share Team A; in 1v1 the
- * single guest is always the rival, even though it is seat "guest".
+ * The battle side a seat drives. In 2v2 the host's saved lineup decides which
+ * guest shares Team A; in 1v1 the single guest is always the rival, even
+ * though it is seat "guest".
  */
-export function seatSide(seat: RoomSeat, teamMode: boolean): 'player' | 'rival' {
-  if (teamMode) return roomTeam(seat)
+export function seatSide(
+  seat: RoomSeat,
+  teamMode: boolean,
+  teams?: Partial<Record<RoomSeat, RoomTeam>>,
+): 'player' | 'rival' {
+  if (teamMode) return roomTeam(seat, teams)
   return seat === 'host' ? 'player' : 'rival'
 }
 
@@ -75,6 +95,8 @@ export interface RoomChatControl {
   messages: ChatMessage[]
   seats: Partial<Record<RoomSeat, PlayerProfile>>
   localSeat: RoomSeat
+  seatTeams?: Partial<Record<RoomSeat, RoomTeam>>
+  teamMode?: boolean
   textEnabled: boolean
   voiceEnabled: boolean
   voiceStatus: VoiceChatStatus
@@ -118,16 +140,19 @@ export type HostMessage =
       rules: RoomRulesState
       seat: RoomSeat
       seats: Partial<Record<RoomSeat, PlayerProfile>>
+      teams?: RoomSeatTeams
       chat?: ChatMessage[]
       voicePeers?: Partial<Record<RoomSeat, string>>
       voiceActive?: RoomSeat[]
     }
   | { type: 'rules'; rules: RoomRulesState }
   | { type: 'room'; seats: Partial<Record<RoomSeat, PlayerProfile>> }
+  | { type: 'teams'; teams: RoomSeatTeams }
   | { type: 'chat'; message: ChatMessage }
   | { type: 'voice-roster'; peers: Partial<Record<RoomSeat, string>>; active: RoomSeat[] }
   | { type: 'start'; state: BattleState }
   | { type: 'state'; state: BattleState; forfeit?: RoomForfeit }
+  | { type: 'kicked'; reason?: string }
   | { type: 'left'; reason?: string }
 
 export type RoomMessage = ClientMessage | HostMessage

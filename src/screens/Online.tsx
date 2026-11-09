@@ -137,6 +137,7 @@ export function Online({
   const [friendError, setFriendError] = useState('')
   const [invitedCode, setInvitedCode] = useState('')
   const [viewedFriend, setViewedFriend] = useState<FriendPresence | null>(null)
+  const [kickArmed, setKickArmed] = useState<RoomSeat | null>(null)
   const recordedState = useRef<BattleState | null>(null)
   const handledInvite = useRef<number | null>(null)
   const [now, setNow] = useState(() => Date.now())
@@ -172,10 +173,10 @@ export function Online({
     const finished = session.state
     if (!finished || finished.phase !== 'over' || recordedState.current === finished) return
     recordedState.current = finished
-    const localSide = seatSide(
-      session.localSeat ?? (session.role === 'host' ? 'host' : 'guest'),
-      session.houseRules.format === '2v2',
-    )
+    const recordedSeat = session.localSeat ?? (session.role === 'host' ? 'host' : 'guest')
+    const localSide = finished.party?.format === '2v2'
+      ? finished.party.seats.find((seat) => seat.seat === recordedSeat)?.team ?? 'player'
+      : seatSide(recordedSeat, false)
     const selfName = localSide === 'player' ? finished.player.name : finished.rival.name
     const opponentName = localSide === 'player' ? finished.rival.name : finished.player.name
     const result =
@@ -202,6 +203,10 @@ export function Online({
       recordedState.current = null
     }
   }, [session.phase])
+
+  useEffect(() => {
+    setKickArmed(null)
+  }, [session.phase, session.seats])
 
   useEffect(() => {
     setPlaying(session.phase === 'battle' ? session.code : null)
@@ -312,7 +317,13 @@ export function Online({
   const tripleMode = session.houseRules.format === 'triple-threat'
   const fatalMode = session.houseRules.format === 'fatal-4'
   const freeForAllMode = tripleMode || fatalMode
-  const localSide = freeForAllMode ? 'player' : seatSide(localSeat, teamMode)
+  const localSide = freeForAllMode
+    ? 'player'
+    : session.state?.party?.format === '2v2'
+      ? session.state.party.seats.find((seat) => seat.seat === localSeat)?.team ?? 'player'
+      : teamMode
+        ? session.seatTeams[localSeat]
+        : seatSide(localSeat, false)
   const forfeitWon = Boolean(session.state && session.forfeit && session.state.winner === localSide)
   const forfeitNotice = session.forfeit
     ? `${session.forfeit.loserName} LEFT THE MATCH · ${forfeitWon ? 'FORFEIT WIN' : 'FORFEIT LOSS'}`
@@ -334,6 +345,8 @@ export function Online({
     messages: session.chatMessages,
     seats: session.seats,
     localSeat,
+    seatTeams: session.seatTeams,
+    teamMode,
     textEnabled: session.textChatEnabled,
     voiceEnabled: session.voiceChatEnabled,
     voiceStatus: session.voiceStatus,
@@ -428,6 +441,23 @@ export function Online({
       : tripleMode
         ? TRIPLE_SEATS
         : ['host', 'guest']
+  const guestOrder: RoomSeat[] = ['guest', 'guest-2', 'guest-3']
+  const teamAPartner = teamMode
+    ? guestOrder.find((seat) => session.seats[seat] && session.seatTeams[seat] === 'player')
+    : undefined
+  const teamBSeats = teamMode
+    ? guestOrder.filter((seat) => session.seats[seat] && session.seatTeams[seat] === 'rival')
+    : []
+  const teamLineup: Array<{ seat: RoomSeat; slot: string }> =
+    teamMode && teamAPartner && teamBSeats.length === 2
+      ? [
+          { seat: 'host', slot: 'A1' },
+          { seat: teamBSeats[0], slot: 'B1' },
+          { seat: teamAPartner, slot: 'A2' },
+          { seat: teamBSeats[1], slot: 'B2' },
+        ]
+      : []
+  const seatName = (seat: RoomSeat) => session.seats[seat]?.name ?? roomSeatName(seat)
   const officialRules = session.houseRules.preset === 'standard'
   const roomCanStart = session.canStart && festivalDeckOk && (!festival || festivalLive)
   if (!account) {
@@ -619,8 +649,11 @@ export function Online({
                   const isYou = seat === localSeat
                   const seatReady = session.rulesReady.includes(seat)
                   const seatAccepted = session.rulesAccepted.includes(seat)
+                  const canChoosePartner = isHost && session.phase === 'lobby' && teamMode && Boolean(profile) && seat !== 'host'
+                  const canKickSeat = isHost && session.phase === 'lobby' && Boolean(profile) && seat !== 'host'
+                  const isPartner = roomTeam(seat, session.seatTeams) === 'player'
                   const teamTag = teamMode
-                    ? roomTeam(seat) === 'player'
+                    ? isPartner
                       ? 'TEAM A'
                       : 'TEAM B'
                     : freeForAllMode
@@ -633,7 +666,7 @@ export function Online({
                   return (
                     <div
                       key={seat}
-                      className={`online-player ${isYou ? 'is-you' : ''} ${profile ? 'is-ready' : ''}`}
+                      className={`online-player ${isYou ? 'is-you' : ''} ${profile ? 'is-ready' : ''} ${kickArmed === seat ? 'is-kick-armed' : ''}`}
                     >
                       <span className="online-player__avatar">
                         {isYou && selfAvatar ? (
@@ -657,10 +690,62 @@ export function Online({
                               ? 'ACCEPTED'
                               : 'NOT READY'}
                       </span>
+                      {(canChoosePartner || canKickSeat) && (
+                        <span className="online-player__manage">
+                          {canChoosePartner && (
+                            <button
+                              type="button"
+                              className={`online-team-btn ${isPartner ? 'is-active' : ''}`}
+                              onClick={() => session.setTeamPartner(seat)}
+                              aria-pressed={isPartner}
+                              aria-label={isPartner ? `${profile?.name ?? roomSeatName(seat)} is your Team A partner` : `Make ${profile?.name ?? roomSeatName(seat)} your Team A partner`}
+                            >
+                              {isPartner ? 'A PARTNER' : 'SET A'}
+                            </button>
+                          )}
+                          {canKickSeat && (
+                            <button
+                              type="button"
+                              className={`online-kick-btn ${kickArmed === seat ? 'is-armed' : ''}`}
+                              onClick={() => {
+                                if (kickArmed === seat) {
+                                  session.kickSeat(seat)
+                                  setKickArmed(null)
+                                } else {
+                                  setKickArmed(seat)
+                                }
+                              }}
+                              aria-label={kickArmed === seat ? `Confirm kicking ${profile?.name ?? roomSeatName(seat)}` : `Kick ${profile?.name ?? roomSeatName(seat)} from the room`}
+                            >
+                              {kickArmed === seat ? 'CONFIRM' : 'KICK'}
+                            </button>
+                          )}
+                        </span>
+                      )}
                     </div>
                   )
                 })}
               </div>
+
+              {teamMode && teamLineup.length === 4 && (
+                <div className="online-lineup" aria-label="2v2 turn order">
+                  <div className="online-lineup__head">
+                    <span>2V2 TURN ORDER</span>
+                    <b>HOST PICKS THE TEAM A PARTNER · LINEUP UPDATES LIVE</b>
+                  </div>
+                  <div className="online-lineup__slots">
+                    {teamLineup.map(({ seat, slot }) => (
+                      <span
+                        key={`${slot}-${seat}`}
+                        className={`online-lineup__slot ${slot.startsWith('A') ? 'is-a' : 'is-b'}`}
+                      >
+                        <em>{slot}</em>
+                        <b>{seatName(seat)}</b>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <RoomChat control={chatControl} />
@@ -671,6 +756,7 @@ export function Online({
               seat={localSeat}
               accepted={session.rulesAccepted}
               ready={session.rulesReady}
+              seatTeams={session.seatTeams}
               seatNames={{
                 host: session.seats.host?.name,
                 guest: session.seats.guest?.name,

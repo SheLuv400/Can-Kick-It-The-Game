@@ -345,6 +345,8 @@ export interface BattleState {
   party?: BattleParty
   houseRuleRuntime?: HouseRuleRuntime
   lastHouseRuleEvent?: HouseRuleEvent | null
+  /** Local-only advice spins. Always zero in online matches. */
+  advisorCharges: number
   /** Cards the CPU uses when no rival progress map is supplied. */
   rivalLevel: number
 }
@@ -385,6 +387,7 @@ export const CURFEW_ROUND = 12
 export const TEAM_CROWD_PRESSURE = 1.5
 export const MAX_ATTACKS_PER_TURN = 3
 export const CRATE_HYPE_COST = 2
+export const ADVISOR_MAX_CHARGES = 2
 
 /** A cut returns tempo based on the artist's summon cost. */
 export function cutHypeRefund(cost: number): number {
@@ -739,6 +742,7 @@ export function createBattle(config: BattleConfig): BattleState {
         }
       : undefined,
     lastHouseRuleEvent: null,
+    advisorCharges: config.online ? 0 : ADVISOR_MAX_CHARGES,
     rivalLevel,
   }
   pushLog(state, `THE OPENING ACTS ARE LIVE AT ${venue.name}. FILL THE STAGE.`, 'gold')
@@ -2357,6 +2361,7 @@ export type BattleAction = SideScopedAction &
   | { type: 'ENCORE'; uid: string; targetUid?: string }
   | { type: 'FEATURE'; crew: Crew; targetUid?: string }
   | { type: 'END_TURN' }
+  | { type: 'SPEND_ADVISOR' }
   | { type: 'RIVAL_TICK' }
   | { type: 'COUNTER'; mode: 'clapback' | 'take' | 'rewind' }
   | { type: 'DISMISS_CINEMATIC' }
@@ -2989,6 +2994,15 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
       })
       checkWinner(next)
       return syncObjectives(next)
+    }
+    case 'SPEND_ADVISOR': {
+      // Advice is a local single-player assist. The reducer is the final
+      // authority, so a stale render or double-click can never overdraw it.
+      if (next.online || side !== 'player') return state
+      if (next.phase !== 'player' || next.counterPrompt || next.cinematics.length > 0) return state
+      if (next.advisorCharges <= 0) return state
+      next.advisorCharges -= 1
+      return next
     }
     case 'END_TURN': {
       if (state.phase !== side) return state

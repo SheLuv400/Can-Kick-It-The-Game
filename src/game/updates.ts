@@ -12,6 +12,32 @@ export interface UpdateLog {
 
 export const GAME_UPDATES: UpdateLog[] = [
   {
+    version: '1.8.0',
+    title: 'THE STAGE READ UPDATE',
+    label: 'ADVISOR + VISUALS · NOV 2026',
+    summary:
+      'ASK DJ KICKIT brings a two-spin battle advisor to single-player, while Graphics & Display puts the real renderer controls in your hands. Every read is built from legal actions; every visual option is cosmetic and local.',
+    sections: {
+      new: [
+        'ASK DJ KICKIT is a local single-player battle advisor with exactly two spins per match. Ask for a recommendation, grade a legal move before committing, or get a short game plan for the room.',
+        'Advice is built from the live board: legal actions, Hype, attack allowance, damage estimates, shields, healing, Crowd pressure, statuses, objectives, Encore and Feature options, knockout chances and the curfew.',
+        'Every read highlights the relevant artist and target. Opening or closing the panel is free, and only a completed read spends one gold vinyl charge; the advisor never plays the move for you.',
+        'GRAPHICS & DISPLAY adds Auto, Low, Medium, High and Ultra presets with frame limit, render scale, UI scale, card image quality, card materials, holo foil, concert lighting, shadows, bloom, particles and background motion controls.',
+        'Audio visualizers, card tilt, reduced motion, flash effects, VHS effects and a live FPS readout can be tuned independently. Auto quality is based on a measured frame sample, not a device-name guess.',
+        'The battle HUD and advisor sheet are sized for phones down to 390px without horizontal overflow, with the same controls available on desktop.',
+      ],
+      fixed: [
+        'The single-player advisor HUD and bottom sheet now fit a 390px phone without horizontal overflow.',
+        'The update log opens on 1.8.0 for existing profiles instead of showing the previous release first.',
+      ],
+      changed: [
+        'Graphics options are cosmetic and local. They never change damage, HP, Hype, abilities, matchmaking or online results.',
+        'ASK DJ KICKIT is exclusive to single-player battles. Online VS and every online festival format keep the advisor hidden and their charges at zero.',
+        'The 1.7.0 Fatal 4, Triple Threat, 2v2, chat/voice, career, festival and standard 1v1 content remain included.',
+      ],
+    },
+  },
+  {
     version: '1.7.0',
     title: 'THE FATAL FOUR UPDATE',
     label: 'FOUR CORNERS · NOV 2026',

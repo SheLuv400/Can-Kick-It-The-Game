@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import type { Difficulty, Settings, ThemeId } from '../game/types'
+import type { Difficulty, GraphicsPreset, Settings, ThemeId, UiScale } from '../game/types'
+import { GRAPHICS_DEFAULTS } from '../game/settings'
+import { PRESET_VALUES, advancedMatchesPreset, type GraphicsRuntime } from '../game/graphics'
 import { DIFFICULTIES, THEME_META, THEME_ORDER } from '../game/themes'
 import {
   canSwitchDesktopWindowMode,
@@ -13,10 +15,52 @@ import { VolumeSlider } from './VolumeSlider'
 
 interface SettingsModalProps {
   settings: Settings
+  graphics: GraphicsRuntime
   onUpdate: (patch: Partial<Settings>) => void
   onClose: () => void
   /** Borderless switches rebuild the Electron window, so battle play locks them. */
   desktopWindowModeLocked?: boolean
+}
+
+const GRAPHICS_PRESETS: { id: GraphicsPreset; label: string; note: string }[] = [
+  { id: 'auto', label: 'AUTO', note: 'MEASURED FRAME SAMPLE' },
+  { id: 'low', label: 'LOW', note: 'MINIMAL LIGHT · NO MATERIAL' },
+  { id: 'medium', label: 'MEDIUM', note: 'BALANCED LIGHTS · LIGHTER' },
+  { id: 'high', label: 'HIGH', note: 'FULL RIG · HOLO MATERIAL' },
+  { id: 'ultra', label: 'ULTRA', note: 'MAX LIGHT · FULL BLOOM' },
+]
+
+function GraphicsChoice<T extends string | number>({
+  label,
+  value,
+  options,
+  onChange,
+  note,
+}: {
+  label: string
+  value: T
+  options: readonly { value: T; label: string }[]
+  onChange: (value: T) => void
+  note?: string
+}) {
+  return (
+    <div className="settings-choice">
+      <span className="settings-choice__label">{label}</span>
+      <div className="settings-choice__options">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            className={value === option.value ? 'is-on' : ''}
+            onClick={() => onChange(option.value)}
+            aria-pressed={value === option.value}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+      {note && <em>{note}</em>}
+    </div>
+  )
 }
 
 function readDisplay() {
@@ -34,11 +78,19 @@ function readDisplay() {
 
 export function SettingsModal({
   settings,
+  graphics,
   onUpdate,
   onClose,
   desktopWindowModeLocked = false,
 }: SettingsModalProps) {
   const desktop = getDesktopWindow()
+  const narrowScreen = typeof window !== 'undefined' && window.innerWidth < 520
+  const uiScaleOptions: { value: UiScale; label: string }[] = [
+    { value: 90, label: '90%' },
+    { value: 100, label: '100%' },
+    { value: 110, label: '110%' },
+    ...(narrowScreen ? [] : [{ value: 125 as UiScale, label: '125%' }]),
+  ]
   const [display, setDisplay] = useState(readDisplay)
   const [fullscreenError, setFullscreenError] = useState('')
   const [desktopState, setDesktopState] = useState<DesktopWindowState | null>(null)
@@ -151,6 +203,17 @@ export function SettingsModal({
 
   const chooseTheme = (theme: ThemeId) => onUpdate({ theme, selectedDirection: theme })
   const chooseDifficulty = (difficulty: Difficulty) => onUpdate({ difficulty })
+  const baseQuality = settings.graphicsPreset === 'auto' ? graphics.quality : settings.graphicsPreset
+  const customTweaks = !advancedMatchesPreset(settings, baseQuality)
+  const choosePreset = (preset: GraphicsPreset) => {
+    if (preset === 'auto') {
+      // Auto still starts from the measured tier's full effect set. The advanced
+      // controls remain independent overrides after that.
+      onUpdate({ graphicsPreset: 'auto', ...PRESET_VALUES[graphics.quality] })
+      return
+    }
+    onUpdate({ graphicsPreset: preset, ...PRESET_VALUES[preset] })
+  }
   const updateAnnouncer = (patch: Partial<Settings['announcer']>) =>
     onUpdate({ announcer: { ...settings.announcer, ...patch } })
 
@@ -226,24 +289,227 @@ export function SettingsModal({
             </div>
           </section>
 
-          <section className="settings-block settings-block--split">
-            <div>
-              <div className="settings-block__head">
-                <span className="settings-block__icon"><GameIcon name="play" /></span>
-                <div>
-                  <h3>MOTION</h3>
-                  <p>Turn off animated stage lights, card lifts and cinematic movement.</p>
-                </div>
+          <section className="settings-block settings-block--graphics">
+            <div className="settings-block__head">
+              <span className="settings-block__icon"><GameIcon name="spark" /></span>
+              <div>
+                <h3>GRAPHICS & DISPLAY</h3>
+                <p>
+                  Pick a base preset, then tune the effects the renderer actually draws. Changes apply immediately
+                  and are stored on this device.
+                </p>
               </div>
             </div>
-            <button
-              className={`settings-toggle ${settings.reducedMotion ? 'is-on' : ''}`}
-              onClick={() => onUpdate({ reducedMotion: !settings.reducedMotion })}
-              aria-pressed={settings.reducedMotion}
-            >
-              <span />
-              <b>{settings.reducedMotion ? 'REDUCED MOTION ON' : 'FULL MOTION ON'}</b>
-            </button>
+            <div className="settings-graphics">
+              <div className="settings-presets" role="group" aria-label="Graphics quality preset">
+                {GRAPHICS_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    className={settings.graphicsPreset === preset.id ? 'is-on' : ''}
+                    onClick={() => choosePreset(preset.id)}
+                    aria-pressed={settings.graphicsPreset === preset.id}
+                  >
+                    <b>{preset.label}</b>
+                    <em>
+                      {preset.id === 'auto'
+                        ? `${graphics.quality.toUpperCase()}${graphics.autoMeasured && graphics.autoFps ? ` · ${graphics.autoFps} FPS` : ' · SAMPLING'}`
+                        : preset.note}
+                    </em>
+                  </button>
+                ))}
+              </div>
+              <div className="settings-graphics__meta">
+                <span>
+                  {settings.graphicsPreset === 'auto'
+                    ? `AUTO SAMPLE ${graphics.autoMeasured && graphics.autoFps ? `${graphics.autoFps} FPS` : 'IN PROGRESS'} → ${graphics.quality.toUpperCase()}`
+                    : `BASE PRESET · ${settings.graphicsPreset.toUpperCase()}`}
+                </span>
+                {customTweaks && <b>CUSTOM TWEAKS</b>}
+              </div>
+
+              <div className="settings-graphics__grid">
+                <GraphicsChoice
+                  label="FRAME RATE LIMIT"
+                  value={settings.frameLimit}
+                  options={[
+                    { value: 'auto', label: 'AUTO' },
+                    { value: 30, label: '30' },
+                    { value: 60, label: '60' },
+                  ]}
+                  onChange={(frameLimit) => onUpdate({ frameLimit })}
+                  note="Caps effect updates; the browser still composites at display refresh."
+                />
+                <GraphicsChoice
+                  label="RENDER RESOLUTION"
+                  value={settings.renderScale}
+                  options={[
+                    { value: 70, label: '70%' },
+                    { value: 85, label: '85%' },
+                    { value: 100, label: '100%' },
+                  ]}
+                  onChange={(renderScale) => onUpdate({ renderScale })}
+                  note="Scales card textures and atmospheric blur. Text stays native."
+                />
+                <GraphicsChoice
+                  label="UI SCALE"
+                  value={graphics.uiScale}
+                  options={uiScaleOptions}
+                  onChange={(uiScale) => onUpdate({ uiScale })}
+                  note={
+                    narrowScreen
+                      ? '125% is hidden on narrow phones so every control stays on screen.'
+                      : 'Scales the whole interface for readability.'
+                  }
+                />
+                <div className="settings-choice">
+                  <span className="settings-choice__label">PERFORMANCE</span>
+                  <div className="settings-choice__toggles">
+                    <button
+                      className={`settings-toggle ${settings.showFps ? 'is-on' : ''}`}
+                      onClick={() => onUpdate({ showFps: !settings.showFps })}
+                      aria-pressed={settings.showFps}
+                    >
+                      <span />
+                      <b>SHOW FPS {settings.showFps ? 'ON' : 'OFF'}</b>
+                    </button>
+                  </div>
+                  <em>{nativeWidth} × {nativeHeight} · {density}× PIXEL DENSITY</em>
+                </div>
+              </div>
+
+              <div className="settings-advanced">
+                <GraphicsChoice
+                  label="ARTIST CARD IMAGE QUALITY"
+                  value={settings.cardImageQuality}
+                  options={[
+                    { value: 'low', label: 'LOW' },
+                    { value: 'medium', label: 'MEDIUM' },
+                    { value: 'hd', label: 'HD' },
+                  ]}
+                  onChange={(cardImageQuality) => onUpdate({ cardImageQuality })}
+                  note="Downsamples the displayed texture; original art stays untouched."
+                />
+                <GraphicsChoice
+                  label="CARD MATERIAL EFFECTS"
+                  value={settings.cardMaterial}
+                  options={[
+                    { value: 'off', label: 'OFF' },
+                    { value: 'basic', label: 'BASIC' },
+                    { value: 'enhanced', label: 'ENHANCED' },
+                    { value: 'full', label: 'FULL' },
+                  ]}
+                  onChange={(cardMaterial) => onUpdate({ cardMaterial })}
+                  note="Foil, sheen and scan layers on the existing card art."
+                />
+                <GraphicsChoice
+                  label="CONCERT LIGHTING"
+                  value={settings.concertLighting}
+                  options={[
+                    { value: 'low', label: 'LOW' },
+                    { value: 'medium', label: 'MEDIUM' },
+                    { value: 'high', label: 'HIGH' },
+                  ]}
+                  onChange={(concertLighting) => onUpdate({ concertLighting })}
+                />
+                <GraphicsChoice
+                  label="SHADOWS"
+                  value={settings.shadows}
+                  options={[
+                    { value: 'off', label: 'OFF' },
+                    { value: 'low', label: 'LOW' },
+                    { value: 'high', label: 'HIGH' },
+                  ]}
+                  onChange={(shadows) => onUpdate({ shadows })}
+                />
+                <GraphicsChoice
+                  label="BLOOM"
+                  value={settings.bloom}
+                  options={[
+                    { value: 'off', label: 'OFF' },
+                    { value: 'low', label: 'LOW' },
+                    { value: 'high', label: 'HIGH' },
+                  ]}
+                  onChange={(bloom) => onUpdate({ bloom })}
+                />
+                <GraphicsChoice
+                  label="PARTICLES"
+                  value={settings.particles}
+                  options={[
+                    { value: 'low', label: 'LOW' },
+                    { value: 'medium', label: 'MEDIUM' },
+                    { value: 'high', label: 'HIGH' },
+                  ]}
+                  onChange={(particles) => onUpdate({ particles })}
+                />
+                <GraphicsChoice
+                  label="BACKGROUND ANIMATIONS"
+                  value={settings.backgroundMotion}
+                  options={[
+                    { value: 'off', label: 'OFF' },
+                    { value: 'reduced', label: 'REDUCED' },
+                    { value: 'full', label: 'FULL' },
+                  ]}
+                  onChange={(backgroundMotion) => onUpdate({ backgroundMotion })}
+                />
+                <div className="settings-advanced__toggles">
+                  <button
+                    className={`settings-toggle ${settings.holoFoil ? 'is-on' : ''}`}
+                    onClick={() => onUpdate({ holoFoil: !settings.holoFoil })}
+                    aria-pressed={settings.holoFoil}
+                  >
+                    <span />
+                    <b>HOLOGRAPHIC FOIL {settings.holoFoil ? 'ON' : 'OFF'}</b>
+                  </button>
+                  <button
+                    className={`settings-toggle ${settings.audioVisualizers ? 'is-on' : ''}`}
+                    onClick={() => onUpdate({ audioVisualizers: !settings.audioVisualizers })}
+                    aria-pressed={settings.audioVisualizers}
+                  >
+                    <span />
+                    <b>AUDIO VISUALIZERS {settings.audioVisualizers ? 'ON' : 'OFF'}</b>
+                  </button>
+                  <button
+                    className={`settings-toggle ${settings.cardTilt ? 'is-on' : ''}`}
+                    onClick={() => onUpdate({ cardTilt: !settings.cardTilt })}
+                    aria-pressed={settings.cardTilt}
+                  >
+                    <span />
+                    <b>CARD TILT & PARALLAX {settings.cardTilt ? 'ON' : 'OFF'}</b>
+                  </button>
+                  <button
+                    className={`settings-toggle ${settings.vhsEffects ? 'is-on' : ''}`}
+                    onClick={() => onUpdate({ vhsEffects: !settings.vhsEffects })}
+                    aria-pressed={settings.vhsEffects}
+                  >
+                    <span />
+                    <b>RETRO VHS / CRT {settings.vhsEffects ? 'ON' : 'OFF'}</b>
+                  </button>
+                  <button
+                    className={`settings-toggle ${settings.reducedMotion ? 'is-on' : ''}`}
+                    onClick={() => onUpdate({ reducedMotion: !settings.reducedMotion })}
+                    aria-pressed={settings.reducedMotion}
+                  >
+                    <span />
+                    <b>REDUCE MOTION {settings.reducedMotion ? 'ON' : 'OFF'}</b>
+                  </button>
+                  <button
+                    className={`settings-toggle ${settings.flashEffects ? 'is-on' : ''}`}
+                    onClick={() => onUpdate({ flashEffects: !settings.flashEffects })}
+                    aria-pressed={settings.flashEffects}
+                  >
+                    <span />
+                    <b>FLASHING EFFECTS {settings.flashEffects ? 'ON' : 'OFF'}</b>
+                  </button>
+                </div>
+              </div>
+
+              <div className="settings-graphics__foot">
+                <button className="btn btn--ghost btn--sm" onClick={() => onUpdate(GRAPHICS_DEFAULTS)}>
+                  RESTORE GRAPHICS DEFAULTS
+                </button>
+                <span>Local to this device. Graphics never change damage, HP, Hype, abilities, matchmaking or online results.</span>
+              </div>
+            </div>
           </section>
 
           {desktop ? (
@@ -434,7 +700,7 @@ export function SettingsModal({
 
         <footer className="settings-foot">
           <span>
-            Theme, difficulty, motion, the sound mix and DJ KICKIT apply immediately. Your mixtape and progress are saved{' '}
+            Theme, difficulty, visual quality, motion, the sound mix and DJ KICKIT apply immediately. Your mixtape and progress are saved{' '}
             {desktop ? 'on this PC.' : 'in this browser.'}
           </span>
           <button className="btn btn--primary btn--sm" onClick={onClose}>

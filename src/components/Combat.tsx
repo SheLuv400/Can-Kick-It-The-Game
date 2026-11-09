@@ -13,6 +13,8 @@ interface StageUnitProps {
   targeted?: boolean
   targetable?: boolean
   selected?: boolean
+  advised?: boolean
+  advisedTarget?: boolean
   onClick?: () => void
   disabled?: boolean
   footer?: ReactNode
@@ -29,6 +31,8 @@ export function StageUnit({
   targeted = false,
   targetable = false,
   selected = false,
+  advised = false,
+  advisedTarget = false,
   onClick,
   disabled = false,
   footer,
@@ -46,7 +50,9 @@ export function StageUnit({
     <div
       className={`stage-unit ${targeted ? 'is-targeted' : ''} ${targetable ? 'is-targetable' : ''} ${
         selected ? 'is-selected' : ''
-      } ${card.hp <= 0 ? 'is-down' : ''} ${className}`}
+      } ${advised ? 'is-advised' : ''} ${advisedTarget ? 'is-advised-target' : ''} ${
+        card.hp <= 0 ? 'is-down' : ''
+      } ${className}`}
       onClick={interactive ? onClick : undefined}
       role={interactive ? 'button' : undefined}
       tabIndex={interactive ? 0 : undefined}

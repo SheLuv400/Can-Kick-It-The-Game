@@ -1,5 +1,13 @@
 import type { Artist } from '../game/types'
+import { AdvisorVinyls } from './AdvisorVinyls'
 import { Portrait } from './Portrait'
+
+interface AdvisorHud {
+  charges: number
+  max: number
+  onAsk: () => void
+  disabled: boolean
+}
 
 interface HudSide {
   name: string
@@ -12,6 +20,7 @@ interface HudSide {
   counters: number
   encoreCharges: number
   avatar?: Artist
+  advisor?: AdvisorHud
 }
 
 interface HitEvent {
@@ -134,6 +143,29 @@ function CrowdMeter({
           </span>
         )}
       </div>
+      {data.advisor && (
+        <div className={`advisor-hud ${data.advisor.charges <= 0 ? 'is-off' : ''}`}>
+          <button
+            className="advisor-hud__ask"
+            onClick={data.advisor.onAsk}
+            disabled={data.advisor.disabled || data.advisor.charges <= 0}
+            title={
+              data.advisor.charges <= 0
+                ? 'DJ Kickit is off the clock — 0/2'
+                : data.advisor.disabled
+                  ? 'Wait for your turn to ask for advice'
+                  : 'Ask DJ Kickit for one local read'
+            }
+          >
+            <AdvisorVinyls charges={data.advisor.charges} max={data.advisor.max} />
+            <span>ASK DJ KICKIT</span>
+            <b>{data.advisor.charges}/{data.advisor.max}</b>
+          </button>
+          {data.advisor.charges <= 0 && (
+            <span className="advisor-hud__off">DJ KICKIT IS OFF THE CLOCK — 0/2</span>
+          )}
+        </div>
+      )}
     </div>
   )
 }

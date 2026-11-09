@@ -27,6 +27,15 @@ export interface AudioSnapshot {
   sfxVolume: number
 }
 
+export interface VisualizerBands {
+  level: number
+  bass: number
+  mid: number
+  high: number
+}
+
+const SILENT_BANDS: VisualizerBands = { level: 0, bass: 0, mid: 0, high: 0 }
+
 export const BATTLE_TRACK = {
   title: 'Southern Steel',
   artist: 'can i kick it',
@@ -81,6 +90,8 @@ class GameAudio {
   private context: AudioContext | null = null
   private sfxGain: GainNode | null = null
   private musicGain: GainNode | null = null
+  private musicAnalyser: AnalyserNode | null = null
+  private musicSpectrum: Uint8Array<ArrayBuffer> | null = null
   private musicSources = new WeakMap<HTMLAudioElement, MediaElementAudioSourceNode>()
   private musicGraphFailed = false
   private noiseBuffer: AudioBuffer | null = null
@@ -334,6 +345,43 @@ class GameAudio {
     }
   }
 
+  /**
+   * Reads the live music bus for decorative motion only. Silence is returned
+   * when music is paused, blocked or the tab is hidden so visualizers never
+   * continue burning frames in the background.
+   */
+  readVisualBands(): VisualizerBands {
+    if (typeof document === 'undefined' || document.visibilityState === 'hidden') return SILENT_BANDS
+    if (
+      !this.musicAnalyser ||
+      !this.musicSpectrum ||
+      this.snapshot.status !== 'playing' ||
+      this.snapshot.musicVolume <= 0.001
+    ) {
+      return SILENT_BANDS
+    }
+    this.musicAnalyser.getByteFrequencyData(this.musicSpectrum)
+    const spectrum = this.musicSpectrum
+    const count = spectrum.length
+    if (!count) return SILENT_BANDS
+    const average = (from: number, to: number) => {
+      const start = Math.max(0, Math.min(count - 1, Math.floor(count * from)))
+      const end = Math.max(start + 1, Math.min(count, Math.ceil(count * to)))
+      let sum = 0
+      for (let index = start; index < end; index += 1) sum += spectrum[index]
+      return sum / (end - start) / 255
+    }
+    const bass = average(0, 0.1)
+    const mid = average(0.1, 0.42)
+    const high = average(0.42, 0.88)
+    return {
+      bass,
+      mid,
+      high,
+      level: Math.min(1, bass * 0.52 + mid * 0.31 + high * 0.17),
+    }
+  }
+
   setDucking(active: boolean) {
     if (this.duckActive === active) return
     this.duckActive = active
@@ -394,6 +442,8 @@ class GameAudio {
       this.context = null
       this.sfxGain = null
       this.musicGain = null
+      this.musicAnalyser = null
+      this.musicSpectrum = null
       this.musicSources = new WeakMap()
       this.musicGraphFailed = false
     }
@@ -418,7 +468,12 @@ class GameAudio {
       this.sfxGain.connect(this.context.destination)
       this.musicGain = this.context.createGain()
       this.musicGain.gain.value = this.snapshot.musicVolume * this.duckMultiplier()
-      this.musicGain.connect(this.context.destination)
+      this.musicAnalyser = this.context.createAnalyser()
+      this.musicAnalyser.fftSize = 256
+      this.musicAnalyser.smoothingTimeConstant = 0.82
+      this.musicGain.connect(this.musicAnalyser)
+      this.musicAnalyser.connect(this.context.destination)
+      this.musicSpectrum = new Uint8Array(this.musicAnalyser.frequencyBinCount)
       this.noiseBuffer = null
     }
     if (this.context.state === 'suspended') void this.context.resume().catch(() => {})

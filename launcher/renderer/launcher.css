@@ -1300,6 +1300,137 @@ img { display: block; max-width: 100%; }
 .text-button { margin-top: 12px; color: var(--gold-2); font-family: var(--label); font-size: 6.5px; letter-spacing: .06em; }
 .text-button:hover { text-decoration: underline; }
 
+/* Shared presentation finish — CSS-only, no launcher or update-path work */
+body::before {
+  background-size: 128% 128%;
+  background-position: 50% 0;
+  animation: launcherAtmosphere 28s ease-in-out infinite alternate;
+}
+
+.masthead h1 {
+  background-size: 180% 100%;
+  animation: launcherChrome 12s ease-in-out infinite alternate;
+}
+
+.crown-mark {
+  animation: launcherCrown 7s ease-in-out infinite alternate;
+}
+
+.masthead-content::before {
+  content: "";
+  position: absolute;
+  inset: 8% 19%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 220, 128, .14), transparent 68%);
+  filter: blur(22px);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: launcherHalo 9s ease-in-out infinite alternate;
+}
+
+.masthead-vinyl {
+  position: absolute;
+  right: -46px;
+  bottom: -46px;
+  z-index: 1;
+  display: block;
+  width: clamp(126px, 16vw, 190px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: .62;
+  pointer-events: none;
+  background:
+    repeating-radial-gradient(circle at center, #07050a 0 2px, #21142b 2px 3px, #0b0710 3px 5px),
+    radial-gradient(circle at 40% 34%, rgba(255, 228, 154, .32), transparent 12%),
+    #0a060d;
+  border: 1px solid rgba(243, 181, 44, .28);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, .045),
+    inset 0 0 28px rgba(0, 0, 0, .86),
+    0 0 32px rgba(143, 61, 255, .16);
+  animation: launcherVinyl 26s linear infinite;
+  will-change: transform;
+}
+
+.masthead-vinyl::before {
+  content: "CIKI";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 31%;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(145deg, #ffe68f, #dba22a 52%, #8f570b);
+  color: #1a0d02;
+  font-family: var(--label);
+  font-size: clamp(6px, .55vw, 8px);
+  letter-spacing: .04em;
+  box-shadow: 0 0 0 1px rgba(22, 12, 3, .55), 0 0 18px rgba(243, 181, 44, .24);
+}
+
+.masthead-vinyl::after {
+  content: "";
+  position: absolute;
+  inset: 3%;
+  border-radius: 50%;
+  background:
+    conic-gradient(from 214deg, transparent 0deg, rgba(255, 255, 255, .1) 18deg, transparent 54deg, transparent 238deg, rgba(194, 77, 255, .1) 278deg, transparent 322deg),
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, .12), transparent 24%);
+  mix-blend-mode: screen;
+}
+
+.masthead::after {
+  background:
+    linear-gradient(112deg, transparent 18%, rgba(243, 181, 44, .045) 39%, transparent 58%),
+    linear-gradient(180deg, rgba(5, 3, 8, .08), transparent 40%, rgba(5, 3, 8, .82));
+}
+
+@keyframes launcherAtmosphere {
+  0% { background-position: 46% 0; }
+  100% { background-position: 54% 4%; }
+}
+
+@keyframes launcherChrome {
+  0% { background-position: 22% 50%; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
+  100% { background-position: 78% 50%; filter: drop-shadow(0 3px 14px rgba(243, 181, 44, .18)); }
+}
+
+@keyframes launcherCrown {
+  0% { filter: drop-shadow(0 3px 8px rgba(243, 181, 44, .28)); }
+  100% { filter: drop-shadow(0 4px 16px rgba(243, 181, 44, .52)); }
+}
+
+@keyframes launcherHalo {
+  0% { opacity: .45; transform: scale(.94); }
+  100% { opacity: .8; transform: scale(1.04); }
+}
+
+@keyframes launcherVinyl {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before,
+  .masthead h1,
+  .crown-mark,
+  .masthead-content::before,
+  .masthead-vinyl {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 1160px) {
+  .masthead-vinyl { right: -58px; bottom: -58px; opacity: .58; }
+}
+
+@media (max-height: 740px) {
+  .masthead-vinyl { display: none; }
+}
+
 /* Responsive sizing for smaller Windows displays */
 @media (max-width: 1320px) {
   .workspace { grid-template-columns: 194px minmax(0, 1fr) 324px; gap: 12px; padding: 12px 14px 10px; }

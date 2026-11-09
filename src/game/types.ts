@@ -187,6 +187,19 @@ export interface Artist {
 
 export type Difficulty = 'OPENING' | 'HEADLINER' | 'LEGEND'
 
+export type VisualQuality = 'ultra' | 'high' | 'medium' | 'low'
+export type GraphicsPreset = 'auto' | VisualQuality
+export type FrameLimit = 'auto' | 30 | 60
+export type RenderScale = 70 | 85 | 100
+export type UiScale = 90 | 100 | 110 | 125
+export type CardImageQuality = 'low' | 'medium' | 'hd'
+export type CardMaterialQuality = 'off' | 'basic' | 'enhanced' | 'full'
+export type LightingQuality = 'low' | 'medium' | 'high'
+export type ShadowQuality = 'off' | 'low' | 'high'
+export type BloomQuality = 'off' | 'low' | 'high'
+export type ParticleQuality = 'low' | 'medium' | 'high'
+export type BackgroundMotion = 'off' | 'reduced' | 'full'
+
 export type OnlineMode = 'casual' | 'ranked'
 
 export type AnnouncerFrequency = 'LOW' | 'NORMAL' | 'HIGH'
@@ -220,6 +233,23 @@ export interface Settings {
   losses: number
   selectedDirection: ThemeId | null
   reducedMotion: boolean
+  flashEffects: boolean
+  vhsEffects: boolean
+  graphicsPreset: GraphicsPreset
+  frameLimit: FrameLimit
+  renderScale: RenderScale
+  uiScale: UiScale
+  showFps: boolean
+  cardImageQuality: CardImageQuality
+  cardMaterial: CardMaterialQuality
+  holoFoil: boolean
+  concertLighting: LightingQuality
+  shadows: ShadowQuality
+  bloom: BloomQuality
+  particles: ParticleQuality
+  backgroundMotion: BackgroundMotion
+  audioVisualizers: boolean
+  cardTilt: boolean
   musicVolume: number
   sfxVolume: number
   announcer: AnnouncerSettings

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState, type CSSProperties } from 'react'
 import type { Difficulty, Settings, TeamProgress, ThemeId } from './game/types'
 import { containsPersonalArtist, loadSettings, saveSettings, validDeck, validLineup } from './game/settings'
 import {
@@ -66,6 +66,11 @@ import { loadSeenUpdateVersion, markUpdateSeen } from './game/updates'
 import { useAccount } from './account/AccountProvider'
 import { useSocial } from './account/SocialProvider'
 import { DevAnnouncerPanel } from './components/DevAnnouncerPanel'
+import { VisualDirector } from './components/VisualDirector'
+import { GraphicsHud } from './components/GraphicsHud'
+import { GraphicsProvider } from './graphics/GraphicsContext'
+import { useAutoQuality } from './graphics/useAutoQuality'
+import { resolveGraphics } from './game/graphics'
 import { Tutorial } from './screens/Tutorial'
 import { Online } from './screens/Online'
 import { Leaderboard } from './screens/Leaderboard'
@@ -159,6 +164,24 @@ export default function App() {
   } | null>(null)
   const { account, recordMatch, syncLegacy } = useAccount()
   const social = useSocial()
+  const autoReading = useAutoQuality(settings.graphicsPreset)
+  const graphics = resolveGraphics(settings, autoReading.quality, autoReading.fps, autoReading.measured)
+  const appStyle = {
+    '--gfx-render-scale': (graphics.renderScale / 100).toString(),
+    '--gfx-ui-scale': (graphics.uiScale / 100).toString(),
+  } as CSSProperties
+
+  // Root zoom is the only scaling method that keeps the layout viewport and
+  // fixed overlays aligned. It scales the whole interface, never just text.
+  useLayoutEffect(() => {
+    const root = document.documentElement
+    const scale = graphics.uiScale / 100
+    if (scale === 1) root.style.removeProperty('zoom')
+    else root.style.zoom = String(scale)
+    return () => {
+      root.style.removeProperty('zoom')
+    }
+  }, [graphics.uiScale])
 
   useEffect(() => {
     saveSettings(settings)
@@ -677,7 +700,40 @@ export default function App() {
 
   return (
     <ArtProvider>
-      <div className={`app theme-${settings.theme} ${settings.reducedMotion ? 'reduce-motion' : ''}`}>
+      <div
+        className={`app theme-${settings.theme} fx-quality-${graphics.quality} gfx-material-${graphics.cardMaterial} ${
+          graphics.reducedMotion ? 'reduce-motion' : ''
+        } ${graphics.flashEffects ? '' : 'fx-no-flash'} ${graphics.vhsEffects ? 'fx-vhs' : ''}`}
+        data-screen={screen}
+        data-gfx-preset={graphics.preset}
+        data-gfx-quality={graphics.quality}
+        data-gfx-lighting={graphics.concertLighting}
+        data-gfx-shadows={graphics.shadows}
+        data-gfx-bloom={graphics.bloom}
+        data-gfx-particles={graphics.particles}
+        data-gfx-bg={graphics.backgroundMotion}
+        data-gfx-viz={graphics.audioVisualizers ? 'on' : 'off'}
+        data-gfx-holo={graphics.holoFoil ? 'on' : 'off'}
+        data-gfx-tilt={graphics.cardTilt ? 'on' : 'off'}
+        data-gfx-card-image={graphics.cardImageQuality}
+        data-gfx-render={graphics.renderScale}
+        data-gfx-ui={graphics.uiScale}
+        style={appStyle}
+      >
+        <GraphicsProvider value={graphics}>
+        <VisualDirector
+          screen={screen}
+          quality={graphics.quality}
+          frameLimit={graphics.frameLimit}
+          renderScale={graphics.renderScale}
+          backgroundMotion={graphics.backgroundMotion}
+          concertLighting={graphics.concertLighting}
+          particles={graphics.particles}
+          audioVisualizers={graphics.audioVisualizers}
+          motion={!graphics.reducedMotion}
+          flash={graphics.flashEffects && !graphics.reducedMotion}
+          vhs={graphics.vhsEffects}
+        />
         <div className="app__grain" aria-hidden="true" />
         {screen === 'menu' && (
           <MainMenu
@@ -947,6 +1003,7 @@ export default function App() {
         {settingsOpen && (
           <SettingsModal
             settings={settings}
+            graphics={graphics}
             onUpdate={update}
             onClose={() => setSettingsOpen(false)}
           />
@@ -1001,6 +1058,8 @@ export default function App() {
         />
 
         {import.meta.env.DEV && <DevAnnouncerPanel />}
+        <GraphicsHud show={graphics.showFps} frameLimit={graphics.frameLimit} />
+        </GraphicsProvider>
       </div>
     </ArtProvider>
   )

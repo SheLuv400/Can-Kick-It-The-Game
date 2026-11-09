@@ -1,4 +1,23 @@
-import type { AnnouncerSettings, ArtistProgress, Difficulty, Settings, TeamProgress, ThemeId } from './types'
+import type {
+  AnnouncerSettings,
+  ArtistProgress,
+  BackgroundMotion,
+  BloomQuality,
+  CardImageQuality,
+  CardMaterialQuality,
+  Difficulty,
+  FrameLimit,
+  GraphicsPreset,
+  LightingQuality,
+  ParticleQuality,
+  RenderScale,
+  Settings,
+  ShadowQuality,
+  TeamProgress,
+  ThemeId,
+  UiScale,
+} from './types'
+import { initialAutoQuality, PRESET_VALUES } from './graphics'
 import { ARTISTS, CORE_ARTIST_COUNT, isKnownArtistId } from './roster'
 import { isPersonalArtistId } from './personal-id'
 import { normalizeBadgeRecords, sanitizeBadgeLoadout } from './badges'
@@ -52,6 +71,42 @@ export function validLineup(lineup: unknown, deck: string[]): lineup is string[]
   return consumeLineup(lineup, deckCounts(deck)).length === LINEUP_SIZE
 }
 
+type GraphicsField =
+  | 'graphicsPreset'
+  | 'frameLimit'
+  | 'renderScale'
+  | 'uiScale'
+  | 'showFps'
+  | 'cardImageQuality'
+  | 'cardMaterial'
+  | 'holoFoil'
+  | 'concertLighting'
+  | 'shadows'
+  | 'bloom'
+  | 'particles'
+  | 'backgroundMotion'
+  | 'audioVisualizers'
+  | 'cardTilt'
+  | 'reducedMotion'
+  | 'flashEffects'
+  | 'vhsEffects'
+
+/** Graphics-only defaults for the Restore Defaults action. */
+export const GRAPHICS_DEFAULTS: Pick<Settings, GraphicsField> = {
+  graphicsPreset: 'auto',
+  frameLimit: 'auto',
+  renderScale: 100,
+  uiScale: 100,
+  showFps: false,
+  cardImageQuality: 'hd',
+  ...PRESET_VALUES[initialAutoQuality()],
+  audioVisualizers: true,
+  cardTilt: true,
+  reducedMotion: false,
+  flashEffects: true,
+  vhsEffects: false,
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'b',
   difficulty: 'HEADLINER',
@@ -60,7 +115,7 @@ export const DEFAULT_SETTINGS: Settings = {
   wins: 0,
   losses: 0,
   selectedDirection: 'b',
-  reducedMotion: false,
+  ...GRAPHICS_DEFAULTS,
   musicVolume: 0.32,
   sfxVolume: 0.55,
   announcer: {
@@ -108,6 +163,10 @@ export function containsPersonalArtist(deck: unknown): boolean {
 function volume(value: unknown, fallback: number) {
   if (typeof value !== 'number' || !Number.isFinite(value)) return fallback
   return Math.min(1, Math.max(0, value))
+}
+
+function oneOf<T extends string | number>(value: unknown, allowed: readonly T[], fallback: T): T {
+  return allowed.includes(value as T) ? (value as T) : fallback
 }
 
 export function loadSettings(): Settings {
@@ -196,9 +255,53 @@ export function loadSettings(): Settings {
       }
     }
     const deck = validDeck(parsed.deck) ? parsed.deck : DEFAULT_DECK
+    // Old saves stored only a three-step visualQuality. Map it onto a preset,
+    // then fill any missing advanced options from that preset's baseline.
+    const legacyVisual = (parsed as Partial<Settings> & { visualQuality?: unknown }).visualQuality
+    const presetFallback: GraphicsPreset =
+      legacyVisual === 'low' || legacyVisual === 'medium' || legacyVisual === 'high' ? legacyVisual : 'auto'
+    const graphicsPreset = oneOf<GraphicsPreset>(
+      parsed.graphicsPreset,
+      ['auto', 'low', 'medium', 'high', 'ultra'],
+      presetFallback,
+    )
+    const baseline = PRESET_VALUES[graphicsPreset === 'auto' ? initialAutoQuality() : graphicsPreset]
+    const graphics: Pick<Settings, GraphicsField> = {
+      graphicsPreset,
+      frameLimit: oneOf<FrameLimit>(parsed.frameLimit, ['auto', 30, 60], 'auto'),
+      renderScale: oneOf<RenderScale>(parsed.renderScale, [70, 85, 100], 100),
+      uiScale: oneOf<UiScale>(parsed.uiScale, [90, 100, 110, 125], 100),
+      showFps: parsed.showFps === true,
+      cardImageQuality: oneOf<CardImageQuality>(parsed.cardImageQuality, ['low', 'medium', 'hd'], 'hd'),
+      cardMaterial: oneOf<CardMaterialQuality>(
+        parsed.cardMaterial,
+        ['off', 'basic', 'enhanced', 'full'],
+        baseline.cardMaterial,
+      ),
+      holoFoil: typeof parsed.holoFoil === 'boolean' ? parsed.holoFoil : baseline.holoFoil,
+      concertLighting: oneOf<LightingQuality>(
+        parsed.concertLighting,
+        ['low', 'medium', 'high'],
+        baseline.concertLighting,
+      ),
+      shadows: oneOf<ShadowQuality>(parsed.shadows, ['off', 'low', 'high'], baseline.shadows),
+      bloom: oneOf<BloomQuality>(parsed.bloom, ['off', 'low', 'high'], baseline.bloom),
+      particles: oneOf<ParticleQuality>(parsed.particles, ['low', 'medium', 'high'], baseline.particles),
+      backgroundMotion: oneOf<BackgroundMotion>(
+        parsed.backgroundMotion,
+        ['off', 'reduced', 'full'],
+        baseline.backgroundMotion,
+      ),
+      audioVisualizers: parsed.audioVisualizers !== false,
+      cardTilt: parsed.cardTilt !== false,
+      reducedMotion: Boolean(parsed.reducedMotion),
+      flashEffects: parsed.flashEffects !== false,
+      vhsEffects: parsed.vhsEffects === true,
+    }
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,
+      ...graphics,
       theme,
       selectedDirection,
       difficulty,
@@ -206,7 +309,6 @@ export function loadSettings(): Settings {
       lineup: sanitizeLineup(parsed.lineup, deck),
       wins: typeof parsed.wins === 'number' ? parsed.wins : 0,
       losses: typeof parsed.losses === 'number' ? parsed.losses : 0,
-      reducedMotion: Boolean(parsed.reducedMotion),
       musicVolume: volume(parsed.musicVolume, DEFAULT_SETTINGS.musicVolume),
       sfxVolume: volume(parsed.sfxVolume, DEFAULT_SETTINGS.sfxVolume),
       announcer,

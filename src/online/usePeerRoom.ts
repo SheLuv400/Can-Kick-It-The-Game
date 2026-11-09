@@ -40,6 +40,8 @@ import {
   normalizeRoomCode,
   ROOM_CODE_LENGTH,
   ROOM_SEATS,
+  GUEST_SEATS,
+  DEFAULT_SEAT_TEAMS,
   FATAL_ORDER,
   TRIPLE_ORDER,
   sideLabel,
@@ -53,6 +55,7 @@ import {
   type RoomMessage,
   type RoomRulesState,
   type RoomSeat,
+  type RoomSeatTeams,
   type VoiceChatStatus,
 } from './protocol'
 
@@ -108,7 +111,41 @@ const PEER_OPTIONS = {
   },
 }
 
-const TEAM_ORDER: RoomSeat[] = ['host', 'guest-2', 'guest', 'guest-3']
+/** Keep one valid Team A partner whenever guests are present. */
+function normalizeSeatTeams(
+  seats: Partial<Record<RoomSeat, PlayerProfile>>,
+  current: RoomSeatTeams = DEFAULT_SEAT_TEAMS,
+): RoomSeatTeams {
+  const next: RoomSeatTeams = { ...DEFAULT_SEAT_TEAMS, host: 'player' }
+  const currentPartner = GUEST_SEATS.find(
+    (seat) => Boolean(seats[seat]) && current[seat] === 'player',
+  )
+  const partner = currentPartner ?? GUEST_SEATS.find((seat) => Boolean(seats[seat]))
+  for (const seat of GUEST_SEATS) next[seat] = seat === partner ? 'player' : 'rival'
+  return next
+}
+
+function sanitizeSeatTeams(value: unknown): RoomSeatTeams {
+  const next: RoomSeatTeams = { ...DEFAULT_SEAT_TEAMS, host: 'player' }
+  if (value && typeof value === 'object') {
+    for (const seat of ROOM_SEATS) {
+      const team = (value as Partial<RoomSeatTeams>)[seat]
+      if (team === 'player' || team === 'rival') next[seat] = team
+    }
+  }
+  next.host = 'player'
+  return next
+}
+
+/** The team a seat was assigned in the authoritative 2v2 lineup. */
+function partySeatTeam(state: BattleState, seat: RoomSeat): 'player' | 'rival' {
+  if (state.party?.format === '2v2') {
+    const entry = state.party.seats.find((candidate) => candidate.seat === seat)
+    if (entry?.team === 'player' || entry?.team === 'rival') return entry.team
+  }
+  return roomTeam(seat)
+}
+
 /** 2v2 teams share one Crowd meter at twice the normal 72 online maximum. */
 const TEAM_CROWD = 144
 const CHAT_MAX_CHARS = 180
@@ -186,6 +223,7 @@ export interface PeerRoom {
   matchId: number
   forfeit: OnlineForfeit | null
   seats: Partial<Record<RoomSeat, PlayerProfile>>
+  seatTeams: RoomSeatTeams
   localSeat: RoomSeat | null
   activeSeat: RoomSeat | null
   houseRules: HouseRulesConfig
@@ -205,6 +243,8 @@ export interface PeerRoom {
   toggleVoiceChat: () => void
   createRoom: (profile: PlayerProfile) => void
   joinRoom: (code: string, profile: PlayerProfile) => void
+  kickSeat: (seat: RoomSeat) => void
+  setTeamPartner: (seat: RoomSeat) => void
   startMatch: () => void
   requestRematch: () => void
   setRulePreset: (preset: HouseRulePreset) => void
@@ -238,6 +278,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
   const [state, setState] = useState<BattleState | null>(null)
   const [matchId, setMatchId] = useState(0)
   const [seats, setSeats] = useState<Partial<Record<RoomSeat, PlayerProfile>>>({})
+  const [seatTeams, setSeatTeams] = useState<RoomSeatTeams>(DEFAULT_SEAT_TEAMS)
   const [localSeat, setLocalSeat] = useState<RoomSeat | null>(null)
   const [activeSeat, setActiveSeat] = useState<RoomSeat | null>(null)
   const [forfeit, setForfeit] = useState<OnlineForfeit | null>(null)
@@ -259,6 +300,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
   const profileRef = useRef<PlayerProfile | null>(null)
   const opponentRef = useRef<PlayerProfile | null>(null)
   const seatsRef = useRef<Partial<Record<RoomSeat, PlayerProfile>>>({})
+  const seatTeamsRef = useRef<RoomSeatTeams>(DEFAULT_SEAT_TEAMS)
   const seatRef = useRef<RoomSeat>('host')
   const activeSeatRef = useRef<RoomSeat | null>(null)
   const rejectedRef = useRef(false)
@@ -319,7 +361,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       }
       return copy
     }
-    const hidden = roomTeam(seat) === 'player' ? copy.rival : copy.player
+    const hidden = partySeatTeam(state, seat) === 'player' ? copy.rival : copy.player
     hidden.hand = []
     hidden.deck = []
     hidden.specialHand = []
@@ -352,6 +394,12 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     seatsRef.current = next
     setSeats(next)
     sendHostMessage({ type: 'room', seats: next })
+  }, [sendHostMessage])
+
+  const commitSeatTeams = useCallback((next: RoomSeatTeams, broadcast = true) => {
+    seatTeamsRef.current = next
+    setSeatTeams(next)
+    if (broadcast) sendHostMessage({ type: 'teams', teams: next })
   }, [sendHostMessage])
 
   const commitActiveSeat = useCallback((seat: RoomSeat | null) => {
@@ -717,6 +765,8 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     setActiveSeat(null)
     setOpponentId(null)
     setOpponentStreak(0)
+    seatTeamsRef.current = DEFAULT_SEAT_TEAMS
+    setSeatTeams(DEFAULT_SEAT_TEAMS)
     profileRef.current = null
     roleRef.current = null
     codeRef.current = ''
@@ -743,6 +793,9 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       }
       const nextSeats = { ...seatsRef.current, [fromSeat]: profile }
       commitSeats(nextSeats)
+      if (houseRulesRef.current.format === '2v2') {
+        commitSeatTeams(normalizeSeatTeams(nextSeats, seatTeamsRef.current))
+      }
       if (!opponentRef.current) {
         opponentRef.current = profile
         setOpponentName(profile.name)
@@ -760,6 +813,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
           rules: makeRulesState(),
           seat: fromSeat,
           seats: nextSeats,
+          teams: seatTeamsRef.current,
           chat: chatHistoryRef.current,
           voicePeers: { ...voicePeersRef.current },
           voiceActive: voiceActiveRef.current.filter((seat) => Boolean(seatsRef.current[seat])),
@@ -852,7 +906,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     if (message.type === 'leave') {
       connsRef.current[fromSeat]?.close()
     }
-  }, [commitSeats, festival, makeRulesState, projectState, pushChat, sendHostMessage, sendRules, sendVoiceRoster, setRuleSeats, syncVoiceCalls])
+  }, [commitSeatTeams, commitSeats, festival, makeRulesState, projectState, pushChat, sendHostMessage, sendRules, sendVoiceRoster, setRuleSeats, syncVoiceCalls])
 
   const handleGuestMessage = useCallback((raw: unknown) => {
     const message = raw as RoomMessage
@@ -870,6 +924,9 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       const nextSeats = { ...message.seats }
       seatsRef.current = nextSeats
       setSeats(nextSeats)
+      const nextTeams = sanitizeSeatTeams(message.teams)
+      seatTeamsRef.current = nextTeams
+      setSeatTeams(nextTeams)
       if (profile) {
         opponentRef.current = profile
         setOpponentName(profile.name)
@@ -904,6 +961,13 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     if (message.type === 'room') {
       seatsRef.current = message.seats
       setSeats(message.seats)
+      return
+    }
+
+    if (message.type === 'teams') {
+      const nextTeams = sanitizeSeatTeams(message.teams)
+      seatTeamsRef.current = nextTeams
+      setSeatTeams(nextTeams)
       return
     }
 
@@ -967,6 +1031,17 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       return
     }
 
+    if (message.type === 'kicked') {
+      const reason = message.reason || 'THE HOST REMOVED YOU FROM THE PRIVATE ROOM.'
+      rejectedRef.current = true
+      disableVoice(false)
+      teardown()
+      setError(reason)
+      setStatus(reason)
+      enterPhase('error')
+      return
+    }
+
     if (message.type === 'left') {
       disableVoice(false)
       if (message.reason) {
@@ -1008,7 +1083,28 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       setOpponentStreak(0)
       opponentRef.current = null
     }
-  }, [applyRulesState, commitActiveSeat, disableVoice, endForfeit, enterPhase, festival, pushChat, resetRules, syncVoiceCalls])
+  }, [applyRulesState, commitActiveSeat, disableVoice, endForfeit, enterPhase, festival, pushChat, resetRules, syncVoiceCalls, teardown])
+
+  const removeGuestSeat = useCallback((seat: RoomSeat) => {
+    const nextSeats = { ...seatsRef.current }
+    delete nextSeats[seat]
+    commitSeats(nextSeats)
+    setRuleSeats(
+      rulesAcceptedRef.current.filter((entry) => entry !== seat && entry in nextSeats),
+      rulesReadyRef.current.filter((entry) => entry !== seat && entry in nextSeats),
+    )
+    delete voicePeersRef.current[seat]
+    voiceActiveRef.current = voiceActiveRef.current.filter((entry) => entry !== seat)
+    setVoiceActive(voiceActiveRef.current)
+    sendVoiceRoster()
+    commitSeatTeams(normalizeSeatTeams(nextSeats, seatTeamsRef.current))
+    if (!GUEST_SEATS.some((entry) => Boolean(nextSeats[entry]))) {
+      opponentRef.current = null
+      setOpponentName('')
+      setOpponentId(null)
+      setOpponentStreak(0)
+    }
+  }, [commitSeatTeams, commitSeats, sendVoiceRoster, setRuleSeats])
 
   const handleHostSeatGone = useCallback((seat: RoomSeat) => {
     const profile = seatsRef.current[seat]
@@ -1032,7 +1128,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
           sendHostMessage({ type: 'state', state: ended })
         }
       } else {
-        const loserTeam = current.party ? roomTeam(seat) : seat === 'host' ? 'player' : 'rival'
+        const loserTeam = current.party ? partySeatTeam(current, seat) : seat === 'host' ? 'player' : 'rival'
         const winnerTeam = loserTeam === 'player' ? 'rival' : 'player'
         const ended: BattleState = {
           ...current,
@@ -1057,24 +1153,8 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     } else {
       setStatus(`${profile?.name ?? roomSeatName(seat)} LEFT THE ROOM`)
     }
-    const nextSeats = { ...seatsRef.current }
-    delete nextSeats[seat]
-    commitSeats(nextSeats)
-    setRuleSeats(
-      rulesAcceptedRef.current.filter((entry) => entry !== seat && entry in nextSeats),
-      rulesReadyRef.current.filter((entry) => entry !== seat && entry in nextSeats),
-    )
-    delete voicePeersRef.current[seat]
-    voiceActiveRef.current = voiceActiveRef.current.filter((entry) => entry !== seat)
-    setVoiceActive(voiceActiveRef.current)
-    sendVoiceRoster()
-    if (!seatsRef.current.guest) {
-      opponentRef.current = null
-      setOpponentName('')
-      setOpponentId(null)
-      setOpponentStreak(0)
-    }
-  }, [commitActiveSeat, commitSeats, projectState, sendHostMessage, sendVoiceRoster, setRuleSeats])
+    removeGuestSeat(seat)
+  }, [commitActiveSeat, projectState, removeGuestSeat, sendHostMessage])
 
   const createRoom = useCallback(
     (profile: PlayerProfile) => {
@@ -1116,6 +1196,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       seatRef.current = 'host'
       setLocalSeat('host')
       commitSeats({ host: self })
+      commitSeatTeams({ ...DEFAULT_SEAT_TEAMS })
 
       nextPeer.on('open', () => {
         voicePeersRef.current.host = nextPeer.id
@@ -1201,7 +1282,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
           setError(`ROOM ERROR: ${type.replace(/-/g, ' ').toUpperCase()}`)
         }
         enterPhase('error')
-      })  }, [answerIncomingCall, closeMediaCall, commitActiveSeat, commitSeats, endForfeit, enterPhase, festival, handleHostMessage, handleHostSeatGone, resetRules, sendVoiceRoster, setRuleSeats, teardown],
+      })  }, [answerIncomingCall, closeMediaCall, commitActiveSeat, commitSeatTeams, commitSeats, endForfeit, enterPhase, festival, handleHostMessage, handleHostSeatGone, resetRules, sendVoiceRoster, setRuleSeats, teardown],
   )
 
   const joinRoom = useCallback(
@@ -1293,16 +1374,13 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     const fatalMode = format.id === 'fatal-4'
     const freeForAllMode = tripleMode || fatalMode
     const requiredSeats: RoomSeat[] = teamMode
-      ? TEAM_ORDER
+      ? ROOM_SEATS
       : fatalMode
         ? FATAL_ORDER
         : tripleMode
           ? TRIPLE_ORDER
           : ['host', 'guest']
-    const roster = requiredSeats
-      .map((seat) => seatsRef.current[seat])
-      .filter((profile): profile is PlayerProfile => Boolean(profile))
-    if (roster.length !== requiredSeats.length) {
+    if (requiredSeats.some((seat) => !seatsRef.current[seat])) {
       setStatus(
         teamMode
           ? '2V2 NEEDS ALL FOUR SEATS FILLED'
@@ -1314,6 +1392,26 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       )
       return
     }
+    const teamAGuests = teamMode
+      ? GUEST_SEATS.filter(
+          (seat) => seatsRef.current[seat] && roomTeam(seat, seatTeamsRef.current) === 'player',
+        )
+      : []
+    const teamBGuests = teamMode
+      ? GUEST_SEATS.filter(
+          (seat) => seatsRef.current[seat] && roomTeam(seat, seatTeamsRef.current) === 'rival',
+        )
+      : []
+    if (teamMode && (teamAGuests.length !== 1 || teamBGuests.length !== 2)) {
+      setStatus('SET ONE TEAM A PARTNER AND TWO TEAM B PLAYERS BEFORE STARTING')
+      return
+    }
+    const order: RoomSeat[] = teamMode
+      ? ['host', teamBGuests[0], teamAGuests[0], teamBGuests[1]]
+      : requiredSeats
+    const roster = order
+      .map((seat) => seatsRef.current[seat])
+      .filter((profile): profile is PlayerProfile => Boolean(profile))
     const [first, second, third, fourth] = roster
     if (!self) return
     if ((teamMode || freeForAllMode) && self.mode !== 'casual') {
@@ -1448,13 +1546,16 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     } else if (teamMode) {
       // Every seat brings its own complete stage kit. The two on stage live in
       // player/rival; the waiting seats sit in party.sides until they tag in.
+      const rivalSeat = order[1]
+      const teamASecond = order[2]
+      const teamBSecond = order[3]
       const sides: Record<string, SideState> = {
         host: cloneSideState(next.player),
-        'guest-2': cloneSideState(next.rival),
+        [rivalSeat]: cloneSideState(next.rival),
       }
       const partners: Array<[RoomSeat, PlayerProfile]> = [
-        ['guest', third],
-        ['guest-3', fourth],
+        [teamASecond, third],
+        [teamBSecond, fourth],
       ]
       for (const [seat, partnerProfile] of partners) {
         const partnerBattle = createBattle({
@@ -1471,14 +1572,14 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       }
       next.party = {
         format: '2v2',
-        seats: TEAM_ORDER.map((seat) => ({
+        seats: order.map((seat) => ({
           seat,
           name: seatsRef.current[seat]?.name ?? roomSeatName(seat),
-          team: roomTeam(seat),
+          team: roomTeam(seat, seatTeamsRef.current),
         })),
-        order: [...TEAM_ORDER],
+        order: [...order],
         activeSeat: 'host',
-        controllers: { player: 'host', rival: 'guest-2' },
+        controllers: { player: 'host', rival: rivalSeat },
         sides,
         turnIndex: 0,
       }
@@ -1535,7 +1636,55 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       return
     }
     commitRules({ ...houseRulesRef.current, format })
-  }, [commitRules, festival])
+    if (format === '2v2') {
+      commitSeatTeams(normalizeSeatTeams(seatsRef.current, seatTeamsRef.current))
+    }
+  }, [commitRules, commitSeatTeams, festival])
+
+  const setTeamPartner = useCallback((seat: RoomSeat) => {
+    if (roleRef.current !== 'host' || houseRulesRef.current.format !== '2v2') return
+    if (phaseRef.current !== 'lobby' || stateRef.current?.party) return
+    if (seat === 'host' || !seatsRef.current[seat]) return
+    if (roomTeam(seat, seatTeamsRef.current) === 'player') return
+    const nextTeams: RoomSeatTeams = {
+      host: 'player',
+      guest: 'rival',
+      'guest-2': 'rival',
+      'guest-3': 'rival',
+      [seat]: 'player',
+    }
+    commitSeatTeams(nextTeams)
+    setRuleSeats(rulesAcceptedRef.current, [])
+    sendRules()
+    setStatus(`${seatsRef.current[seat]?.name ?? roomSeatName(seat)} IS YOUR TEAM A PARTNER · READY UP AGAIN`)
+  }, [commitSeatTeams, sendRules, setRuleSeats])
+
+  const kickSeat = useCallback((seat: RoomSeat) => {
+    if (roleRef.current !== 'host' || phaseRef.current !== 'lobby' || stateRef.current?.party) return
+    if (seat === 'host' || !seatsRef.current[seat]) return
+    const profile = seatsRef.current[seat]
+    const connection = connsRef.current[seat]
+    delete connsRef.current[seat]
+    if (connRef.current === connection) connRef.current = null
+    const reason = 'THE HOST REMOVED YOU FROM THE PRIVATE ROOM.'
+    try {
+      connection?.send({ type: 'kicked', reason } satisfies HostMessage)
+    } catch {
+      // The peer can close before the message is delivered.
+    }
+    if (connection) {
+      closeMediaCall(connection.peer)
+      window.setTimeout(() => {
+        try {
+          connection.close()
+        } catch {
+          // Already closed.
+        }
+      }, 180)
+    }
+    removeGuestSeat(seat)
+    setStatus(`${profile?.name ?? roomSeatName(seat)} KICKED FROM THE ROOM`)
+  }, [closeMediaCall, removeGuestSeat])
 
   const setRulePreset = useCallback((preset: HouseRulePreset) => {
     if (roleRef.current !== 'host' || festival) return
@@ -1620,7 +1769,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
   }, [sendRules, setRuleSeats])
 
   const requiredSeats: RoomSeat[] = houseRules.format === '2v2'
-    ? TEAM_ORDER
+    ? ROOM_SEATS
     : houseRules.format === 'fatal-4'
       ? FATAL_ORDER
       : houseRules.format === 'triple-threat'
@@ -1637,6 +1786,10 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       ? mode === 'casual'
       : true) &&
     requiredSeats.every((seat) => Boolean(seats[seat])) &&
+    (houseRules.format !== '2v2' ||
+      GUEST_SEATS.filter(
+        (seat) => seats[seat] && roomTeam(seat, seatTeams) === 'player',
+      ).length === 1) &&
     requiredSeats.every(
       (seat) => rulesAccepted.includes(seat) && rulesReady.includes(seat),
     )
@@ -1665,12 +1818,12 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
       counterDefense =
         action.type === 'COUNTER' &&
         Boolean(current.counterPrompt) &&
-        current.counterPrompt?.defender === roomTeam(seat)
+        current.counterPrompt?.defender === partySeatTeam(current, seat)
       const cinematicSkip = action.type === 'DISMISS_CINEMATIC'
       if (!counterDefense && !cinematicSkip) {
         // Only the seat holding the turn may act; teammates cannot move cards.
         if (current.party.activeSeat !== seat) return
-        if (current.phase !== roomTeam(seat)) return
+        if (current.phase !== partySeatTeam(current, seat)) return
       }
     }
     const prepared = current.party ? cloneBattleState(current) : current
@@ -1679,7 +1832,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
         ? 'rival'
         : 'player'
       : current.party
-        ? roomTeam(seat)
+        ? partySeatTeam(current, seat)
         : seat === 'host'
           ? 'player'
           : 'rival'
@@ -1809,6 +1962,7 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     matchId,
     forfeit,
     seats,
+    seatTeams,
     localSeat,
     activeSeat,
     houseRules,
@@ -1828,6 +1982,8 @@ export function usePeerRoom(festival: FestivalEvent | null = null): PeerRoom {
     toggleVoiceChat,
     createRoom,
     joinRoom,
+    kickSeat,
+    setTeamPartner,
     startMatch,
     requestRematch,
     setRulePreset,

@@ -3,6 +3,7 @@ import type { Artist } from '../game/types'
 import { careerReputationForOvr } from '../game/career-data'
 import { CORE_ARTIST_COUNT, CREW_META, abilityText, effectLabel } from '../game/roster'
 import { Portrait } from './Portrait'
+import { useGraphics } from '../graphics/GraphicsContext'
 
 type CardSize = 'hand' | 'stage' | 'grid' | 'hero'
 
@@ -36,6 +37,8 @@ export function Card({
   crewCount,
 }: CardProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const graphics = useGraphics()
+  const canTilt = tilt && graphics.cardTilt
   const form = encore ? artist.encore : null
   const name = form ? form.name : artist.name
   const bars = (form ? form.bars : artist.bars) + (era - 1)
@@ -53,7 +56,7 @@ export function Card({
   } as CSSProperties
 
   const handleMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!tilt || !ref.current || disabled) return
+    if (!canTilt || !ref.current || disabled) return
     const rect = ref.current.getBoundingClientRect()
     const x = (event.clientX - rect.left) / rect.width
     const y = (event.clientY - rect.top) / rect.height
