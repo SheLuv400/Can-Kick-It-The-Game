@@ -68,6 +68,8 @@ import { useSocial } from './account/SocialProvider'
 import { DevAnnouncerPanel } from './components/DevAnnouncerPanel'
 import { VisualDirector } from './components/VisualDirector'
 import { GraphicsHud } from './components/GraphicsHud'
+import { StartGate } from './components/StartGate'
+import { AudioNotice } from './components/AudioNotice'
 import { GraphicsProvider } from './graphics/GraphicsContext'
 import { useAutoQuality } from './graphics/useAutoQuality'
 import { resolveGraphics } from './game/graphics'
@@ -133,6 +135,7 @@ export default function App() {
   const [charts, setCharts] = useState<ChartState>(() => loadCharts())
   const [label, setLabel] = useState<LabelState>(() => loadLabel())
   const [screen, setScreen] = useState<Screen>('menu')
+  const [entered, setEntered] = useState(false)
   const [battleKey, setBattleKey] = useState(0)
   const [rulesOpen, setRulesOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -169,6 +172,7 @@ export default function App() {
   const appStyle = {
     '--gfx-render-scale': (graphics.renderScale / 100).toString(),
     '--gfx-ui-scale': (graphics.uiScale / 100).toString(),
+    '--tv-safe': `${graphics.tvSafeArea}px`,
   } as CSSProperties
 
   // Root zoom is the only scaling method that keeps the layout viewport and
@@ -249,18 +253,23 @@ export default function App() {
   }, [settings.announcer])
 
   useEffect(() => {
+    if (!entered) return
     if (screen !== 'battle') audioEngine.setScene('menu')
-  }, [screen])
+  }, [screen, entered])
 
   useEffect(() => {
-    const unlock = (event: PointerEvent) => {
+    const unlock = (event: Event) => {
       const target = event.target
       if (target instanceof Element && target.closest('.audio-chip')) return
-      audioEngine.unlock()
+      void audioEngine.unlock()
       announcerEngine.unlock()
     }
     window.addEventListener('pointerdown', unlock)
-    return () => window.removeEventListener('pointerdown', unlock)
+    window.addEventListener('keydown', unlock)
+    return () => {
+      window.removeEventListener('pointerdown', unlock)
+      window.removeEventListener('keydown', unlock)
+    }
   }, [])
 
   useEffect(() => {
@@ -703,8 +712,11 @@ export default function App() {
       <div
         className={`app theme-${settings.theme} fx-quality-${graphics.quality} gfx-material-${graphics.cardMaterial} ${
           graphics.reducedMotion ? 'reduce-motion' : ''
-        } ${graphics.flashEffects ? '' : 'fx-no-flash'} ${graphics.vhsEffects ? 'fx-vhs' : ''}`}
+        } ${graphics.flashEffects ? '' : 'fx-no-flash'} ${graphics.vhsEffects ? 'fx-vhs' : ''} ${
+          graphics.consoleMode ? 'display-console' : ''
+        }`}
         data-screen={screen}
+        data-display={graphics.displayMode}
         data-gfx-preset={graphics.preset}
         data-gfx-quality={graphics.quality}
         data-gfx-lighting={graphics.concertLighting}
@@ -1059,6 +1071,8 @@ export default function App() {
 
         {import.meta.env.DEV && <DevAnnouncerPanel />}
         <GraphicsHud show={graphics.showFps} frameLimit={graphics.frameLimit} />
+        {entered && <AudioNotice />}
+        {!entered && <StartGate onEnter={() => setEntered(true)} />}
         </GraphicsProvider>
       </div>
     </ArtProvider>

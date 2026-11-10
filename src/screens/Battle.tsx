@@ -51,6 +51,7 @@ import { HudStrip } from '../components/Hud'
 import { CinematicOverlay } from '../components/Cinematic'
 import { RulesModal } from '../components/RulesModal'
 import { SettingsModal } from '../components/SettingsModal'
+import { CardInspector } from '../components/CardInspector'
 import { useGraphics } from '../graphics/GraphicsContext'
 import { VolumeSlider } from '../components/VolumeSlider'
 import { Portrait } from '../components/Portrait'
@@ -121,6 +122,51 @@ const HOUSE_GLYPHS: Record<string, string> = {
   'encore-spotlight': '♫',
   'last-verse-standing': '☗',
   'crate-lockdown': '▣',
+}
+
+const BATTLE_AREA_TARGETS = [
+  '.stage--player .stage-unit[role="button"]:not(.is-down)',
+  '.crate-stack:not(:disabled), .crate-mini:not(:disabled)',
+  '.backstage-pile:not(:disabled)',
+  '.stage--rival .stage-unit[role="button"]:not(.is-down)',
+]
+
+function battleAreaIndex(active: Element | null): number {
+  if (!active) return -1
+  if (active.closest('.stage--player')) return 0
+  if (active.closest('.crate-stack, .crate-mini')) return 1
+  if (active.closest('.backstage-pile')) return 2
+  if (active.closest('.stage--rival')) return 3
+  return -1
+}
+
+function focusBattleArea(offset: number): void {
+  const current = battleAreaIndex(document.activeElement)
+  for (let step = 1; step <= BATTLE_AREA_TARGETS.length; step += 1) {
+    const start = current < 0 ? (offset > 0 ? -1 : 0) : current
+    const index =
+      (start + offset * step + BATTLE_AREA_TARGETS.length * 2) %
+      BATTLE_AREA_TARGETS.length
+    const targets = Array.from(
+      document.querySelectorAll<HTMLElement>(BATTLE_AREA_TARGETS[index]),
+    )
+    if (targets.some((target) => focusGamepadElement(target))) return
+  }
+}
+
+function focusHandCard(offset: number): void {
+  const cards = Array.from(
+    document.querySelectorAll<HTMLElement>('.hand .card[role="button"]'),
+  )
+  if (cards.length === 0) return
+  const current = cards.indexOf(document.activeElement as HTMLElement)
+  const next =
+    current < 0
+      ? offset > 0
+        ? 0
+        : cards.length - 1
+      : (current + offset + cards.length) % cards.length
+  focusGamepadElement(cards[next])
 }
 
 const RESPONSE_ACTIONS = new Set<BattleAction['type']>([
@@ -291,6 +337,10 @@ export function Battle({
   } | null>(null)
   const [specialOpen, setSpecialOpen] = useState<CrateHandCard | null>(null)
   const [backstageOpen, setBackstageOpen] = useState(false)
+  const [inspectOpen, setInspectOpen] = useState<{
+    artistId: string
+    cardUid: string | null
+  } | null>(null)
   const [crateReveal, setCrateReveal] = useState<CrateHandCard | null>(null)
   const [defeatReveal, setDefeatReveal] = useState<{ artistId: string; nonce: number } | null>(null)
   const [moveFx, setMoveFx] = useState<LastMove | null>(null)
@@ -345,6 +395,12 @@ export function Battle({
   const stageFull = state.player.stage.length >= state.stageSlots
   const playerCrews = availableCrews(state.player.stage)
   const selectedStage = state.player.stage.find((card) => card.uid === selectedStageUid) ?? null
+  const inspectArtist = inspectOpen ? getArtist(inspectOpen.artistId) : null
+  const inspectCard = inspectOpen?.cardUid
+    ? ([...state.player.stage, ...state.rival.stage].find(
+        (card) => card.uid === inspectOpen.cardUid,
+      ) ?? null)
+    : null
   const selectedMoves = useMemo(
     () =>
       selectedStage
@@ -883,6 +939,133 @@ export function Battle({
     targetUid,
     endTurn,
     selectNextReady,
+  ])
+
+  useEffect(() => {
+    return onGamepadCommand((command) => {
+      if (advisorOpen || !started || state.phase === 'over') return
+
+      if (command === 'backstage') {
+        if (backstageOpen) {
+          setBackstageOpen(false)
+          return
+        }
+        if (
+          !playerTurn ||
+          pauseOpen ||
+          pauseSettingsOpen ||
+          rulesOpen ||
+          exitOpen ||
+          specialOpen ||
+          logOpen ||
+          chatOpen ||
+          inspectOpen
+        ) {
+          return
+        }
+        setBackstageOpen(true)
+        audioEngine.playSfx('click')
+        return
+      }
+
+      if (command === 'inspect') {
+        if (
+          inspectOpen ||
+          pauseOpen ||
+          pauseSettingsOpen ||
+          rulesOpen ||
+          exitOpen ||
+          specialOpen ||
+          backstageOpen ||
+          logOpen ||
+          chatOpen
+        ) {
+          return
+        }
+        const active = document.activeElement
+        const stageUnit =
+          active instanceof HTMLElement
+            ? active.closest<HTMLElement>('.stage-unit[data-card-uid]')
+            : null
+        const handSlot =
+          active instanceof HTMLElement
+            ? active.closest<HTMLElement>('.hand__slot[data-artist-id]')
+            : null
+        let artistId = handSlot?.dataset.artistId ?? stageUnit?.dataset.artistId
+        let cardUid = stageUnit?.dataset.cardUid ?? null
+
+        if (!artistId && selectedStage) {
+          artistId = selectedStage.artistId
+          cardUid = selectedStage.uid
+        }
+        if (!artistId) {
+          const firstStage = state.player.stage[0]
+          const firstHand = state.player.hand[0]
+          if (firstStage) {
+            artistId = firstStage.artistId
+            cardUid = firstStage.uid
+          } else if (firstHand) {
+            artistId = firstHand
+          }
+        }
+        if (!artistId) return
+        setInspectOpen({ artistId, cardUid })
+        audioEngine.playSfx('click')
+        return
+      }
+
+      if (command === 'hand-prev' || command === 'hand-next') {
+        if (
+          pauseOpen ||
+          pauseSettingsOpen ||
+          rulesOpen ||
+          exitOpen ||
+          specialOpen ||
+          backstageOpen ||
+          logOpen ||
+          chatOpen ||
+          inspectOpen
+        ) {
+          return
+        }
+        focusHandCard(command === 'hand-next' ? 1 : -1)
+        return
+      }
+
+      if (command === 'area-prev' || command === 'area-next') {
+        if (
+          pauseOpen ||
+          pauseSettingsOpen ||
+          rulesOpen ||
+          exitOpen ||
+          specialOpen ||
+          backstageOpen ||
+          logOpen ||
+          chatOpen ||
+          inspectOpen
+        ) {
+          return
+        }
+        focusBattleArea(command === 'area-next' ? 1 : -1)
+      }
+    })
+  }, [
+    advisorOpen,
+    started,
+    state.phase,
+    state.player.stage,
+    state.player.hand,
+    selectedStage,
+    playerTurn,
+    pauseOpen,
+    pauseSettingsOpen,
+    rulesOpen,
+    exitOpen,
+    specialOpen,
+    backstageOpen,
+    logOpen,
+    chatOpen,
+    inspectOpen,
   ])
 
   useEffect(() => {
@@ -1547,6 +1730,9 @@ export function Battle({
                       advisorHighlight?.handArtistId === artistId ? 'is-advised' : ''
                     }`}
                     key={`${artistId}-${index}`}
+                    data-artist-id={artistId}
+                    onFocus={() => setPeekId(artistId)}
+                    onBlur={() => setPeekId(null)}
                     style={
                       {
                         '--rot': `${(index - (state.player.hand.length - 1) / 2) * 2.6}deg`,
@@ -2261,6 +2447,14 @@ export function Battle({
           onUpdate={onUpdate}
           onClose={() => setPauseSettingsOpen(false)}
           desktopWindowModeLocked
+        />
+      )}
+
+      {inspectOpen && inspectArtist && (
+        <CardInspector
+          artist={inspectArtist}
+          card={inspectCard}
+          onClose={() => setInspectOpen(null)}
         />
       )}
 

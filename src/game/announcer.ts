@@ -290,6 +290,13 @@ class AnnouncerEngine {
     if (context.state === 'suspended') void context.resume().catch(() => {})
   }
 
+  /** Controller input may resume an already-authorized announcer bus. */
+  resumeIfReady() {
+    const context = this.context
+    if (!context) return
+    if (context.state === 'suspended') void context.resume().catch(() => {})
+  }
+
   startMatch() {
     if (this.matchActive) return
     this.matchActive = true

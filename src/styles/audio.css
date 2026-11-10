@@ -1,3 +1,233 @@
+/* ---------- Start gate and audio recovery ---------- */
+
+.start-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: clamp(16px, 4vw, 46px);
+  background:
+    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 44%),
+    radial-gradient(circle at 84% 84%, rgba(106, 49, 151, 0.2), transparent 36%),
+    linear-gradient(145deg, #090608, #0d0908 48%, #080607);
+}
+
+.start-gate::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.32;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0 3px,
+    rgba(255, 255, 255, 0.018) 3px 4px
+  );
+}
+
+.start-gate__panel {
+  position: relative;
+  width: min(680px, 100%);
+  padding: clamp(24px, 5vw, 54px);
+  border: 1px solid color-mix(in srgb, var(--accent) 44%, var(--line));
+  background:
+    linear-gradient(160deg, rgba(26, 18, 15, 0.96), rgba(10, 8, 9, 0.94)),
+    var(--panel-solid);
+  box-shadow:
+    0 34px 110px rgba(0, 0, 0, 0.72),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+  text-align: center;
+}
+
+.start-gate__panel::before,
+.start-gate__panel::after {
+  content: '';
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border-color: var(--accent);
+  border-style: solid;
+  opacity: 0.72;
+}
+
+.start-gate__panel::before {
+  top: 10px;
+  left: 10px;
+  border-width: 1px 0 0 1px;
+}
+
+.start-gate__panel::after {
+  right: 10px;
+  bottom: 10px;
+  border-width: 0 1px 1px 0;
+}
+
+.start-gate__kicker {
+  color: var(--accent);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.start-gate h1 {
+  margin: 0.7rem 0 0;
+  font-family: var(--display);
+  font-size: clamp(2.35rem, 8vw, 5.2rem);
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.start-gate h1 span {
+  display: block;
+  margin-top: 0.08em;
+  color: var(--accent);
+  font-size: 0.38em;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1.1;
+}
+
+.start-gate__copy {
+  max-width: 30rem;
+  margin: 1.1rem auto 1.25rem;
+  color: var(--ink-dim);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+
+.start-gate__enter {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 65%, white);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  transition: background 0.16s ease, transform 0.16s ease;
+}
+
+.start-gate__enter:hover:not(:disabled),
+.start-gate__enter:focus-visible {
+  background: var(--accent-2);
+  transform: translateY(-1px);
+}
+
+.start-gate__enter i {
+  font-size: 1rem;
+  font-style: normal;
+}
+
+.start-gate__hint {
+  max-width: 30rem;
+  margin: 0.85rem auto 0;
+  color: var(--ink-dim);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  line-height: 1.55;
+}
+
+.start-gate__meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 1.3rem;
+  color: color-mix(in srgb, var(--ink-dim) 76%, transparent);
+  font-size: 0.47rem;
+  letter-spacing: 0.14em;
+}
+
+.start-gate__meta i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.audio-notice {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top, 0px));
+  left: 50%;
+  z-index: 8000;
+  display: flex;
+  width: min(760px, calc(100vw - 24px));
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px 10px 16px;
+  border: 1px solid rgba(216, 180, 92, 0.68);
+  background: rgba(12, 9, 8, 0.96);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.66);
+  color: var(--ink);
+  transform: translateX(-50%);
+}
+
+.audio-notice__copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.audio-notice__copy b {
+  color: var(--accent-2, #f6e8bd);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+}
+
+.audio-notice__copy span {
+  color: var(--ink-dim);
+  font-size: 0.52rem;
+  line-height: 1.45;
+}
+
+.audio-notice__action {
+  flex: none;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.audio-notice__action:hover,
+.audio-notice__action:focus-visible {
+  background: var(--accent-2);
+}
+
+@media (max-width: 640px) {
+  .start-gate__panel {
+    padding: 28px 18px;
+  }
+
+  .start-gate__copy {
+    font-size: 0.66rem;
+  }
+
+  .audio-notice {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .audio-notice__copy span {
+    font-size: 0.5rem;
+  }
+}
+
 /* Shared volume controls */
 .volume-slider {
   display: flex;

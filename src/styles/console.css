@@ -1,0 +1,589 @@
+/* ============================================================
+   CONSOLE / TV + CONTROLLER UI
+   Loaded last so couch sizing and safe areas win without
+   changing the desktop, phone or tablet layouts.
+   ============================================================ */
+
+/* ---------- Settings · controller guide & remapping ---------- */
+
+.settings-controller {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.settings-controller__status {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+.settings-controller__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--accent-2, #f6e8bd);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-2, #f6e8bd) 70%, transparent);
+}
+
+.settings-controller__status b,
+.settings-controller__status em {
+  display: block;
+}
+
+.settings-controller__status b {
+  color: var(--ink);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+}
+
+.settings-controller__status em {
+  margin-top: 3px;
+  color: var(--ink-dim);
+  font-size: 0.54rem;
+  font-style: normal;
+  line-height: 1.5;
+}
+
+.settings-controller__note {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 2px solid var(--accent);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--ink-dim);
+  font-size: 0.54rem;
+  line-height: 1.55;
+}
+
+.settings-controller__guide {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.settings-controller__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 8px 10px;
+  background: var(--panel-solid);
+}
+
+.settings-controller__row > div {
+  min-width: 0;
+}
+
+.settings-controller__row b,
+.settings-controller__row em {
+  display: block;
+}
+
+.settings-controller__row b {
+  color: var(--ink);
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+}
+
+.settings-controller__row em {
+  margin-top: 3px;
+  color: var(--ink-dim);
+  font-size: 0.5rem;
+  font-style: normal;
+  line-height: 1.45;
+}
+
+.settings-controller__key {
+  min-width: 68px;
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--line));
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--ink);
+  font-family: var(--mono, 'Space Grotesk', sans-serif);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.settings-controller__key:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.settings-controller__key.is-capturing {
+  border-color: var(--accent-2, #f6e8bd);
+  background: var(--accent-2, #f6e8bd);
+  color: #120d09;
+  animation: controllerCapture 0.9s ease-in-out infinite alternate;
+}
+
+.settings-controller__key:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.settings-controller__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+}
+
+.settings-controller__actions span {
+  color: var(--ink-dim);
+  font-size: 0.52rem;
+  letter-spacing: 0.05em;
+}
+
+.settings-controller__foot {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 0.53rem;
+  line-height: 1.6;
+}
+
+@keyframes controllerCapture {
+  from {
+    opacity: 0.62;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Card inspector ---------- */
+
+.card-inspector {
+  position: fixed;
+  inset: 0;
+  z-index: 7200;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 2.4vw, 28px);
+}
+
+.card-inspector__scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgba(4, 3, 6, 0.82);
+  backdrop-filter: blur(14px);
+  cursor: default;
+}
+
+.card-inspector__panel {
+  position: relative;
+  z-index: 1;
+  width: min(1120px, 100%);
+  max-height: calc(100dvh - clamp(24px, 4.8vw, 56px));
+  overflow: auto;
+  padding: clamp(15px, 2.2vw, 28px);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--panel-solid) 98%, white), color-mix(in srgb, var(--panel-solid) 84%, black));
+  box-shadow:
+    0 30px 100px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.card-inspector__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.card-inspector__head h2 {
+  margin: 0.25rem 0 0.2rem;
+  font-family: var(--display);
+  font-size: clamp(1.7rem, 3.4vw, 3rem);
+  line-height: 0.95;
+}
+
+.card-inspector__head p {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 0.58rem;
+  letter-spacing: 0.11em;
+}
+
+.card-inspector__body {
+  display: grid;
+  grid-template-columns: minmax(210px, 320px) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(18px, 3vw, 40px);
+}
+
+.card-inspector__art {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.card-inspector__art .card-shell {
+  width: 100%;
+}
+
+.card-inspector__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
+.card-inspector__stats > span {
+  display: grid;
+  place-items: center;
+  min-height: 72px;
+  padding: 8px;
+  background: var(--panel-solid);
+  text-align: center;
+}
+
+.card-inspector__stats b {
+  color: var(--element, var(--accent));
+  font-family: var(--display);
+  font-size: clamp(1.35rem, 3vw, 2.2rem);
+  line-height: 1;
+}
+
+.card-inspector__stats em {
+  margin-top: 4px;
+  color: var(--ink-dim);
+  font-size: 0.48rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+}
+
+.card-inspector__section {
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
+}
+
+.card-inspector__section h3 {
+  margin: 0 0 7px;
+  color: var(--accent);
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+}
+
+.card-inspector__section > b {
+  display: block;
+  color: var(--ink);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.card-inspector__section p {
+  margin: 5px 0 0;
+  color: var(--ink-dim);
+  font-size: 0.64rem;
+  line-height: 1.6;
+}
+
+.card-inspector__charge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  color: var(--accent-2, #f6e8bd);
+  font-size: 0.48rem;
+  letter-spacing: 0.1em;
+}
+
+.card-inspector__moves {
+  display: grid;
+  gap: 9px;
+}
+
+.card-inspector__moves > div {
+  padding: 9px 10px;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.card-inspector__moves b {
+  display: block;
+  color: var(--ink);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+}
+
+.card-inspector__moves span {
+  display: block;
+  margin-top: 3px;
+  color: var(--accent);
+  font-size: 0.46rem;
+  letter-spacing: 0.09em;
+}
+
+.card-inspector__moves p {
+  margin-top: 4px;
+  font-size: 0.58rem;
+}
+
+.card-inspector__statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.card-inspector__note {
+  margin: 18px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-size: 0.46rem;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- Console / TV mode ---------- */
+
+.app.display-console {
+  --tv-safe: 24px;
+  --tv-gutter: max(1rem, var(--tv-safe));
+}
+
+.display-console .arena-shell {
+  width: min(1760px, calc(100% - var(--tv-safe) - var(--tv-safe)));
+}
+
+.display-console .arena-topbar {
+  min-height: 78px;
+  gap: clamp(14px, 1.8vw, 28px);
+}
+
+.display-console .arena-mode__name {
+  font-size: clamp(1.3rem, 2.2vw, 2.15rem);
+}
+
+.display-console .arena-mode__meta,
+.display-console .arena-profile__name {
+  font-size: 0.58rem;
+}
+
+.display-console .arena-profile {
+  min-height: 54px;
+}
+
+.display-console .arena-profile__avatar {
+  width: 42px;
+  height: 42px;
+}
+
+.display-console .battle__exit {
+  top: max(0.65rem, var(--tv-safe));
+  left: var(--tv-gutter);
+}
+
+.display-console .battle__tools {
+  top: max(0.65rem, var(--tv-safe));
+  right: var(--tv-gutter);
+}
+
+.display-console .battle__hud,
+.display-console .battle__board {
+  padding-right: var(--tv-gutter);
+  padding-left: var(--tv-gutter);
+}
+
+.display-console .battle__hud {
+  padding-top: max(1rem, calc(var(--tv-safe) - 8px));
+}
+
+.display-console .battle__board {
+  padding-bottom: max(0.65rem, calc(var(--tv-safe) / 2));
+}
+
+/* Keep both five-slot stages and the hand inside a 1080p screen at 100%.
+   The narrower cap does not change the card aspect ratio or hit targets. */
+.display-console .battle .stage {
+  width: min(100%, 47rem, 80vh);
+}
+
+.display-console .modal,
+.display-console .battle-pause,
+.display-console .result {
+  padding: max(1.2rem, var(--tv-safe));
+}
+
+.display-console .modal__panel,
+.display-console .battle-pause__panel,
+.display-console .result__panel {
+  /* Root zoom enlarges the panel after max-height is resolved. Divide here so
+     the scaled panel still fits the physical 1080p viewport and its sticky
+     close button remains reachable. */
+  max-height: calc(
+    (100dvh - var(--tv-safe) - var(--tv-safe)) / var(--gfx-ui-scale, 1)
+  );
+}
+
+.display-console .settings-panel {
+  width: min(1180px, 100%);
+}
+
+.display-console .settings-grid {
+  gap: clamp(14px, 1.6vw, 24px);
+}
+
+.display-console .settings-block {
+  padding: clamp(16px, 1.4vw, 24px);
+}
+
+.display-console .settings-block__head h3 {
+  font-size: 0.8rem;
+}
+
+.display-console .settings-block__head p,
+.display-console .settings-choice__label,
+.display-console .settings-controller__row b {
+  font-size: 0.64rem;
+}
+
+.display-console .settings-controller__row em,
+.display-console .settings-controller__status em,
+.display-console .settings-controller__foot {
+  font-size: 0.58rem;
+}
+
+.display-console .btn,
+.display-console .settings-choice__options button,
+.display-console .settings-controller__key {
+  min-height: 44px;
+}
+
+.display-console .icon-btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.display-console .hand__slot,
+.display-console .hand__fan:has(.hand__slot:nth-child(6)) .hand__slot,
+.display-console .hand__fan:has(.hand__slot:nth-child(7)) .hand__slot {
+  width: clamp(6.7rem, 13.5vh, 8.8rem);
+}
+
+.display-console .hand__label,
+.display-console .side__meta {
+  font-size: 0.58rem;
+}
+
+.display-console .controller-hud {
+  bottom: calc(var(--tv-safe) + 10px);
+  gap: 14px;
+  padding: 10px 16px;
+  border-color: rgba(244, 200, 78, 0.72);
+  font-size: 11px;
+}
+
+.display-console .controller-hud__hints {
+  gap: 4px 14px;
+}
+
+body.is-controller .display-console :focus {
+  outline-width: 3px !important;
+  outline-offset: 5px !important;
+}
+
+body.is-controller .display-console .card:focus,
+body.is-controller .display-console .stage-unit:focus,
+body.is-controller .display-console .move-card:focus,
+body.is-controller .display-console .target-chip:focus,
+body.is-controller .display-console .settings-controller__key:focus,
+body.is-controller .display-console .card-inspector button:focus {
+  box-shadow:
+    0 0 0 2px rgba(8, 6, 7, 0.95),
+    0 0 0 6px var(--accent-2, #f6e8bd),
+    0 0 38px rgba(246, 232, 189, 0.46) !important;
+}
+
+.display-console .card-inspector__panel {
+  width: min(1180px, 100%);
+  max-height: calc(
+    (100dvh - var(--tv-safe) - var(--tv-safe)) / var(--gfx-ui-scale, 1)
+  );
+  padding: clamp(18px, 2vw, 30px);
+}
+
+.display-console .card-inspector__head h2 {
+  font-size: clamp(2rem, 3.8vw, 3.4rem);
+}
+
+.display-console .card-inspector__section p,
+.display-console .card-inspector__section > b,
+.display-console .card-inspector__moves b {
+  font-size: 0.72rem;
+}
+
+.display-console .card-inspector__note,
+.display-console .card-inspector__moves span {
+  font-size: 0.54rem;
+}
+
+/* Keep the TV layout usable if a browser reports a narrow CSS viewport at
+   150% zoom. The artwork still scales proportionally; it is never stretched. */
+@media (max-width: 900px), (max-aspect-ratio: 4/3) {
+  .display-console .card-inspector__body {
+    grid-template-columns: minmax(160px, 240px) minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .display-console .card-inspector__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .display-console .settings-controller__guide {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .settings-controller__guide {
+    grid-template-columns: 1fr;
+  }
+
+  .card-inspector__body {
+    grid-template-columns: 1fr;
+  }
+
+  .card-inspector__art {
+    position: static;
+    max-width: 210px;
+  }
+
+  .card-inspector__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-controller__key.is-capturing {
+    animation: none;
+  }
+
+  .card-inspector__panel {
+    animation: none;
+  }
+}

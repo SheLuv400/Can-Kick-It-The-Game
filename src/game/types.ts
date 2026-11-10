@@ -188,10 +188,14 @@ export interface Artist {
 export type Difficulty = 'OPENING' | 'HEADLINER' | 'LEGEND'
 
 export type VisualQuality = 'ultra' | 'high' | 'medium' | 'low'
-export type GraphicsPreset = 'auto' | VisualQuality
+/** `xbox` is the measured, conservative Microsoft Edge console profile. */
+export type GraphicsPreset = 'auto' | 'xbox' | VisualQuality
 export type FrameLimit = 'auto' | 30 | 60
 export type RenderScale = 70 | 85 | 100
 export type UiScale = 90 | 100 | 110 | 125
+export type DisplayMode = 'standard' | 'console'
+export type TvUiScale = 100 | 110 | 125 | 150
+export type TvSafeArea = 0 | 16 | 24 | 32 | 48
 export type CardImageQuality = 'low' | 'medium' | 'hd'
 export type CardMaterialQuality = 'off' | 'basic' | 'enhanced' | 'full'
 export type LightingQuality = 'low' | 'medium' | 'high'
@@ -239,6 +243,11 @@ export interface Settings {
   frameLimit: FrameLimit
   renderScale: RenderScale
   uiScale: UiScale
+  /** Standard browser layout or the couch-focused television layout. */
+  displayMode: DisplayMode
+  tvUiScale: TvUiScale
+  /** Inset from every screen edge for important TV UI. */
+  tvSafeArea: TvSafeArea
   showFps: boolean
   cardImageQuality: CardImageQuality
   cardMaterial: CardMaterialQuality

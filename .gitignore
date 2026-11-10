@@ -2,6 +2,7 @@ node_modules
 dist
 .site-build
 artifacts
+.logs/
 .apt
 .local
 *.log

@@ -6,6 +6,7 @@ import type {
   CardImageQuality,
   CardMaterialQuality,
   Difficulty,
+  DisplayMode,
   FrameLimit,
   GraphicsPreset,
   LightingQuality,
@@ -15,6 +16,8 @@ import type {
   ShadowQuality,
   TeamProgress,
   ThemeId,
+  TvSafeArea,
+  TvUiScale,
   UiScale,
 } from './types'
 import { initialAutoQuality, PRESET_VALUES } from './graphics'
@@ -76,6 +79,9 @@ type GraphicsField =
   | 'frameLimit'
   | 'renderScale'
   | 'uiScale'
+  | 'displayMode'
+  | 'tvUiScale'
+  | 'tvSafeArea'
   | 'showFps'
   | 'cardImageQuality'
   | 'cardMaterial'
@@ -97,6 +103,9 @@ export const GRAPHICS_DEFAULTS: Pick<Settings, GraphicsField> = {
   frameLimit: 'auto',
   renderScale: 100,
   uiScale: 100,
+  displayMode: 'standard',
+  tvUiScale: 110,
+  tvSafeArea: 24,
   showFps: false,
   cardImageQuality: 'hd',
   ...PRESET_VALUES[initialAutoQuality()],
@@ -262,15 +271,22 @@ export function loadSettings(): Settings {
       legacyVisual === 'low' || legacyVisual === 'medium' || legacyVisual === 'high' ? legacyVisual : 'auto'
     const graphicsPreset = oneOf<GraphicsPreset>(
       parsed.graphicsPreset,
-      ['auto', 'low', 'medium', 'high', 'ultra'],
+      ['auto', 'xbox', 'low', 'medium', 'high', 'ultra'],
       presetFallback,
     )
-    const baseline = PRESET_VALUES[graphicsPreset === 'auto' ? initialAutoQuality() : graphicsPreset]
+    const baseline = PRESET_VALUES[
+      graphicsPreset === 'auto' || graphicsPreset === 'xbox'
+        ? initialAutoQuality()
+        : graphicsPreset
+    ]
     const graphics: Pick<Settings, GraphicsField> = {
       graphicsPreset,
       frameLimit: oneOf<FrameLimit>(parsed.frameLimit, ['auto', 30, 60], 'auto'),
       renderScale: oneOf<RenderScale>(parsed.renderScale, [70, 85, 100], 100),
       uiScale: oneOf<UiScale>(parsed.uiScale, [90, 100, 110, 125], 100),
+      displayMode: oneOf<DisplayMode>(parsed.displayMode, ['standard', 'console'], 'standard'),
+      tvUiScale: oneOf<TvUiScale>(parsed.tvUiScale, [100, 110, 125, 150], 110),
+      tvSafeArea: oneOf<TvSafeArea>(parsed.tvSafeArea, [0, 16, 24, 32, 48], 24),
       showFps: parsed.showFps === true,
       cardImageQuality: oneOf<CardImageQuality>(parsed.cardImageQuality, ['low', 'medium', 'hd'], 'hd'),
       cardMaterial: oneOf<CardMaterialQuality>(

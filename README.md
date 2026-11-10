@@ -294,14 +294,26 @@ npm run build
 - `Space` ends the turn only when no modal or move panel is open.
 - The pre-show intro lists the venue, live slot count, circuit rule and tonight’s objectives.
 
-### Controller
+### Controller and Xbox Edge
 
-Connect a standard-mapping Xbox, PlayStation or PC controller and press any button. A focus ring and an on-screen button guide appear, and the game keeps focus inside the active modal or overlay.
+Connect a standard-mapping Xbox, PlayStation or PC controller and press any button. A focus ring and an on-screen button guide appear, and the game keeps focus inside the active modal or overlay. Every controller press calls the same validated action as mouse, touch or keyboard; there is no separate combat path.
 
-- **Menus:** D-pad or left stick moves, **A/Cross** selects, **B/Circle** goes back, **Start/Menu** opens settings.
-- **Battle:** **A/Cross** selects artists and moves, **B/Circle** backs out, **X/Square** ends the turn, **Y/Triangle** selects the next ready artist, **LB/RB** cycles the attack target, and **Start/Menu** pauses.
+- **Menus:** D-pad or left stick moves, **A/Cross** selects, **B/Circle** goes back, **Start/Menu** opens settings when the browser delivers that button.
+- **Battle:** **A/Cross** selects artists and moves, **B/Circle** backs out, **X/Square** inspects the focused card, **Y/Triangle** opens Backstage, **LB/RB** cycles hand cards, **LT/RT** cycles Stage, Crate, Backstage and the opposing stage, and **Start/Menu** pauses when the browser delivers it.
+- **Settings → Controller / Xbox** shows the live Gamepad API status and full control guide. Bindings can be remapped there; choosing a button already in use swaps the two actions instead of creating a dead control. The Xbox guide button stays reserved.
+- **Honest fallback.** Controller support depends on Edge exposing `navigator.getGamepads()` and delivering gamepad input to the page. If a pad never appears in Settings, the game says so and keyboard/mouse remain fully usable; no controller-only action is required.
+- **Console / TV mode.** Settings → Graphics & Display → Display Mode switches to a 16:9 couch layout with larger buttons, 100/110/125/150% TV UI scaling and a 0–48 px safe area. Artwork scales proportionally and is never stretched.
+- **Xbox Edge profile.** The **XBOX EDGE — AUTO** graphics preset starts conservatively from the existing graphics manager, samples measured frames and never selects Ultra. It is an additional preset; desktop Auto and the manual Low/Medium/High/Ultra presets are unchanged.
+- **TV scale and scrolling.** At 100%, the battle board, hand and END TURN fit inside 1080p. At 125% and 150%, the battle and long Settings panels scroll vertically; END TURN and every focused action can be brought fully on screen, with no horizontal overflow. The Settings close button stays visible while the panel scrolls.
+- **Validation status.** Desktop Chromium passed 87/87 Xbox Edge checks, 13/13 mixed desktop/mobile 1v1 checks and 125/125 mixed desktop/mobile 2v2 checks. **Xbox Series S and Xbox Series X are NOT HARDWARE TESTED** — no console or physical Xbox pad was available. See the [Xbox Edge hardware test checklist](docs/XBOX_EDGE_HARDWARE_TEST.md) before claiming console support.
 - The same controls work in the browser game and the Windows build wherever the browser exposes the Gamepad API.
 
 ## Audio
 
 The live score, DJ KICKIT announcer clips and sound effects are packaged with the deploy build. The build check confirms **2 music tracks and 36 DJ KICKIT clips** are present.
+
+### Start gate and browser autoplay
+
+A fresh page load opens on **CAN I KICK IT – THE GAME / PRESS START TO ENTER**. A trusted pointer or keyboard activation starts the room and creates the two running AudioContexts used by the music/SFX engine and the DJ KICKIT announcer. A gamepad press never fabricates a trusted DOM click; the controller layer only attempts a fresh unlock when Edge reports `navigator.userActivation.isActive`.
+
+If the browser keeps audio suspended, the game still enters and shows **AUDIO IS LOCKED** with an **ENABLE AUDIO** button. Activate that button with a mouse or connected keyboard to unlock the existing contexts. Audio contexts are reused across menu and battle changes, so a normal session keeps exactly two. The fallback is expected on browsers that do not grant user activation to a controller press.

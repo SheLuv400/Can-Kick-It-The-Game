@@ -19,17 +19,27 @@ function check(label, condition, detail) {
   console.log(`[1v1] PASS ${label}`)
 }
 
+async function enterGame(page) {
+  const gate = page.getByRole('button', { name: /PRESS START TO ENTER/i })
+  if (await gate.isVisible().catch(() => false)) {
+    await gate.click()
+    await page.locator('.start-gate').waitFor({ state: 'detached' })
+  }
+}
+
 async function restore(browser, key, name) {
   const statePath = join(STATE_DIR, `${key}.json`)
   if (!existsSync(statePath)) throw new Error(`missing profile ${statePath}; run verify-2v2.mjs first`)
+  const mobile = key === 'a2'
   const context = await browser.newContext({
-    viewport: { width: 1440, height: 1024 },
+    viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1024 },
     storageState: statePath,
   })
   const page = await context.newPage()
   page.setDefaultTimeout(30_000)
   page.on('pageerror', (error) => errors.push(`${key} PAGEERROR: ${error.message}`))
   await page.goto(BASE, { waitUntil: 'domcontentloaded' })
+  await enterGame(page)
   await page.getByRole('button', { name: /ONLINE VS/i }).first().click()
   await page.locator('.online-choice').first().waitFor()
   return { context, page, name }
@@ -53,6 +63,7 @@ async function main() {
     const host = await restore(browser, 'a1', 'TEST_PLAYER_A1')
     const guest = await restore(browser, 'a2', 'TEST_PLAYER_A2')
     clients.push(host, guest)
+    check('1v1 uses a desktop host and mobile guest', (await host.page.evaluate(() => innerWidth)) === 1440 && (await guest.page.evaluate(() => innerWidth)) === 390)
 
     await host.page.locator('.online-choice').filter({ hasText: 'CREATE ROOM' }).click()
     await host.page.getByText(/ROOM OPEN · SHARE THE CODE/).waitFor()

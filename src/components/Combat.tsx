@@ -71,6 +71,8 @@ export function StageUnit({
         showTurnState ? (card.actedThisTurn ? ', action spent' : ', ready') : ''
       }`}
       data-tutorial-target={tutorialTarget}
+      data-card-uid={card.uid}
+      data-artist-id={artist.id}
     >
       {showTurnState && (
         <span

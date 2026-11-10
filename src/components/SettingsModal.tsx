@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
-import type { Difficulty, GraphicsPreset, Settings, ThemeId, UiScale } from '../game/types'
+import type {
+  Difficulty,
+  DisplayMode,
+  GraphicsPreset,
+  Settings,
+  ThemeId,
+  TvSafeArea,
+  TvUiScale,
+  UiScale,
+} from '../game/types'
 import { GRAPHICS_DEFAULTS } from '../game/settings'
 import { PRESET_VALUES, advancedMatchesPreset, type GraphicsRuntime } from '../game/graphics'
 import { DIFFICULTIES, THEME_META, THEME_ORDER } from '../game/themes'
@@ -12,6 +21,7 @@ import {
 } from '../desktop/window'
 import { GameIcon } from './GameIcon'
 import { VolumeSlider } from './VolumeSlider'
+import { ControllerSettings } from './ControllerSettings'
 
 interface SettingsModalProps {
   settings: Settings
@@ -24,6 +34,7 @@ interface SettingsModalProps {
 
 const GRAPHICS_PRESETS: { id: GraphicsPreset; label: string; note: string }[] = [
   { id: 'auto', label: 'AUTO', note: 'MEASURED FRAME SAMPLE' },
+  { id: 'xbox', label: 'XBOX EDGE — AUTO', note: 'CONSERVATIVE · MEASURED' },
   { id: 'low', label: 'LOW', note: 'MINIMAL LIGHT · NO MATERIAL' },
   { id: 'medium', label: 'MEDIUM', note: 'BALANCED LIGHTS · LIGHTER' },
   { id: 'high', label: 'HIGH', note: 'FULL RIG · HOLO MATERIAL' },
@@ -90,6 +101,23 @@ export function SettingsModal({
     { value: 100, label: '100%' },
     { value: 110, label: '110%' },
     ...(narrowScreen ? [] : [{ value: 125 as UiScale, label: '125%' }]),
+  ]
+  const displayModeOptions: { value: DisplayMode; label: string }[] = [
+    { value: 'standard', label: 'BROWSER' },
+    { value: 'console', label: 'CONSOLE / TV' },
+  ]
+  const tvUiScaleOptions: { value: TvUiScale; label: string }[] = [
+    { value: 100, label: '100%' },
+    { value: 110, label: '110%' },
+    { value: 125, label: '125%' },
+    { value: 150, label: '150%' },
+  ]
+  const tvSafeAreaOptions: { value: TvSafeArea; label: string }[] = [
+    { value: 0, label: 'OFF' },
+    { value: 16, label: '16 PX' },
+    { value: 24, label: '24 PX' },
+    { value: 32, label: '32 PX' },
+    { value: 48, label: '48 PX' },
   ]
   const [display, setDisplay] = useState(readDisplay)
   const [fullscreenError, setFullscreenError] = useState('')
@@ -203,13 +231,19 @@ export function SettingsModal({
 
   const chooseTheme = (theme: ThemeId) => onUpdate({ theme, selectedDirection: theme })
   const chooseDifficulty = (difficulty: Difficulty) => onUpdate({ difficulty })
-  const baseQuality = settings.graphicsPreset === 'auto' ? graphics.quality : settings.graphicsPreset
+  const baseQuality =
+    settings.graphicsPreset === 'auto' || settings.graphicsPreset === 'xbox'
+      ? graphics.quality
+      : settings.graphicsPreset
   const customTweaks = !advancedMatchesPreset(settings, baseQuality)
   const choosePreset = (preset: GraphicsPreset) => {
-    if (preset === 'auto') {
-      // Auto still starts from the measured tier's full effect set. The advanced
-      // controls remain independent overrides after that.
-      onUpdate({ graphicsPreset: 'auto', ...PRESET_VALUES[graphics.quality] })
+    if (preset === 'auto' || preset === 'xbox') {
+      // Both measured profiles start from a real frame sample. Xbox caps the
+      // result conservatively and never climbs to Ultra.
+      onUpdate({
+        graphicsPreset: preset,
+        ...(preset === 'xbox' ? PRESET_VALUES.xbox : PRESET_VALUES[graphics.quality]),
+      })
       return
     }
     onUpdate({ graphicsPreset: preset, ...PRESET_VALUES[preset] })
@@ -311,7 +345,7 @@ export function SettingsModal({
                   >
                     <b>{preset.label}</b>
                     <em>
-                      {preset.id === 'auto'
+                      {preset.id === 'auto' || preset.id === 'xbox'
                         ? `${graphics.quality.toUpperCase()}${graphics.autoMeasured && graphics.autoFps ? ` · ${graphics.autoFps} FPS` : ' · SAMPLING'}`
                         : preset.note}
                     </em>
@@ -320,14 +354,51 @@ export function SettingsModal({
               </div>
               <div className="settings-graphics__meta">
                 <span>
-                  {settings.graphicsPreset === 'auto'
-                    ? `AUTO SAMPLE ${graphics.autoMeasured && graphics.autoFps ? `${graphics.autoFps} FPS` : 'IN PROGRESS'} → ${graphics.quality.toUpperCase()}`
+                  {settings.graphicsPreset === 'auto' || settings.graphicsPreset === 'xbox'
+                    ? `${settings.graphicsPreset === 'xbox' ? 'XBOX EDGE' : 'AUTO'} SAMPLE ${graphics.autoMeasured && graphics.autoFps ? `${graphics.autoFps} FPS` : 'IN PROGRESS'} → ${graphics.quality.toUpperCase()}`
                     : `BASE PRESET · ${settings.graphicsPreset.toUpperCase()}`}
                 </span>
                 {customTweaks && <b>CUSTOM TWEAKS</b>}
               </div>
 
               <div className="settings-graphics__grid">
+                <GraphicsChoice
+                  label="DISPLAY MODE"
+                  value={settings.displayMode}
+                  options={displayModeOptions}
+                  onChange={(displayMode) => onUpdate({ displayMode })}
+                  note="Console / TV uses a 16:9 couch layout, larger targets and an adjustable safe area without stretching artwork."
+                />
+                {settings.displayMode === 'console' ? (
+                  <>
+                    <GraphicsChoice
+                      label="TV UI SCALE"
+                      value={settings.tvUiScale}
+                      options={tvUiScaleOptions}
+                      onChange={(tvUiScale) => onUpdate({ tvUiScale })}
+                      note="Scales the whole console interface. 150% is intended for 1080p from the couch."
+                    />
+                    <GraphicsChoice
+                      label="TV SAFE AREA"
+                      value={settings.tvSafeArea}
+                      options={tvSafeAreaOptions}
+                      onChange={(tvSafeArea) => onUpdate({ tvSafeArea })}
+                      note="Keeps important controls away from overscan and the display edge."
+                    />
+                  </>
+                ) : (
+                  <GraphicsChoice
+                    label="UI SCALE"
+                    value={settings.uiScale}
+                    options={uiScaleOptions}
+                    onChange={(uiScale) => onUpdate({ uiScale })}
+                    note={
+                      narrowScreen
+                        ? '125% is hidden on narrow phones so every control stays on screen.'
+                        : 'Scales the whole interface for readability.'
+                    }
+                  />
+                )}
                 <GraphicsChoice
                   label="FRAME RATE LIMIT"
                   value={settings.frameLimit}
@@ -349,17 +420,6 @@ export function SettingsModal({
                   ]}
                   onChange={(renderScale) => onUpdate({ renderScale })}
                   note="Scales card textures and atmospheric blur. Text stays native."
-                />
-                <GraphicsChoice
-                  label="UI SCALE"
-                  value={graphics.uiScale}
-                  options={uiScaleOptions}
-                  onChange={(uiScale) => onUpdate({ uiScale })}
-                  note={
-                    narrowScreen
-                      ? '125% is hidden on narrow phones so every control stays on screen.'
-                      : 'Scales the whole interface for readability.'
-                  }
                 />
                 <div className="settings-choice">
                   <span className="settings-choice__label">PERFORMANCE</span>
@@ -671,6 +731,8 @@ export function SettingsModal({
               </div>
             </div>
           </section>
+
+          <ControllerSettings />
 
           <section className="settings-block settings-block--split settings-block--audio">
             <div>

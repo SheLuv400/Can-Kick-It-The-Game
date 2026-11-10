@@ -3,6 +3,7 @@ import type {
   BloomQuality,
   CardImageQuality,
   CardMaterialQuality,
+  DisplayMode,
   FrameLimit,
   GraphicsPreset,
   LightingQuality,
@@ -10,6 +11,8 @@ import type {
   RenderScale,
   Settings,
   ShadowQuality,
+  TvSafeArea,
+  TvUiScale,
   UiScale,
   VisualQuality,
 } from './types'
@@ -63,6 +66,17 @@ export const PRESET_VALUES: Record<
     particles: 'high',
     backgroundMotion: 'full',
   },
+  // The Xbox profile starts from the safest measured tier. The renderer can
+  // climb to High after real frames prove the console can hold it, never Ultra.
+  xbox: {
+    cardMaterial: 'basic',
+    holoFoil: true,
+    concertLighting: 'medium',
+    shadows: 'low',
+    bloom: 'off',
+    particles: 'medium',
+    backgroundMotion: 'reduced',
+  },
 }
 
 /** The one place that turns saved settings into the values the renderer reads. */
@@ -72,7 +86,10 @@ export interface GraphicsRuntime {
   frameLimit: FrameLimit
   fpsCap: 30 | 60 | null
   renderScale: RenderScale
-  uiScale: UiScale
+  uiScale: UiScale | TvUiScale
+  displayMode: DisplayMode
+  consoleMode: boolean
+  tvSafeArea: TvSafeArea
   showFps: boolean
   cardImageQuality: CardImageQuality
   cardMaterial: CardMaterialQuality
@@ -91,8 +108,14 @@ export interface GraphicsRuntime {
   autoMeasured: boolean
 }
 
+export function isXboxEdge(): boolean {
+  if (typeof navigator === 'undefined') return false
+  return /xbox/i.test(navigator.userAgent)
+}
+
 export function initialAutoQuality(): Exclude<VisualQuality, 'ultra'> {
   if (typeof window === 'undefined') return 'high'
+  if (isXboxEdge()) return 'medium'
   const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false
   return coarse || window.innerWidth < 760 ? 'medium' : 'high'
 }
@@ -108,7 +131,7 @@ export function classifyPerformance(fps: number): VisualQuality {
   const memory = nav.deviceMemory ?? 4
   const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false
   const dpr = window.devicePixelRatio || 1
-  const canUltra = cores >= 8 && memory >= 8 && !coarse && dpr <= 2
+  const canUltra = cores >= 8 && memory >= 8 && !coarse && dpr <= 2 && !isXboxEdge()
   if (fps >= 55) return canUltra ? 'ultra' : 'high'
   if (fps >= 45) return 'high'
   if (fps >= 28) return 'medium'
@@ -121,11 +144,22 @@ export function resolveGraphics(
   autoFps: number | null = null,
   autoMeasured = false,
 ): GraphicsRuntime {
-  const quality = settings.graphicsPreset === 'auto' ? autoQuality : settings.graphicsPreset
+  const quality: VisualQuality =
+    settings.graphicsPreset === 'auto'
+      ? autoQuality
+      : settings.graphicsPreset === 'xbox'
+        ? autoQuality === 'ultra'
+          ? 'high'
+          : autoQuality
+        : settings.graphicsPreset
   // 125% would leave too little layout width on a narrow phone; cap it there
-  // rather than letting fixed controls slide off screen.
+  // rather than letting fixed controls slide off screen. Console/TV mode is
+  // allowed to reach 150% because it targets a fixed 16:9 display.
   const narrow = typeof window !== 'undefined' && window.innerWidth < 520
-  const uiScale = Math.min(settings.uiScale, narrow ? 110 : 125) as UiScale
+  const consoleMode = settings.displayMode === 'console'
+  const uiScale = consoleMode
+    ? settings.tvUiScale
+    : (Math.min(settings.uiScale, narrow ? 110 : 125) as UiScale)
   return {
     quality,
     preset: settings.graphicsPreset,
@@ -133,6 +167,9 @@ export function resolveGraphics(
     fpsCap: settings.frameLimit === 30 ? 30 : settings.frameLimit === 60 ? 60 : null,
     renderScale: settings.renderScale,
     uiScale,
+    displayMode: settings.displayMode,
+    consoleMode,
+    tvSafeArea: settings.tvSafeArea,
     showFps: settings.showFps,
     cardImageQuality: settings.cardImageQuality,
     cardMaterial: settings.cardMaterial,

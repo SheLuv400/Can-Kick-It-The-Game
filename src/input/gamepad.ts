@@ -1,5 +1,19 @@
+import {
+  BINDABLE_GAMEPAD_BUTTONS,
+  GAMEPAD_BINDINGS_EVENT,
+  loadGamepadBindings,
+  type GamepadAction,
+  type GamepadBindings,
+} from './gamepad-bindings'
+
 export type GamepadCommand =
   | 'pause'
+  | 'inspect'
+  | 'backstage'
+  | 'hand-prev'
+  | 'hand-next'
+  | 'area-prev'
+  | 'area-next'
   | 'end-turn'
   | 'next-ready'
   | 'target-prev'
@@ -44,6 +58,7 @@ const OVERLAY_SELECTOR = [
   '.cine',
   '.crate-reveal',
   '.logpanel.is-open',
+  '.card-inspector',
 ].join(',')
 
 const PANEL_SELECTOR = [
@@ -54,12 +69,13 @@ const PANEL_SELECTOR = [
   '.track-player__panel',
   '.portrait-studio__panel',
   '.portrait-uploader__panel',
+  '.card-inspector__panel',
 ].join(',')
 
 const BACK_TEXT =
   /^(?:[←‹«]\s*)?(?:back(?:\s+to(?:\s+the)?(?:\s+(?:show|block|menu))?)?|main menu|the show|exit(?:\s+training)?|menu|leave(?:\s+(?:the\s+show|room))?|circuit board)\b/i
 
-const DEADZONE = 0.55
+const DEADZONE = 0.45
 const REPEAT_DELAY_MS = 360
 const REPEAT_RATE_MS = 110
 const AUTO_FOCUS_MS = 240
@@ -75,6 +91,23 @@ interface FocusScope {
 export interface GamepadControlOptions {
   onInput?: () => void
   onConnectionChange?: (state: GamepadConnectionState) => void
+}
+
+let captureHandler: ((button: number) => void) | null = null
+
+export function isGamepadApiAvailable(): boolean {
+  return typeof navigator !== 'undefined' && typeof navigator.getGamepads === 'function'
+}
+
+/**
+ * The Settings remap rows use this to consume exactly one physical button
+ * before the normal menu action runs. Returns a cancel function.
+ */
+export function captureNextGamepadButton(handler: (button: number) => void): () => void {
+  captureHandler = handler
+  return () => {
+    if (captureHandler === handler) captureHandler = null
+  }
 }
 
 function isVisible(element: HTMLElement): boolean {
@@ -392,13 +425,23 @@ function readDirection(pad: Gamepad): Direction | null {
   if (buttonPressed(pad, 15)) return 'right'
   const x = pad.axes[0] ?? 0
   const y = pad.axes[1] ?? 0
-  if (Math.abs(x) < DEADZONE && Math.abs(y) < DEADZONE) return null
+  if (Math.hypot(x, y) < DEADZONE) return null
   if (Math.abs(x) >= Math.abs(y)) return x > 0 ? 'right' : 'left'
   return y > 0 ? 'down' : 'up'
 }
 
+function actionForButton(
+  button: number,
+  bindings: GamepadBindings,
+): GamepadAction | null {
+  for (const action of Object.keys(bindings) as GamepadAction[]) {
+    if (bindings[action] === button) return action
+  }
+  return null
+}
+
 export function installGamepadControls(options: GamepadControlOptions): () => void {
-  if (typeof window === 'undefined' || typeof navigator.getGamepads !== 'function') {
+  if (typeof window === 'undefined' || !isGamepadApiAvailable()) {
     return () => undefined
   }
 
@@ -410,6 +453,12 @@ export function installGamepadControls(options: GamepadControlOptions): () => vo
   let lastAutoFocus = 0
   let controllerActive = false
   let connectionKey = ''
+  let bindings = loadGamepadBindings()
+
+  const refreshBindings = (event: Event) => {
+    const detail = (event as CustomEvent<GamepadBindings>).detail
+    bindings = detail ? { ...detail } : loadGamepadBindings()
+  }
 
   const deactivate = () => {
     if (!controllerActive) return
@@ -507,6 +556,24 @@ export function installGamepadControls(options: GamepadControlOptions): () => vo
       direction !== null && !directionChanged && now >= nextDirectionAt
     const directionAction = directionChanged || directionRepeat
 
+    // Settings can be opened with a mouse, so capture must work before the
+    // controller has activated normal focus. Otherwise the first press would
+    // only be consumed waking the pad and the remap would appear broken.
+    if (captureHandler && justPressed.length > 0) {
+      const button = justPressed.find((index) =>
+        (BINDABLE_GAMEPAD_BUTTONS as readonly number[]).includes(index),
+      )
+      if (button !== undefined) {
+        activate()
+        const handler = captureHandler
+        captureHandler = null
+        handler(button)
+        previousButtons = pressed
+        lastDirection = direction
+        return
+      }
+    }
+
     if (!controllerActive) {
       if (justPressed.length === 0 && !directionAction) {
         previousButtons = pressed
@@ -547,22 +614,33 @@ export function installGamepadControls(options: GamepadControlOptions): () => vo
       nextDirectionAt = now + (directionChanged ? REPEAT_DELAY_MS : REPEAT_RATE_MS)
     }
 
-    if (justPressed.includes(1)) {
-      cancel()
-    } else if (justPressed.includes(9)) {
-      openControllerMenu()
-    } else if (justPressed.includes(0)) {
-      // A lost focus (a card re-render, a closing intro) must not swallow the
-      // press: confirm() re-establishes focus and then activates it.
-      confirm(scope)
-    } else if (justPressed.includes(2)) {
-      dispatchCommand('end-turn')
-    } else if (justPressed.includes(3)) {
-      dispatchCommand('next-ready')
-    } else if (justPressed.includes(4)) {
-      dispatchCommand('target-prev')
-    } else if (justPressed.includes(5)) {
-      dispatchCommand('target-next')
+    for (const button of justPressed) {
+      const action = actionForButton(button, bindings)
+      if (!action) continue
+      if (action === 'confirm') {
+        // A lost focus (a card re-render, a closing intro) must not swallow the
+        // press: confirm() re-establishes focus and then activates it.
+        confirm(scope)
+      } else if (action === 'back') {
+        cancel()
+      } else if (action === 'pause') {
+        openControllerMenu()
+      } else if (action === 'inspect') {
+        dispatchCommand('inspect')
+      } else if (action === 'backstage') {
+        dispatchCommand('backstage')
+      } else if (action === 'hand-prev') {
+        dispatchCommand('hand-prev')
+      } else if (action === 'hand-next') {
+        dispatchCommand('hand-next')
+      } else if (action === 'area-prev') {
+        dispatchCommand('area-prev')
+      } else if (action === 'area-next') {
+        dispatchCommand('area-next')
+      }
+      // One physical button maps to one action. A remap file loaded from a
+      // malformed source cannot fire two actions from a single press.
+      break
     }
 
     previousButtons = pressed
@@ -571,6 +649,7 @@ export function installGamepadControls(options: GamepadControlOptions): () => vo
 
   window.addEventListener('gamepadconnected', handleConnected)
   window.addEventListener('gamepaddisconnected', handleDisconnected)
+  window.addEventListener(GAMEPAD_BINDINGS_EVENT, refreshBindings)
   window.addEventListener('pointerdown', handleHumanInput, true)
   window.addEventListener('keydown', handleHumanInput, true)
   frame = window.requestAnimationFrame(tick)
@@ -579,9 +658,11 @@ export function installGamepadControls(options: GamepadControlOptions): () => vo
     window.cancelAnimationFrame(frame)
     window.removeEventListener('gamepadconnected', handleConnected)
     window.removeEventListener('gamepaddisconnected', handleDisconnected)
+    window.removeEventListener(GAMEPAD_BINDINGS_EVENT, refreshBindings)
     window.removeEventListener('pointerdown', handleHumanInput, true)
     window.removeEventListener('keydown', handleHumanInput, true)
     document.body.classList.remove('is-controller')
+    if (captureHandler) captureHandler = null
   }
 }
 

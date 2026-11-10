@@ -56,16 +56,26 @@ function attachErrors(page, label) {
   page.on('pageerror', (error) => errors.push(`${label} PAGEERROR: ${error.message}`))
 }
 
+async function enterGame(page) {
+  const gate = page.getByRole('button', { name: /PRESS START TO ENTER/i })
+  if (await gate.isVisible().catch(() => false)) {
+    await gate.click()
+    await page.locator('.start-gate').waitFor({ state: 'detached' })
+  }
+}
+
 async function createOrRestoreContext(browser, player, { fresh = false } = {}) {
   const statePath = join(STATE_DIR, `${player.key}.json`)
+  const mobile = player.key === 'a2' || player.key === 'b1'
   const context = await browser.newContext({
-    viewport: { width: 1440, height: 1024 },
+    viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1024 },
     storageState: !fresh && existsSync(statePath) ? statePath : undefined,
   })
   const page = await context.newPage()
   page.setDefaultTimeout(30_000)
   attachErrors(page, player.key)
   await page.goto(BASE, { waitUntil: 'domcontentloaded' })
+  await enterGame(page)
 
   const accountButton = page.getByRole('button', { name: /Sign in or create an account/i })
   await page.getByRole('button', { name: /ONLINE VS/i }).first().waitFor({ state: 'visible' })
@@ -225,6 +235,14 @@ async function main() {
     const [host, a2] = clients
     const b1 = clients[2]
     let b2 = clients[3]
+    const widths = await Promise.all(
+      clients.map((client) => client.page.evaluate(() => innerWidth)),
+    )
+    check(
+      '2v2 mixes desktop and mobile clients',
+      widths[0] === 1440 && widths[1] === 390 && widths[2] === 390 && widths[3] === 1440,
+      widths.join('/'),
+    )
 
     for (const client of clients) await openOnline(client.page)
 

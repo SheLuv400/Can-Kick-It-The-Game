@@ -20,7 +20,7 @@ export function useAutoQuality(preset: GraphicsPreset): AutoQualityReading {
   })
 
   useEffect(() => {
-    if (preset !== 'auto') {
+    if (preset !== 'auto' && preset !== 'xbox') {
       setReading((current) => ({ ...current, fps: null, measured: false }))
       return
     }

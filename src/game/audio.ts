@@ -25,6 +25,8 @@ export interface AudioSnapshot {
   status: MusicStatus
   musicVolume: number
   sfxVolume: number
+  /** True once the browser has actually allowed this session's AudioContext to run. */
+  unlocked: boolean
 }
 
 export interface VisualizerBands {
@@ -80,6 +82,7 @@ class GameAudio {
     status: 'loading',
     musicVolume: DEFAULT_MUSIC_VOLUME,
     sfxVolume: DEFAULT_SFX_VOLUME,
+    unlocked: false,
   }
 
   private listeners = new Set<() => void>()
@@ -98,11 +101,13 @@ class GameAudio {
   private duckActive = false
   private resumeTimer: number | null = null
   private resumeAttempts = 0
+  /** Focus/visibility recovery must never create a context before a real starting gesture. */
+  private activationAttempted = false
 
   constructor() {
     if (typeof window === 'undefined') return
     const recover = () => {
-      if (document.visibilityState === 'hidden') return
+      if (document.visibilityState === 'hidden' || !this.activationAttempted) return
       void this.recoverPlayback()
     }
     document.addEventListener('visibilitychange', recover)
@@ -123,7 +128,8 @@ class GameAudio {
       next.scene === this.snapshot.scene &&
       next.status === this.snapshot.status &&
       next.musicVolume === this.snapshot.musicVolume &&
-      next.sfxVolume === this.snapshot.sfxVolume
+      next.sfxVolume === this.snapshot.sfxVolume &&
+      next.unlocked === this.snapshot.unlocked
     ) {
       return
     }
@@ -207,6 +213,7 @@ class GameAudio {
   }
 
   private async recoverPlayback() {
+    if (!this.activationAttempted) return
     this.ensureTracks()
     const context = this.ensureContext()
     if (context && (context.state as string) !== 'running') {
@@ -216,6 +223,7 @@ class GameAudio {
         // A later user gesture will retry.
       }
     }
+    this.publish({ unlocked: Boolean(context && (context.state as string) === 'running') })
     if (!this.enabled || this.recordOpen) return
     const element = this.activeElement()
     if (element?.paused) await this.startElement(element)
@@ -388,16 +396,53 @@ class GameAudio {
     this.applyMusicVolume(true)
   }
 
-  unlock() {
+  /**
+   * Call only from a genuine browser activation (pointer, keyboard, or an Edge
+   * controller press for which `navigator.userActivation.isActive` is true).
+   * The returned promise resolves only after the shared context is running.
+   */
+  async unlock(): Promise<boolean> {
     this.ensureTracks()
+    this.activationAttempted = true
     this.resumeAttempts = 0
-    this.ensureContext()
+    const context = this.ensureContext()
+    if (!context) {
+      this.publish({ unlocked: false })
+      return false
+    }
+    if ((context.state as string) !== 'running') {
+      try {
+        await context.resume()
+      } catch {
+        // Autoplay policy can still keep the context suspended.
+      }
+    }
+    const unlocked = (context.state as string) === 'running'
+    this.publish({ unlocked })
+    if (!unlocked) return false
     this.applyMusicVolume(false)
-    if (this.recordOpen) return
+    if (this.recordOpen) return true
     if (this.enabled) {
       const element = this.activeElement()
       if (element?.paused) void this.startElement(element)
     }
+    return true
+  }
+
+  /** Controller input may resume an already-authorized engine, but must not create one. */
+  resumeIfReady() {
+    const context = this.context
+    if (!context) return
+    if ((context.state as string) === 'running') {
+      this.publish({ unlocked: true })
+      return
+    }
+    const resume = context.resume().catch(() => {})
+    void resume.then(() => {
+      if (this.context === context) {
+        this.publish({ unlocked: (context.state as string) === 'running' })
+      }
+    })
   }
 
   async toggleMusic() {
@@ -411,6 +456,7 @@ class GameAudio {
       return
     }
     this.enabled = true
+    this.activationAttempted = true
     this.resumeAttempts = 0
     const context = this.ensureContext()
     if (context && (context.state as string) !== 'running') {
@@ -452,17 +498,21 @@ class GameAudio {
         window.AudioContext || (window as AudioWindow).webkitAudioContext
       if (!AudioCtor) return null
       this.context = new AudioCtor()
-      this.context.addEventListener('statechange', () => {
+      const createdContext = this.context
+      createdContext.addEventListener('statechange', () => {
+        const state = createdContext.state as string
+        this.publish({ unlocked: state === 'running' })
         if (
-          this.context &&
-          (this.context.state as string) !== 'running' &&
+          state !== 'running' &&
           document.visibilityState !== 'hidden' &&
+          this.activationAttempted &&
           this.enabled &&
           !this.recordOpen
         ) {
-          void this.context.resume().catch(() => {})
+          void createdContext.resume().catch(() => {})
         }
       })
+      this.publish({ unlocked: (createdContext.state as string) === 'running' })
       this.sfxGain = this.context.createGain()
       this.sfxGain.gain.value = this.snapshot.sfxVolume
       this.sfxGain.connect(this.context.destination)
@@ -476,7 +526,9 @@ class GameAudio {
       this.musicSpectrum = new Uint8Array(this.musicAnalyser.frequencyBinCount)
       this.noiseBuffer = null
     }
-    if (this.context.state === 'suspended') void this.context.resume().catch(() => {})
+    if ((this.context.state as string) === 'suspended' && this.activationAttempted) {
+      void this.context.resume().catch(() => {})
+    }
     return this.context
   }
 
@@ -584,8 +636,11 @@ class GameAudio {
   playSfx(name: SfxName, options: { element?: BattleElement | null } = {}) {
     if (typeof window === 'undefined' || document.visibilityState === 'hidden') return
     if (this.snapshot.sfxVolume <= 0.001) return
-    const context = this.ensureContext()
-    if (!context || !this.sfxGain) return
+    // Sound starts only after the start gate has authorized this session. This
+    // prevents a gamepad poll from creating a suspended context and throwing
+    // an autoplay warning on every navigation press.
+    const context = this.context
+    if (!context || !this.sfxGain || (context.state as string) !== 'running') return
     const run = () => {
       if (this.context !== context) return
       switch (name) {

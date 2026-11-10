@@ -5,6 +5,12 @@ import {
   installGamepadControls,
   type GamepadConnectionState,
 } from '../input/gamepad'
+import {
+  GAMEPAD_BINDINGS_EVENT,
+  gamepadButtonLabel,
+  loadGamepadBindings,
+  type GamepadBindings,
+} from '../input/gamepad-bindings'
 
 const DISCONNECTED: GamepadConnectionState = {
   connected: false,
@@ -17,27 +23,51 @@ interface Hint {
   action: string
 }
 
-const MENU_HINTS: Hint[] = [
-  { button: 'D-PAD', action: 'MOVE' },
-  { button: 'A', action: 'SELECT' },
-  { button: 'B', action: 'BACK' },
-  { button: 'START', action: 'SETTINGS' },
-]
+function menuHints(bindings: GamepadBindings): Hint[] {
+  return [
+    { button: 'D-PAD', action: 'MOVE' },
+    { button: gamepadButtonLabel(bindings.confirm), action: 'SELECT' },
+    { button: gamepadButtonLabel(bindings.back), action: 'BACK' },
+    { button: gamepadButtonLabel(bindings.pause), action: 'SETTINGS' },
+  ]
+}
 
-const BATTLE_HINTS: Hint[] = [
-  { button: 'D-PAD', action: 'MOVE' },
-  { button: 'A', action: 'SELECT' },
-  { button: 'B', action: 'BACK' },
-  { button: 'X', action: 'END TURN' },
-  { button: 'Y', action: 'NEXT READY' },
-  { button: 'LB/RB', action: 'TARGET' },
-  { button: 'START', action: 'PAUSE' },
-]
+function battleHints(bindings: GamepadBindings): Hint[] {
+  return [
+    { button: 'D-PAD', action: 'MOVE' },
+    { button: gamepadButtonLabel(bindings.confirm), action: 'SELECT' },
+    { button: gamepadButtonLabel(bindings.back), action: 'BACK' },
+    { button: gamepadButtonLabel(bindings.inspect), action: 'INSPECT' },
+    { button: gamepadButtonLabel(bindings.backstage), action: 'BACKSTAGE' },
+    {
+      button: `${gamepadButtonLabel(bindings['hand-prev'])}/${gamepadButtonLabel(bindings['hand-next'])}`,
+      action: 'HAND',
+    },
+    {
+      button: `${gamepadButtonLabel(bindings['area-prev'])}/${gamepadButtonLabel(bindings['area-next'])}`,
+      action: 'AREA',
+    },
+    { button: gamepadButtonLabel(bindings.pause), action: 'PAUSE' },
+  ]
+}
+
+function padLabel(connection: GamepadConnectionState): string {
+  const number = connection.index === null ? '' : ` ${connection.index + 1}`
+  if (connection.id && /xbox/i.test(connection.id)) return `XBOX PAD${number}`
+  return `PAD${number}`
+}
 
 export function ControllerHUD() {
   const [connection, setConnection] = useState<GamepadConnectionState>(DISCONNECTED)
   const [visible, setVisible] = useState(false)
   const [inBattle, setInBattle] = useState(false)
+  const [bindings, setBindings] = useState<GamepadBindings>(() => loadGamepadBindings())
+
+  useEffect(() => {
+    const sync = () => setBindings(loadGamepadBindings())
+    window.addEventListener(GAMEPAD_BINDINGS_EVENT, sync)
+    return () => window.removeEventListener(GAMEPAD_BINDINGS_EVENT, sync)
+  }, [])
 
   useEffect(() => {
     let hideTimer: number | undefined
@@ -63,8 +93,21 @@ export function ControllerHUD() {
         }
       },
       onInput: () => {
-        audioEngine.unlock()
-        announcerEngine.unlock()
+        // A gamepad press is not a trusted activation in most browsers. Only
+        // attempt a fresh unlock when Edge reports a real user activation;
+        // otherwise resume an engine that the start gate already authorized.
+        const activation = (
+          navigator as Navigator & {
+            userActivation?: { isActive?: boolean }
+          }
+        ).userActivation
+        if (activation?.isActive) {
+          void audioEngine.unlock()
+          announcerEngine.unlock()
+        } else {
+          audioEngine.resumeIfReady()
+          announcerEngine.resumeIfReady()
+        }
         syncBattle()
         reveal()
       },
@@ -88,7 +131,7 @@ export function ControllerHUD() {
 
   if (!connection.connected) return null
 
-  const hints = inBattle ? BATTLE_HINTS : MENU_HINTS
+  const hints = inBattle ? battleHints(bindings) : menuHints(bindings)
 
   return (
     <div
@@ -101,11 +144,11 @@ export function ControllerHUD() {
     >
       <span className="controller-hud__status">
         <i aria-hidden="true" />
-        PAD {connection.index === null ? '' : connection.index + 1}
+        {padLabel(connection)}
       </span>
       <span className="controller-hud__hints">
         {hints.map((hint) => (
-          <span key={hint.button}>
+          <span key={`${hint.button}-${hint.action}`}>
             <b>{hint.button}</b> {hint.action}
           </span>
         ))}
