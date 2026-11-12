@@ -143,9 +143,16 @@ function writeLedger(ledger: QuitLedger) {
   }
 }
 
+function recentQuits(ledger: QuitLedger, now: number): number[] {
+  // Once a cooldown is served, the slate resets. Otherwise one exit after the
+  // clock expires would immediately trigger another cooldown from old quits.
+  if (ledger.cooldownUntil > 0 && ledger.cooldownUntil <= now) return []
+  return ledger.quits.filter((at) => now - at < QUIT_WINDOW_MS)
+}
+
 export function readQuitPenalty(now = Date.now()): QuitPenalty {
   const ledger = readLedger()
-  const recent = ledger.quits.filter((at) => now - at < QUIT_WINDOW_MS)
+  const recent = recentQuits(ledger, now)
   const active = ledger.cooldownUntil > now
   return {
     active,
@@ -160,9 +167,11 @@ export function readQuitPenalty(now = Date.now()): QuitPenalty {
 /** Record one self-initiated online exit and start a cooldown at the limit. */
 export function recordOnlineQuit(now = Date.now()): QuitPenalty {
   const ledger = readLedger()
-  const recent = ledger.quits.filter((at) => now - at < QUIT_WINDOW_MS)
+  const recent = recentQuits(ledger, now)
   recent.push(now)
   let cooldownUntil = ledger.cooldownUntil
+  // Clear the expired cooldown marker so the fresh exit is counted normally.
+  if (cooldownUntil > 0 && cooldownUntil <= now) cooldownUntil = 0
   if (recent.length >= QUIT_LIMIT && cooldownUntil <= now) {
     cooldownUntil = now + QUIT_COOLDOWN_MS
   }

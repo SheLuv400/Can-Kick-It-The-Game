@@ -12,7 +12,7 @@ export interface UpdateLog {
 
 export const GAME_UPDATES: UpdateLog[] = [
   {
-    version: '1.9.0',
+    version: '1.9.1',
     title: 'THE FAIR PLAY UPDATE',
     label: 'CRISIS DESK + ONLINE CONDUCT · NOV 2026',
     summary:
@@ -31,6 +31,7 @@ export const GAME_UPDATES: UpdateLog[] = [
         'Placing a card from hand to the set no longer deals damage to an artist or the crowd. Damage now comes from moves, Encores and Feature Verses, not repeated cut-and-place churn.',
         'Career missions that asked for healing, shields, elemental cuts or Feature Verses now accept any qualifying card in the deck instead of locking out a personal card without that kit.',
         'Forfeit and quit penalties are recorded only from live online matches. CPU and local shows never write an online quit.',
+        'After a quit cooldown expires, the local ledger resets so one later exit cannot immediately trigger another cooldown.',
       ],
       changed: [
         'The battle advisor now marks a card play as a stage move with no entry damage and no attack-target recommendation.',

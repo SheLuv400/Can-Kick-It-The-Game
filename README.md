@@ -2,19 +2,19 @@
 
 A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your badges, take the stage, own the room.
 
-**Version 1.9.0 — The Fair Play Update**
+**Version 1.9.1 — The Fair Play Update**
 
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Live mobile/PWA:** 1.9.0 is deployed at the game URL above, with manifest version 1.9.0. The production site serves the 1.9.0 payload.
-- **Latest public release:** [GitHub release v1.9.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.9.0) — THE FAIR PLAY UPDATE, with the Windows build and release notes. The 1.9.0 web build and Windows archive ship together.
+- **Live mobile/PWA:** 1.9.1 is deployed at the game URL above, with manifest version 1.9.1. The production site serves the 1.9.1 payload.
+- **Latest public release:** [GitHub release v1.9.1](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.9.1) — THE FAIR PLAY UPDATE, with the Windows build and release notes. The 1.9.1 web build and Windows archive ship together.
 - **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickItLauncher-1.0.1-win32-x64.zip) — 152.0 MiB
   - Extract and run `CanIKickItLauncher.exe`. It installs the game, checks GitHub Releases for updates, and launches it from one place.
   - SHA-256: `066d7a2c8357c229a631dda1a263951c476e09e3279d83b10a224206bd17201b`
-- **Windows game build (manual):** [Download CanIKickIt-1.9.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.9.0/CanIKickIt-1.9.0-win32-x64.zip) — 167.0 MiB
-  - SHA-256: `e72e7c9a9c04f81d789f468d46f0430c234f6df1932e7e018d81942577ac9c7a`
-  - The 1.9.0 archive is attached to the public v1.9.0 release. It passed ZIP integrity checks, and the embedded `app.asar` reports 1.9.0.
+- **Windows game build (manual):** [Download CanIKickIt-1.9.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.9.1/CanIKickIt-1.9.1-win32-x64.zip) — 167.0 MiB
+  - SHA-256: `33917a35cfb024e6b32b8ba76025e8b532fc98ec2cc23a6db64f569c7ad54b6a`
+  - The 1.9.1 archive is attached to the public v1.9.1 release. It passed ZIP integrity checks, and the embedded `app.asar` reports 1.9.1.
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
@@ -31,7 +31,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Launcher updates:** the launcher itself is version 1.0.1 and is updated separately. Game updates are handled inside it.
 - **Unsigned build:** Windows SmartScreen may warn on first launch. Choose **More info → Run anyway** if you trust the download.
 
-## What’s new in 1.9.0
+## What’s new in 1.9.1
 
 ### THE FAIR PLAY UPDATE
 
@@ -42,7 +42,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Online quit cooldown.** Three self-initiated exits from live online matches inside two hours trigger a 15-minute online cooldown. Closing the tab during a live match also records the exit. CPU battles, circuits, the label and the mixtape stay available.
 - **Report desk.** Online rooms now have **SAFETY / REPORT** for bullying, harassment, racial or vocal abuse, cheating and other safety issues. Choose the player, reason and optional detail; the report is tied to the player code in the room.
 - **Escalating report bans.** Three separate reports in 30 days trigger a 30-minute online ban. The next report threshold is 60 minutes, then 120, then onward, doubling each time. Report bans are stored by the public site backend; quit cooldowns stay local to the device.
-- **Release status.** The 1.9.0 mobile/PWA payload is live at the game URL above with manifest 1.9.0. The 1.9.0 Windows archive is attached to the public v1.9.0 release.
+- **Release status.** The 1.9.1 mobile/PWA payload is live at the game URL above with manifest 1.9.1. The 1.9.1 Windows archive is attached to the public v1.9.1 release.
 
 ## What’s new in 1.8.0
 
@@ -57,7 +57,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Graphics & Display.** New presets — **Auto, Low, Medium, High** and **Ultra** — control frame limit, render scale, UI scale, card image quality, card materials, holo foil, concert lighting, shadows, bloom, particles and background motion.
 - **Control the room.** Audio visualizers, card tilt, reduced motion, flash effects, VHS effects and a live FPS readout can be tuned independently. Auto quality samples measured frames instead of guessing from the device name.
 - **Phone fit.** The battle HUD, advisor panel and settings sheet fit a 390px phone without horizontal overflow, with target and card highlights that stay readable at that width.
-- **Release status.** The 1.8.0 mobile/PWA payload has been replaced by 1.9.0. The 1.8.0 Windows archive remains on its release page.
+- **Release status.** The 1.8.0 mobile/PWA payload has been replaced by 1.9.1. The 1.8.0 Windows archive remains on its release page.
 
 ## What’s new in 1.7.0
 
@@ -71,7 +71,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Clean exits.** A player who leaves a free-for-all match is marked **LEFT** and knocked out of that corner. The remaining corners keep playing instead of turning the room into a team forfeit.
 - **Result and rematch.** The result screen lists all four final crowds, and **RUN IT BACK** restores every corner to 72 Crowd.
 - **Casual only.** Fatal 4 is casual-only in this build; ranked play remains 1v1. Triple Threat, 2v2, room chat/voice and standard 1v1 remain included.
-- **Release status.** The 1.7.0 mobile/PWA payload has been replaced by 1.9.0. The 1.7.0 Windows archive remains on its release page.
+- **Release status.** The 1.7.0 mobile/PWA payload has been replaced by 1.9.1. The 1.7.0 Windows archive remains on its release page.
 
 ## What’s new in 1.6.0
 
@@ -84,7 +84,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Read the room.** The in-battle strip shows every seat, its live crowd, its stage count and who is on the mic, targeting or waiting.
 - **Hands stay private.** Only the active player receives its hand over the wire; waiting and target hands stay in the host's authoritative state. A guest cannot act or retarget during another seat's turn.
 - **Casual only.** Triple Threat is casual-only in this build; ranked play remains 1v1. Standard 1v1 and 2v2 are unchanged.
-- **Release status.** The 1.6.0 mobile/PWA payload has been replaced by 1.9.0. The 1.6.0 Windows archive remains on its release page.
+- **Release status.** The 1.6.0 mobile/PWA payload has been replaced by 1.9.1. The 1.6.0 Windows archive remains on its release page.
 
 ## What’s new in 1.5.0
 
