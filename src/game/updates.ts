@@ -12,6 +12,34 @@ export interface UpdateLog {
 
 export const GAME_UPDATES: UpdateLog[] = [
   {
+    version: '1.9.0',
+    title: 'THE FAIR PLAY UPDATE',
+    label: 'CRISIS DESK + ONLINE CONDUCT · NOV 2026',
+    summary:
+      'The label desk now puts new crises in front of you, career routes accept any qualifying card in the deck, and card placement no longer deals free damage. Online adds a quit cooldown and a report desk with escalating temporary bans.',
+    sections: {
+      new: [
+        'Label Office opens the Crisis Desk automatically when a new crisis is created and keeps a visible case alert on every tab. Resolve the open case and the ADVANCE WEEK gate clears.',
+        'Ultimate Team now has thirteen founding missions, including longer win and circuit runs plus 500, 1,500 and 3,000 BUZZ goals.',
+        'Career support, feature and elemental objectives now say ANY DECK CARD and count the qualifying stats of every card in your 26. Personal-play and clean objectives stay personal-card routes.',
+        'Online VS adds a SAFETY / REPORT desk for bullying, harassment, racial or vocal abuse, cheating and other safety issues. Reports are tied to the player code in the room and stored by the site backend.',
+        'Three separate reports in 30 days trigger a 30-minute online ban. Each later report ban doubles: 60 minutes, 120 minutes, then onward.',
+        'Three self-initiated online exits inside two hours trigger a 15-minute online cooldown. The gate shows the remaining clock and leaves CPU play, the label and your mixtape available.',
+      ],
+      fixed: [
+        'ADVANCE WEEK no longer leaves an open crisis hidden on another tab. New and existing open crises auto-open the Crisis Desk and show a case alert.',
+        'Placing a card from hand to the set no longer deals damage to an artist or the crowd. Damage now comes from moves, Encores and Feature Verses, not repeated cut-and-place churn.',
+        'Career missions that asked for healing, shields, elemental cuts or Feature Verses now accept any qualifying card in the deck instead of locking out a personal card without that kit.',
+        'Forfeit and quit penalties are recorded only from live online matches. CPU and local shows never write an online quit.',
+      ],
+      changed: [
+        'The battle advisor now marks a card play as a stage move with no entry damage and no attack-target recommendation.',
+        'Report bans are global through the public site database. Quit cooldowns stay local to the device so they cannot affect CPU-only play.',
+        'The 1.8.0 ASK DJ KICKIT advisor, Graphics & Display controls, 1.7.0 Fatal 4, 1.6.0 Triple Threat, 2v2, chat/voice, festivals and standard 1v1 remain included.',
+      ],
+    },
+  },
+  {
     version: '1.8.0',
     title: 'THE STAGE READ UPDATE',
     label: 'ADVISOR + VISUALS · NOV 2026',

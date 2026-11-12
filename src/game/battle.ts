@@ -990,10 +990,6 @@ function sideOf(state: BattleState, side: 'player' | 'rival'): SideState {
   return side === 'player' ? state.player : state.rival
 }
 
-function stageOf(state: BattleState, side: 'player' | 'rival'): StageCard[] {
-  return sideOf(state, side).stage
-}
-
 function performanceFor(side: SideState, artistId: string): CardPerformance {
   const existing = side.cardStats[artistId]
   if (existing) return existing
@@ -1508,7 +1504,6 @@ function playCardFor(
   side: 'player' | 'rival',
   artistId: string,
   replaceUid?: string,
-  targetUid?: string,
 ) {
   const progress = side === 'player' ? state.playerProgress : state.rivalProgress
   const actor = sideOf(state, side)
@@ -1560,8 +1555,6 @@ function playCardFor(
       : defaultLoadout(artistId)
   const badges = isCasualOnline(state) ? {} : equippedBadgeTiers(progress, artistId)
   const stageCard = makeStageCard(`${side}-${state.idSeq++}`, artistId, level, moves, state.round, badges)
-  const stageBefore = actor.stage
-  const hit = computePlayDamage(stageBefore, artistId, false, state.era)
   actor.stage = [...actor.stage, stageCard]
   actor.played += 1
   performanceFor(actor, artistId).uses += 1
@@ -1583,18 +1576,10 @@ function playCardFor(
     pushLog(state, `${artist.battle.passive.name} — +1 HYPE.`, 'gold')
   }
 
-  const opener = artist.battle.passive.kind === 'opener' && !stageCard.entranceUsed ? 2 : 0
-  const raw = Math.max(0, hit.total - hit.splash + opener)
-  const resolvedTarget = targetUid ?? (side === 'rival' ? pickTargetForAI(state) : stageOf(state, other(side))[0]?.uid)
+  // Placing a card is a stage move, not an attack. Only moves, Encores and
+  // Feature Verses deal damage; otherwise a player could farm free chip damage
+  // by repeatedly cutting and placing cards.
   applyEffects(state, side, artistId, false)
-  resolveAttack(state, side, raw, {
-    targetUid: resolvedTarget,
-    artistId,
-    source: artist.name,
-    attackerUid: stageCard.uid,
-    crowdSplash: hit.splash,
-    canCounter: side === 'rival',
-  })
   stageCard.entranceUsed = true
   grantEncore(state, side)
   checkWinner(state)
@@ -2250,7 +2235,7 @@ function rivalTick(state: BattleState) {
   }
 
   state.rivalActions += 1
-  playCardFor(state, 'rival', artistId, replaceUid, pickTargetForAI(state))
+  playCardFor(state, 'rival', artistId, replaceUid)
   state.tick += 1
   syncObjectives(state)
 }
@@ -2819,7 +2804,7 @@ export function battleReducer(state: BattleState, action: BattleAction): BattleS
       if (action.replaceUid && !actor.stage.some((card) => card.uid === action.replaceUid)) {
         return state
       }
-      playCardFor(next, side, action.artistId, action.replaceUid, action.targetUid)
+      playCardFor(next, side, action.artistId, action.replaceUid)
       return syncObjectives(next)
     }
     case 'USE_MOVE': {

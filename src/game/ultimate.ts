@@ -1,6 +1,6 @@
 import type { Settings } from './types'
 
-export type MissionMetric = 'wins' | 'circuit' | 'mixtape'
+export type MissionMetric = 'wins' | 'circuit' | 'mixtape' | 'buzz'
 
 export interface MissionDefinition {
   id: string
@@ -50,6 +50,51 @@ export const MISSIONS: MissionDefinition[] = [
     rewardBuzz: 220,
   },
   {
+    id: 'five-night',
+    title: 'Five-Night Run',
+    blurb: 'Win five battles and turn a hot week into a residency.',
+    metric: 'wins',
+    target: 5,
+    rewardCredits: 450,
+    rewardBuzz: 130,
+  },
+  {
+    id: 'ten-night',
+    title: 'Ten Night Stand',
+    blurb: 'Win ten battles. The city starts saying your name.',
+    metric: 'wins',
+    target: 10,
+    rewardCredits: 800,
+    rewardBuzz: 240,
+  },
+  {
+    id: 'twenty-night',
+    title: 'Twenty-Night Run',
+    blurb: 'Win twenty battles. The residency becomes a legacy.',
+    metric: 'wins',
+    target: 20,
+    rewardCredits: 1600,
+    rewardBuzz: 500,
+  },
+  {
+    id: 'circuit-headliner',
+    title: 'Circuit Headliner',
+    blurb: 'Win five Music Circuit battles and headline the tour.',
+    metric: 'circuit',
+    target: 5,
+    rewardCredits: 800,
+    rewardBuzz: 260,
+  },
+  {
+    id: 'circuit-legend',
+    title: 'Tour Legend',
+    blurb: 'Win ten Music Circuit battles. Every stop knows the set.',
+    metric: 'circuit',
+    target: 10,
+    rewardCredits: 1400,
+    rewardBuzz: 450,
+  },
+  {
     id: 'the-26',
     title: 'The 26',
     blurb: 'Complete a legal 26-card Mixtape.',
@@ -57,6 +102,33 @@ export const MISSIONS: MissionDefinition[] = [
     target: 26,
     rewardCredits: 150,
     rewardBuzz: 40,
+  },
+  {
+    id: 'buzz-builder',
+    title: 'Buzz Builder',
+    blurb: 'Earn 500 BUZZ and make the label a conversation.',
+    metric: 'buzz',
+    target: 500,
+    rewardCredits: 400,
+    rewardBuzz: 80,
+  },
+  {
+    id: 'city-on-notice',
+    title: 'City on Notice',
+    blurb: 'Reach 1,500 BUZZ. The whole city is watching the next move.',
+    metric: 'buzz',
+    target: 1500,
+    rewardCredits: 900,
+    rewardBuzz: 300,
+  },
+  {
+    id: 'marquee-name',
+    title: 'Marquee Name',
+    blurb: 'Reach 3,000 BUZZ and put your name above the bill.',
+    metric: 'buzz',
+    target: 3000,
+    rewardCredits: 1600,
+    rewardBuzz: 500,
   },
 ]
 
@@ -112,7 +184,9 @@ export function missionProgress(mission: MissionDefinition, settings: Settings):
       ? settings.wins
       : mission.metric === 'circuit'
         ? settings.team.circuitWins
-        : settings.deck.length
+        : mission.metric === 'buzz'
+          ? settings.team.buzz
+          : settings.deck.length
   return Math.min(mission.target, Math.max(0, raw))
 }
 

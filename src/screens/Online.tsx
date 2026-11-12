@@ -7,6 +7,15 @@ import { normalizeFriendCode } from '../account/account'
 import { inverseResult, recordOnlineMatch } from '../online/leaderboard'
 import { FATAL_SEATS, normalizeRoomCode, roomSeatName, roomTeam, seatSide, sideLabel, TRIPLE_SEATS, type PlayerProfile, type RoomChatControl, type RoomSeat } from '../online/protocol'
 import { usePeerRoom } from '../online/usePeerRoom'
+import {
+  fetchOnlineBan,
+  formatPenaltyClock,
+  mergeOnlinePenalty,
+  readQuitPenalty,
+  recordOnlineQuit,
+  type OnlineBanStatus,
+  type OnlinePenalty,
+} from '../online/conduct'
 import { getArtist } from '../game/roster'
 import { portraitUrl } from '../game/portraits'
 import { careerTitleForId } from '../game/career'
@@ -15,6 +24,7 @@ import { PlayerCardModal } from '../components/PlayerCardModal'
 import { HouseRulesPanel } from '../components/HouseRules'
 import { Portrait } from '../components/Portrait'
 import { RoomChat } from '../components/RoomChat'
+import { OnlineSafety } from '../components/OnlineSafety'
 import {
   festivalById,
   festivalCountdown,
@@ -140,14 +150,35 @@ export function Online({
   const [kickArmed, setKickArmed] = useState<RoomSeat | null>(null)
   const recordedState = useRef<BattleState | null>(null)
   const handledInvite = useRef<number | null>(null)
+  const banRef = useRef<OnlineBanStatus | null>(null)
+  const [penalty, setPenalty] = useState<OnlinePenalty>(() =>
+    mergeOnlinePenalty(null, readQuitPenalty()),
+  )
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
-    if (!festival) return
+    if (!festival && !penalty.active) return
     setNow(Date.now())
     const timer = window.setInterval(() => setNow(Date.now()), 1000)
     return () => window.clearInterval(timer)
-  }, [festival])
+  }, [festival, penalty.active])
+
+  useEffect(() => {
+    if (!account) return
+    let alive = true
+    const check = async () => {
+      const ban = await fetchOnlineBan(account.friendCode)
+      if (!alive) return
+      banRef.current = ban
+      setPenalty(mergeOnlinePenalty(ban, readQuitPenalty()))
+    }
+    void check()
+    const timer = window.setInterval(() => void check(), 30_000)
+    return () => {
+      alive = false
+      window.clearInterval(timer)
+    }
+  }, [account?.friendCode])
 
   const personalDeckBlocked = containsPersonalArtist(settings.deck)
   const festivalDeckOk = festival ? festivalDeckLegal(settings.deck, festival) : true
@@ -208,6 +239,19 @@ export function Online({
     setKickArmed(null)
   }, [session.phase, session.seats])
 
+  // Closing the tab during a live online match is still a self-quit. There is
+  // no reliable unload UI, so write the ledger entry only and let the next
+  // Online visit show the cooldown.
+  useEffect(() => {
+    if (session.phase !== 'battle' || !session.state || session.state.phase === 'over') return
+    const onPageHide = (event: PageTransitionEvent) => {
+      // Do not count a page entering the back/forward cache as a quit.
+      if (!event.persisted) recordOnlineQuit()
+    }
+    window.addEventListener('pagehide', onPageHide)
+    return () => window.removeEventListener('pagehide', onPageHide)
+  }, [session.phase, session.state?.phase])
+
   useEffect(() => {
     setPlaying(session.phase === 'battle' ? session.code : null)
   }, [session.phase, session.code, setPlaying])
@@ -236,6 +280,10 @@ export function Online({
   const recordSelfForfeit = () => {
     const active = session.state
     if (session.phase !== 'battle' || !active || active.phase === 'over') return
+    // Every self-initiated exit from a live online match counts toward the
+    // local quit cooldown. CPU/local matches never pass through this screen.
+    const quit = recordOnlineQuit()
+    setPenalty(mergeOnlinePenalty(banRef.current, quit))
     if (session.houseRules.format === '2v2') return
     // 1v1 only past this guard: the guest drives the rival side.
     const localSide = seatSide(
@@ -328,6 +376,8 @@ export function Online({
   const forfeitNotice = session.forfeit
     ? `${session.forfeit.loserName} LEFT THE MATCH · ${forfeitWon ? 'FORFEIT WIN' : 'FORFEIT LOSS'}`
     : undefined
+  const penaltyRemaining = penalty.active ? Math.max(0, penalty.until - now) : 0
+  const onlineLocked = penaltyRemaining > 0
   // In 2v2 the opponent is the other team, not the first guest who joined.
   // In a free-for-all every other mic is a rival.
   const opposingName = session.state?.party
@@ -357,8 +407,48 @@ export function Online({
     onSend: session.sendChat,
   }
 
+  if (onlineLocked && session.phase !== 'battle') {
+    return (
+      <main className="online">
+        <div className="online__bg" aria-hidden="true">
+          <span className="online__beam online__beam--l" />
+          <span className="online__beam online__beam--r" />
+          <span className="online__grid" />
+          <span className="online__vignette" />
+        </div>
+        <div className="online__shell">
+          <header className="online__top">
+            <button className="link-btn" onClick={backToMenu}>← MAIN MENU</button>
+            <span className="online__tag"><i /> ONLINE CONDUCT</span>
+            <span />
+          </header>
+          <section className="online-cooldown" role="alert">
+            <span className="online__kicker">
+              {penalty.source === 'report' ? 'REPORT BAN ACTIVE' : 'QUIT COOLDOWN ACTIVE'}
+            </span>
+            <h1>ONLINE <em>LOCKED.</em></h1>
+            <p>
+              {penalty.source === 'report'
+                ? 'This account reached the online conduct threshold. The safety desk has placed a temporary report ban on online play.'
+                : `You left ${penalty.quitCount} online matches inside two hours. Three exits trigger a 15-minute online cooldown.`}
+            </p>
+            <div className="online-cooldown__clock" aria-live="polite">
+              <span>BACK IN</span>
+              <b>{formatPenaltyClock(penaltyRemaining)}</b>
+            </div>
+            <span className="online-cooldown__fine">
+              CPU battles, the label and your mixtape stay available. This lock only stops online rooms.
+            </span>
+            <button className="btn btn--primary" onClick={backToMenu}>BACK TO THE SHOW</button>
+          </section>
+        </div>
+      </main>
+    )
+  }
+
   if (session.phase === 'battle' && session.state) {
     return (
+      <>
       <Battle
         key={session.matchId}
         settings={settings}
@@ -428,6 +518,14 @@ export function Online({
         forfeitNotice={forfeitNotice}
         festivalReward={festivalReward}
       />
+      <OnlineSafety
+        visible
+        seats={session.seats}
+        localSeat={localSeat}
+        roomCode={session.code}
+        reporterId={account?.friendCode ?? ''}
+      />
+      </>
     )
   }
 
@@ -749,6 +847,13 @@ export function Online({
             </div>
 
             <RoomChat control={chatControl} />
+            <OnlineSafety
+              visible={inRoom}
+              seats={session.seats}
+              localSeat={localSeat}
+              roomCode={session.code}
+              reporterId={account.friendCode}
+            />
 
             <HouseRulesPanel
               rules={session.houseRules}
@@ -809,7 +914,8 @@ export function Online({
 
             <p className="online-panel__fine">
               If a player closes the tab, the room ends. Ranked forfeits count as a loss; casual games
-              stay off the ranked board.
+              stay off the ranked board. Three self-initiated online exits inside two hours trigger a
+              15-minute online cooldown. CPU battles never count toward it.
             </p>
           </section>
         )}

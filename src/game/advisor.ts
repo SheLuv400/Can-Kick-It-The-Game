@@ -283,18 +283,16 @@ export function listAdvisorActions(state: BattleState): AdvisorAction[] {
       if (!weakest) continue
       replaceUid = weakest.uid
     }
-    const enemy = bestEnemyTarget(state)
     actions.push({
       id: actionId(['play', artistId]),
       kind: 'play',
       label: replaceUid ? `SWAP IN ${artist.name}` : `PLAY ${artist.name}`,
-      detail: `${artist.cost} HYPE · ${artist.bars} BARS · ${artist.crew}`,
+      detail: `${artist.cost} HYPE · ${artist.bars} BARS · STAGE MOVE, NO ENTRY DAMAGE`,
       artistId,
       replaceUid,
-      targetUid: enemy?.uid,
-      targetSide: 'enemy',
+      targetSide: 'none',
       cost: artist.cost,
-      attack: true,
+      attack: false,
       closesTurn: false,
     })
   }
@@ -602,65 +600,29 @@ function estimatePlay(state: BattleState, action: AdvisorAction): AdvisorEstimat
   const level = progressFor(state.playerProgress, action.artistId).level
   const stats = battleStatsFor(artist, level)
   const support = state.player.stage.find((card) => card.uid === action.replaceUid) ?? null
-  const stageBefore = action.replaceUid
-    ? state.player.stage.filter((card) => card.uid !== action.replaceUid)
-    : state.player.stage
-  const hit = computePlayDamage(stageBefore, artist.id, false, state.era)
-  const opener = artist.battle.passive.kind === 'opener' ? 2 : 0
-  const raw = Math.max(0, hit.total - hit.splash + opener)
-  const target = bestEnemyTarget(state, action.targetUid)
-  const projection = target
-    ? projectHit(state, raw, target, null)
-    : {
-        min: 0,
-        max: 0,
-        expected: 0,
-        minHp: 0,
-        maxHp: 0,
-        expectedHp: 0,
-        shield: 0,
-        blocked: false,
-      }
   let shield = 0
   let hype = 0
-  let crowd = 0
   let crowdHeal = 0
   for (const effect of artist.effects) {
     if (effect.kind === 'heal') crowdHeal += Math.min(effect.value, Math.max(0, state.player.maxCrowd - state.player.crowd))
     if (effect.kind === 'shield') shield += effect.value
     if (effect.kind === 'hype') hype += effect.value
     if (effect.kind === 'drain') hype += effect.value
-    if (effect.kind === 'splash') crowd += effect.value
   }
-  const pressure = target
-    ? projection.expected > 0
-      ? Math.max(1, Math.floor(projection.expected / 3)) + hit.splash + state.modifiers.crowdDamage
-      : 0
-    : raw + hit.splash + state.modifiers.crowdDamage
-  const kill = target
-    ? projection.minHp >= target.hp
-      ? 'likely'
-      : projection.maxHp >= target.hp
-        ? 'possible'
-        : 'none'
-    : 'none'
   const lostBars = support ? effectiveBars(support.artistId, support.encore, state.era) : 0
-  const notes: string[] = [`${stats.hp} HP BODY`]
-  if (opener > 0) notes.push('OPENER +2')
-  if (hit.splash > 0) notes.push(`${hit.splash} SPLASH`)
+  const notes: string[] = [`${stats.hp} HP BODY`, 'NO ENTRY DAMAGE']
   if (support) notes.push(`REPLACES ${artistName(support.artistId)} (${lostBars} BARS)`)
-  if (kill === 'likely') notes.push('LIKELY KNOCKOUT')
   return {
-    minDamage: projection.minHp,
-    maxDamage: projection.maxHp,
-    expectedDamage: projection.expectedHp,
-    shieldDamage: projection.shield,
-    hpDamage: projection.expectedHp,
+    minDamage: 0,
+    maxDamage: 0,
+    expectedDamage: 0,
+    shieldDamage: 0,
+    hpDamage: 0,
     secondaryDamage: 0,
-    kill,
+    kill: 'none',
     heal: 0,
     shield,
-    crowd: pressure + crowd,
+    crowd: 0,
     crowdHeal,
     hype,
     dot: 0,

@@ -782,11 +782,11 @@ function objectivesFor(chapter: number, index: 1 | 2 | 3): CareerMissionObjectiv
   ]
   if (index === 2) {
     if (chapter % 3 === 0) {
-      objectives.push({ id: 'feature', kind: 'feature', label: 'LAND 1 FEATURE VERSE WITH THE PERSONAL CARD', target: 1 })
+      objectives.push({ id: 'feature', kind: 'feature', label: 'LAND 1 FEATURE VERSE WITH ANY DECK CARD', target: 1 })
     } else if (chapter % 3 === 1) {
-      objectives.push({ id: 'defend', kind: 'defend', label: 'BLOCK OR HEAL 1 TIME WITH THE PERSONAL CARD', target: 1 })
+      objectives.push({ id: 'defend', kind: 'defend', label: 'BLOCK OR HEAL 1 TIME WITH ANY DECK CARD', target: 1 })
     } else {
-      objectives.push({ id: 'elemental', kind: 'elemental', label: 'USE 1 ELEMENTAL CUT WITH THE PERSONAL CARD', target: 1 })
+      objectives.push({ id: 'elemental', kind: 'elemental', label: 'USE 1 ELEMENTAL CUT WITH ANY DECK CARD', target: 1 })
     }
   }
   if (index === 3) {

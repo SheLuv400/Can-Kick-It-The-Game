@@ -1588,19 +1588,27 @@ function objectiveDone(
   personalStats: NonNullable<CareerBattlePerformance['cards']>[string],
   winner: 'player' | 'rival' | 'draw',
 ): boolean {
+  // Support, feature and elemental objectives are deck-building routes. Any
+  // card in the chosen 26 can satisfy them, so a Poison personal card is not
+  // locked out of a healing objective. Personal-play and clean stay personal.
+  const cards = Object.values(performance.cards ?? {})
+  const total = (key: 'features' | 'prevented' | 'healing' | 'elementalUses') =>
+    cards.length
+      ? cards.reduce((sum, card) => sum + (card[key] ?? 0), 0)
+      : (personalStats[key] ?? 0)
   switch (objective.kind) {
     case 'win':
       return winner === 'player'
     case 'personal-play':
       return (personalStats.uses ?? 0) >= objective.target
     case 'feature':
-      return (personalStats.features ?? 0) >= objective.target
+      return (total('features') || performance.features || 0) >= objective.target
     case 'clean':
       return !(performance.backstage ?? []).includes('personal')
     case 'defend':
-      return (personalStats.prevented ?? 0) + (personalStats.healing ?? 0) >= objective.target
+      return total('prevented') + total('healing') >= objective.target
     case 'elemental':
-      return (personalStats.elementalUses ?? 0) >= objective.target
+      return total('elementalUses') >= objective.target
     case 'headliner':
       return winner === 'player'
     default:

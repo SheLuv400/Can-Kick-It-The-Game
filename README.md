@@ -2,19 +2,19 @@
 
 A premium 26-slot hip-hop, R&B and pop card battler. Build the 26, earn your badges, take the stage, own the room.
 
-**Version 1.8.0 — The Stage Read Update**
+**Version 1.9.0 — The Fair Play Update**
 
 ## Play
 
 - **Live game:** [https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/](https://site-feacdc5bc49e490794946b6e6b47f727.freebuff.page/)
-- **Live mobile/PWA:** 1.8.0 is deployed at the game URL above, with manifest version 1.8.0. The production site serves the 1.8.0 payload.
-- **Latest public release:** [GitHub release v1.8.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.8.0) — THE STAGE READ UPDATE, with the Windows build and release notes. The 1.8.0 web build and Windows archive ship together.
+- **Live mobile/PWA:** 1.9.0 is deployed at the game URL above, with manifest version 1.9.0. The production site serves the 1.9.0 payload.
+- **Latest public release:** [GitHub release v1.9.0](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/tag/v1.9.0) — THE FAIR PLAY UPDATE, with the Windows build and release notes. The 1.9.0 web build and Windows archive ship together.
 - **Windows launcher (recommended):** [Download CanIKickItLauncher-1.0.1-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.4.1/CanIKickItLauncher-1.0.1-win32-x64.zip) — 152.0 MiB
   - Extract and run `CanIKickItLauncher.exe`. It installs the game, checks GitHub Releases for updates, and launches it from one place.
   - SHA-256: `066d7a2c8357c229a631dda1a263951c476e09e3279d83b10a224206bd17201b`
-- **Windows game build (manual):** [Download CanIKickIt-1.8.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.8.0/CanIKickIt-1.8.0-win32-x64.zip) — 166.3 MiB
-  - SHA-256: `b44ba33d2baf85f532390b150b4bc9336a0c299b726cfd0964eaebb698c55b80`
-  - The 1.8.0 archive is attached to the public v1.8.0 release. It passed ZIP integrity checks, and the embedded `app.asar` reports 1.8.0.
+- **Windows game build (manual):** [Download CanIKickIt-1.9.0-win32-x64.zip](https://github.com/SheLuv400/Can-Kick-It-The-Game/releases/download/v1.9.0/CanIKickIt-1.9.0-win32-x64.zip) — 167.0 MiB
+  - SHA-256: `e72e7c9a9c04f81d789f468d46f0430c234f6df1932e7e018d81942577ac9c7a`
+  - The 1.9.0 archive is attached to the public v1.9.0 release. It passed ZIP integrity checks, and the embedded `app.asar` reports 1.9.0.
 - **GitHub:** [https://github.com/SheLuv400/Can-Kick-It-The-Game](https://github.com/SheLuv400/Can-Kick-It-The-Game)
 
 Phone and Windows PC players use the same online network: add each other with a six-character friend code, or share the host's five-character room code. Both devices can meet in the same Casual or Ranked room.
@@ -31,6 +31,19 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Launcher updates:** the launcher itself is version 1.0.1 and is updated separately. Game updates are handled inside it.
 - **Unsigned build:** Windows SmartScreen may warn on first launch. Choose **More info → Run anyway** if you trust the download.
 
+## What’s new in 1.9.0
+
+### THE FAIR PLAY UPDATE
+
+- **Crisis Desk opens itself.** When a Label Office week creates a crisis, the office switches to the Crisis Desk and keeps a live case alert on every tab. Resolve the open case and **ADVANCE WEEK** unlocks.
+- **Thirteen founding missions.** Ultimate Team adds longer win and circuit runs, a 20-win legacy mission, and 500 / 1,500 / 3,000 BUZZ goals. The full board is 13 missions with credits and BUZZ rewards.
+- **Any-card career routes.** Support, feature and elemental objectives now read **ANY DECK CARD** and count every qualifying card in the 26. A Poison personal card can clear a “block or heal” mission with a healing card in the deck. Personal-play and clean objectives remain personal-card routes.
+- **No free entry damage.** Playing a card from hand into the set is now a stage move only. It does not damage an artist or the crowd. Damage comes from moves, Encores and Feature Verses, so cut-and-place churn cannot farm cheap chip damage.
+- **Online quit cooldown.** Three self-initiated exits from live online matches inside two hours trigger a 15-minute online cooldown. Closing the tab during a live match also records the exit. CPU battles, circuits, the label and the mixtape stay available.
+- **Report desk.** Online rooms now have **SAFETY / REPORT** for bullying, harassment, racial or vocal abuse, cheating and other safety issues. Choose the player, reason and optional detail; the report is tied to the player code in the room.
+- **Escalating report bans.** Three separate reports in 30 days trigger a 30-minute online ban. The next report threshold is 60 minutes, then 120, then onward, doubling each time. Report bans are stored by the public site backend; quit cooldowns stay local to the device.
+- **Release status.** The 1.9.0 mobile/PWA payload is live at the game URL above with manifest 1.9.0. The 1.9.0 Windows archive is attached to the public v1.9.0 release.
+
 ## What’s new in 1.8.0
 
 ### THE STAGE READ UPDATE
@@ -44,7 +57,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Graphics & Display.** New presets — **Auto, Low, Medium, High** and **Ultra** — control frame limit, render scale, UI scale, card image quality, card materials, holo foil, concert lighting, shadows, bloom, particles and background motion.
 - **Control the room.** Audio visualizers, card tilt, reduced motion, flash effects, VHS effects and a live FPS readout can be tuned independently. Auto quality samples measured frames instead of guessing from the device name.
 - **Phone fit.** The battle HUD, advisor panel and settings sheet fit a 390px phone without horizontal overflow, with target and card highlights that stay readable at that width.
-- **Release status.** The 1.8.0 mobile/PWA payload is live at the game URL above with manifest 1.8.0. The 1.8.0 Windows archive is attached to the public v1.8.0 release.
+- **Release status.** The 1.8.0 mobile/PWA payload has been replaced by 1.9.0. The 1.8.0 Windows archive remains on its release page.
 
 ## What’s new in 1.7.0
 
@@ -58,7 +71,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Clean exits.** A player who leaves a free-for-all match is marked **LEFT** and knocked out of that corner. The remaining corners keep playing instead of turning the room into a team forfeit.
 - **Result and rematch.** The result screen lists all four final crowds, and **RUN IT BACK** restores every corner to 72 Crowd.
 - **Casual only.** Fatal 4 is casual-only in this build; ranked play remains 1v1. Triple Threat, 2v2, room chat/voice and standard 1v1 remain included.
-- **Release status.** The 1.7.0 mobile/PWA payload has been replaced by 1.8.0. The 1.7.0 Windows archive remains on its release page.
+- **Release status.** The 1.7.0 mobile/PWA payload has been replaced by 1.9.0. The 1.7.0 Windows archive remains on its release page.
 
 ## What’s new in 1.6.0
 
@@ -71,7 +84,7 @@ The launcher is the recommended Windows install. Download it once, extract the Z
 - **Read the room.** The in-battle strip shows every seat, its live crowd, its stage count and who is on the mic, targeting or waiting.
 - **Hands stay private.** Only the active player receives its hand over the wire; waiting and target hands stay in the host's authoritative state. A guest cannot act or retarget during another seat's turn.
 - **Casual only.** Triple Threat is casual-only in this build; ranked play remains 1v1. Standard 1v1 and 2v2 are unchanged.
-- **Release status.** The 1.6.0 mobile/PWA payload has been replaced by 1.8.0. The 1.6.0 Windows archive remains on its release page.
+- **Release status.** The 1.6.0 mobile/PWA payload has been replaced by 1.9.0. The 1.6.0 Windows archive remains on its release page.
 
 ## What’s new in 1.5.0
 

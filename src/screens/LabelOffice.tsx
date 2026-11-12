@@ -78,6 +78,7 @@ export function LabelOffice({
   const [trackOpen, setTrackOpen] = useState(false)
   const [dropTarget, setDropTarget] = useState<string | null>(null)
   const flashTimer = useRef<number | null>(null)
+  const announcedCrises = useRef<Set<string>>(new Set())
 
   const role = roleInfo(label)
   const openCrises = label.crises.filter((crisis) => crisis.status === 'OPEN')
@@ -120,6 +121,18 @@ export function LabelOffice({
     setTitle('')
     setTrackOpen(false)
   }, [activeId])
+
+  // A crisis is created after the week advances. Keep the desk in front of
+  // the player instead of leaving a silent gate on the office tab.
+  useEffect(() => {
+    const open = label.crises.filter((crisis) => crisis.status === 'OPEN')
+    if (!open.length) return
+    const newest = open[open.length - 1]
+    if (announcedCrises.current.has(newest.id)) return
+    announcedCrises.current.add(newest.id)
+    setTab('crisis')
+    flashNotice(`NEW ${newest.kind} · ${newest.title} · RESOLVE IT TO ADVANCE`)
+  }, [label.crises])
 
   const greenlight = () => {
     if (!activeId || activeAlbum || cost > team.credits) return
@@ -208,13 +221,27 @@ export function LabelOffice({
             </button>
             <span className="label__hint">
               {openCrises.length
-                ? `RESOLVE ${openCrises.length} OPEN ${openCrises.length === 1 ? 'CRISIS' : 'CRISES'} TO ADVANCE`
+                ? `CRISIS DESK OPEN · RESOLVE ${openCrises.length} ${openCrises.length === 1 ? 'CASE' : 'CASES'} TO ADVANCE`
                 : 'CHART ROYALTIES · NEW INVOICES · CHART WEEK'}
             </span>
           </div>
         </section>
 
         {flash && <p className="label__flash">{flash}</p>}
+
+        {openCrises.length > 0 && (
+          <button
+            type="button"
+            className="label__crisis-alert"
+            onClick={() => setTab('crisis')}
+          >
+            <span aria-hidden="true">⚠</span>
+            <b>
+              {openCrises.length} OPEN {openCrises.length === 1 ? 'CRISIS IS' : 'CRISES ARE'} HOLDING THE WEEK
+            </b>
+            <em>OPEN THE CRISIS DESK →</em>
+          </button>
+        )}
 
         <nav className="label__tabs" aria-label="Label office sections">
           {TABS.map((item) => (

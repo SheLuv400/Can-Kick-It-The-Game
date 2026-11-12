@@ -145,10 +145,15 @@ state = battleReducer(state, {
   targetUid: openingTarget.uid,
 })
 assert.equal(state.player.stage.length, 3)
-assert.ok(
-  state.rival.stage.find((card) => card.uid === openingTarget.uid)?.hp < openingHp ||
-    state.rival.crowd < openingCrowd,
-  'a played card damages an artist or the crowd',
+assert.equal(
+  state.rival.stage.find((card) => card.uid === openingTarget.uid)?.hp,
+  openingHp,
+  'playing a card does not damage an artist',
+)
+assert.equal(
+  state.rival.crowd,
+  openingCrowd,
+  'playing a card does not damage the crowd',
 )
 
 const staged = state.player.stage[0]
